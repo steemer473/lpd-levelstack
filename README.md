@@ -1,0 +1,50 @@
+# LevelStack (product app)
+
+Delivery app for [LevelStack](https://levelplaydigital.com/platform/levelstack) — intake, research pipeline, report UI, and PDF. **Commerce stays on `lpd-redesign`** (hub); this repo reads hub `orders` for entitlement.
+
+## Docs
+
+- [Project brief & PRD](docs/project-brief.md)
+- Sample report UI reference: [assets/levelstack-sample-report.html](assets/levelstack-sample-report.html)
+
+## Stack
+
+Next.js 16 (App Router), React 19, TypeScript, Tailwind v4, shadcn/ui (`radix-vega`), Supabase (shared project with hub).
+
+## Setup
+
+```bash
+pnpm install
+cp .env.example .env.local
+# Fill Supabase URL/keys from the same project as lpd-redesign
+pnpm dev
+```
+
+Apply product migrations to the **shared** Supabase project (same as `lpd-redesign`):
+
+**Detailed guide:** [docs/supabase-migration.md](docs/supabase-migration.md)
+
+Quick path (Dashboard): copy `supabase/migrations/20250603000000_levelstack_product_tables.sql` → [SQL Editor](https://supabase.com/dashboard/project/lppmbgqsovtfbpbvjvxi/sql/new) → Run → verify with `supabase/verify_levelstack_migration.sql`.
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Local dev server |
+| `pnpm build` | Production build |
+| `pnpm type-check` | TypeScript |
+| `pnpm lint` | ESLint |
+| `pnpm test:unit` | Vitest |
+
+## Phase status
+
+- **Phase 0** — Scaffold (done)
+- **Phase 1** — Handoff + intake (done) — see [docs/phase-1-e2e-test.md](docs/phase-1-e2e-test.md)
+- **Phase 2** — Research + synthesis + **on-screen progress** — plan: [docs/plans/phase-2-instant-generation.md](docs/plans/phase-2-instant-generation.md)
+- **Phase 3** — Report UI, PDF, email
+
+No `STRIPE_*` in this app (v1).
+
+## Vercel
+
+Create a separate Vercel project (e.g. `levelstack.levelplaydigital.com`). Set env vars from `.env.example`. Hub needs `NEXT_PUBLIC_LEVELSTACK_APP_URL` pointing here.

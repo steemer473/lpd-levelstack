@@ -1,0 +1,11 @@
+# LevelStack — link to the same Supabase project as lpd-redesign (commercial hub).
+# Apply migrations: supabase db push (or via Supabase dashboard SQL editor).
+
+# Same project as lpd-redesign (commercial hub)
+project_id = "lppmbgqsovtfbpbvjvxi"
+
+[db]
+major_version = 15
+
+[api]
+enabled = true
