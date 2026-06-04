@@ -3,13 +3,12 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -38,9 +37,14 @@ export function LevelstackIntakeForm() {
     defaultValues: levelstackIntakeDefaults,
   })
 
-  const priorNames = form.watch("priorBusinessNames")
-  const hasAdSpend = form.watch("hasActiveAdSpend") === "yes"
-  const geoMarket = form.watch("geoMarket")
+  const priorNames =
+    useWatch({ control: form.control, name: "priorBusinessNames" }) ??
+    levelstackIntakeDefaults.priorBusinessNames
+  const hasAdSpend =
+    useWatch({ control: form.control, name: "hasActiveAdSpend" }) === "yes"
+  const geoMarket =
+    useWatch({ control: form.control, name: "geoMarket" }) ??
+    levelstackIntakeDefaults.geoMarket
   const needsMarketCity = geoMarket === "local" || geoMarket === "regional"
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [validationSummary, setValidationSummary] = useState<string[]>([])

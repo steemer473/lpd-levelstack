@@ -14,7 +14,7 @@ export function extractSocialUrls(text: string): { platform: string; url: string
   const out: { platform: string; url: string }[] = []
   const seen = new Set<string>()
 
-  for (let raw of matches) {
+  for (const raw of matches) {
     let url = raw.trim()
     if (!url.startsWith("http")) url = `https://${url}`
     try {
