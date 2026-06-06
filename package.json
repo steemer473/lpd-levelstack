@@ -3,8 +3,11 @@
   "version": "0.0.1",
   "type": "module",
   "private": true,
+  "packageManager": "pnpm@9.15.9",
   "scripts": {
     "build:tokens": "node scripts/build-design-tokens.mjs",
+    "prepare": "pnpm build:tokens",
+    "predev": "pnpm build:tokens",
     "dev": "next dev --port 3001",
     "prebuild": "pnpm build:tokens",
     "build": "next build",
@@ -12,7 +15,12 @@
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "type-check": "tsc --noEmit",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run",
+    "verify:env": "node scripts/verify-vercel-env.mjs --from-local",
+    "verify:research": "node scripts/verify-research-keys.mjs"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["sharp"]
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

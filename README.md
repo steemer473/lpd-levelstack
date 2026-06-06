@@ -16,8 +16,7 @@ Next.js 16 (App Router), React 19, TypeScript, Tailwind v4, shadcn/ui (`radix-ve
 ## Setup
 
 ```bash
-pnpm install
-pnpm build:tokens
+pnpm install   # runs build:tokens via prepare
 cp .env.example .env.local
 # Fill Supabase URL/keys from the same project as lpd-redesign
 pnpm dev
@@ -50,4 +49,12 @@ No `STRIPE_*` in this app (v1).
 
 ## Vercel
 
-Create a separate Vercel project (e.g. `levelstack.levelplaydigital.com`). Set env vars from `.env.example`. Hub needs `NEXT_PUBLIC_LEVELSTACK_APP_URL` pointing here.
+Project: **lpd-levelstack** on Vercel (`https://lpd-levelstack.vercel.app`). Full checklist: [docs/vercel.md](docs/vercel.md).
+
+```bash
+pnpm dlx vercel link --yes --project lpd-levelstack --scope steemer473s-projects
+pnpm verify:env          # checklist from .env.local
+pnpm verify:research     # SerpAPI + OpenAI smoke test
+```
+
+Set Production env vars in Vercel (Supabase, `SERPAPI_KEY`, `OPENAI_API_KEY`, public URLs). Hub (`lpd-redesign`) needs `NEXT_PUBLIC_LEVELSTACK_APP_URL` pointing to this deployment.

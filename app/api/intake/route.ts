@@ -9,6 +9,9 @@ import { levelstackIntakeSchema } from "@/lib/intake/schema"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
+/** Vercel Fluid Compute — report synthesis often runs 1–3 minutes */
+export const maxDuration = 300
+
 export async function POST(request: Request) {
   const auth = await requireLevelStackIntakeAccess()
   if (!auth.ok) {

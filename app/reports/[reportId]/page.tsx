@@ -7,9 +7,11 @@ import { RegenerateReportButton } from "@/components/report/regenerate-report-bu
 import { ReportGenerating } from "@/components/report/report-generating"
 import { Button } from "@/components/ui/button"
 import { FormPanel } from "@/components/ui/form-panel"
+import { isDevReportPreviewEnabled } from "@/lib/dev-report-preview"
 import { isPlaceholderReport } from "@/lib/pipeline/placeholder-report"
 import { levelstackReportJsonSchema } from "@/lib/pipeline/report-types"
-import { getReportForUser } from "@/lib/reports/get-report"
+import { getReportById, getReportForUser } from "@/lib/reports/get-report"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"
@@ -23,15 +25,19 @@ export default async function ReportPage({ params }: PageProps) {
     return null
   }
 
+  const devPreview = isDevReportPreviewEnabled()
+
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
+  if (!user && !devPreview) {
     redirect(`/auth/sign-in?redirect=/reports/${reportId}`)
   }
 
-  const report = await getReportForUser(reportId, user.id)
+  const report = user
+    ? await getReportForUser(reportId, user.id)
+    : await getReportById(reportId)
   if (!report) {
     return (
       <ProductShell maxWidth="md" showSignOut resultsStyle>
@@ -64,11 +70,14 @@ export default async function ReportPage({ params }: PageProps) {
     )
   }
 
-  const { data: intake } = await supabase
-    .from("levelstack_intakes")
-    .select("form_data")
-    .eq("id", report.intake_id)
-    .maybeSingle()
+  const intakeClient = user ? supabase : createAdminClient()
+  const { data: intake } = intakeClient
+    ? await intakeClient
+        .from("levelstack_intakes")
+        .select("form_data")
+        .eq("id", report.intake_id)
+        .maybeSingle()
+    : { data: null }
 
   const businessLabel =
     (intake?.form_data as { primaryBusinessName?: string } | null)
@@ -76,7 +85,7 @@ export default async function ReportPage({ params }: PageProps) {
 
   if (report.status === "pending" || report.status === "generating") {
     return (
-      <ProductShell showSignOut resultsStyle>
+      <ProductShell showSignOut={Boolean(user)} resultsStyle>
         <FormPanel className="max-w-2xl mx-auto w-full">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold tracking-tight">Building your report</h1>
@@ -106,9 +115,9 @@ export default async function ReportPage({ params }: PageProps) {
   const isStalePlaceholder = isPlaceholderReport(parsed.data)
 
   return (
-    <ProductShell showSignOut resultsStyle>
+    <ProductShell showSignOut={Boolean(user)} resultsStyle>
       <div className="space-y-4 w-full">
-        {isDev && (
+        {isDev && user && (
           <RegenerateReportButton
             reportId={reportId}
             isStalePlaceholder={isStalePlaceholder}
