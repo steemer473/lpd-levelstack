@@ -1,0 +1,51 @@
+/* Patterns from seo-audit-nextjs + seo-foundation-audit */
+
+@layer utilities {
+  /* seo-audit-nextjs: dark hero + blue depth */
+  .bg-seo-hero {
+    background: linear-gradient(
+      to bottom right,
+      var(--seo-brand-dark) 0%,
+      var(--seo-brand-dark) 45%,
+      #172554 100%
+    );
+  }
+
+  /* seo-foundation /results/ hero band — --hero-bg, not --seo-brand-dark */
+  .bg-hero {
+    background-color: var(--hero-bg);
+  }
+
+  /* seo-audit-nextjs globals.css */
+  .gradient-blue-orange {
+    background: linear-gradient(135deg, var(--seo-brand-blue) 0%, var(--seo-brand-orange) 100%);
+  }
+
+  .gradient-blue-orange-glow {
+    background: linear-gradient(135deg, var(--seo-brand-blue) 0%, var(--seo-brand-orange) 100%);
+    box-shadow:
+      0 0 40px rgba(37, 99, 235, 0.3),
+      0 0 80px rgba(249, 115, 22, 0.2);
+  }
+
+  /* Elevated form card (audit page + status page) */
+  .form-panel {
+    @apply rounded-xl bg-card text-card-foreground shadow-2xl border border-border/50;
+  }
+
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  /* Subtle mesh on navy hero (no JS / framer) */
+  .hero-mesh {
+    background-image:
+      radial-gradient(ellipse 80% 50% at 20% 40%, hsla(193, 100%, 50%, 0.12), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 60%, hsla(14, 100%, 60%, 0.1), transparent);
+  }
+}

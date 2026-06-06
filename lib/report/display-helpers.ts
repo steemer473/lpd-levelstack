@@ -1,18 +1,51 @@
+import type { LucideIcon } from "lucide-react"
+import {
+  ClipboardList,
+  Globe,
+  LayoutGrid,
+  Search,
+  Star,
+  Target,
+  TrendingUp,
+} from "lucide-react"
+
 import type { LevelstackReportJson, ReportSection } from "@/lib/pipeline/report-types"
 
+/** Report + product brand colors — mirrors tokens/design-tokens.json (--lpd-*) */
 export const LPD = {
-  orange: "#FF6633",
-  blue: "#00D4F5",
-  dark: "#090E18",
-  red: "#E24B4A",
-  amber: "#EF9F27",
-  green: "#639922",
+  orange: "var(--lpd-orange)",
+  blue: "var(--lpd-blue)",
+  dark: "var(--lpd-dark)",
+  red: "var(--lpd-severity-critical)",
+  amber: "var(--lpd-severity-attention)",
+  green: "var(--lpd-severity-good)",
 } as const
+
+export const REPORT_ASSESSMENT_TITLE =
+  "DIGITAL PRESENCE & REVENUE FUNNEL ASSESSMENT" as const
 
 export function planDisplayName(planId: string | null): string {
   if (planId === "levelstack-review-call") return "LevelStack + Review Call"
-  if (planId === "levelstack-standard") return "LevelStack Standard"
-  return "LevelStack"
+  if (planId === "levelstack-standard") return "LevelStack Assessment"
+  return "LevelStack Assessment"
+}
+
+export function readinessLabel(score: number): string {
+  if (score >= 80) return "Strong"
+  if (score >= 70) return "Established"
+  if (score >= 55) return "Developing"
+  if (score >= 40) return "Early"
+  return "At risk"
+}
+
+export const TAB_ICONS: Record<string, LucideIcon> = {
+  executive_summary: LayoutGrid,
+  search_footprint: Search,
+  online_reputation: Star,
+  digital_presence: Globe,
+  revenue_funnel: TrendingUp,
+  competitive_context: Target,
+  action_plan: ClipboardList,
 }
 
 export function severityToFlag(severity: string): "critical" | "attention" | "good" {
@@ -29,9 +62,9 @@ export function flagLabel(severity: string): string {
 }
 
 export function sectionDotClass(status: ReportSection["status"]): string {
-  if (status === "critical") return "bg-[#E24B4A]"
-  if (status === "attention") return "bg-[#EF9F27]"
-  return "bg-[#639922]"
+  if (status === "critical") return "bg-lpd-critical"
+  if (status === "attention") return "bg-lpd-attention"
+  return "bg-lpd-good"
 }
 
 export function sectionStatusBadge(section: ReportSection): string {
@@ -87,6 +120,7 @@ export function priorityBreakdown(meta: LevelstackReportJson["meta"]) {
 }
 
 export const SECTION_TAB_ORDER: { id: string; label: string }[] = [
+  { id: "executive_summary", label: "Executive summary" },
   { id: "search_footprint", label: "Search footprint" },
   { id: "online_reputation", label: "Reputation" },
   { id: "digital_presence", label: "Digital presence" },

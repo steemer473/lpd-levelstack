@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { FormPanel } from "@/components/ui/form-panel"
 import { createClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"
@@ -40,28 +41,41 @@ export default async function IntakeCompletePage() {
     redirect("/intake")
   }
 
+  const { data: report } = await supabase
+    .from("levelstack_reports")
+    .select("id")
+    .eq("intake_id", intake.id)
+    .maybeSingle()
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Intake received</CardTitle>
-        <CardDescription>
-          We&apos;re generating your LevelStack report. Progress updates will appear
-          in your account when the report is ready — we don&apos;t guarantee a fixed
-          public turnaround time.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-muted-foreground text-sm">
-          Submitted{" "}
-          {intake.submitted_at
-            ? new Date(intake.submitted_at).toLocaleString()
-            : "recently"}
-          .
-        </p>
-        <Button variant="outline" asChild>
-          <Link href="/">Back to home</Link>
-        </Button>
-      </CardContent>
-    </Card>
+    <FormPanel className="max-w-lg mx-auto text-center">
+      <Card className="border-0 shadow-none">
+        <CardHeader>
+          <CardTitle>Intake received</CardTitle>
+          <CardDescription>
+            We&apos;re generating your LevelStack report. Open your report page for
+            live progress.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-muted-foreground text-sm">
+            Submitted{" "}
+            {intake.submitted_at
+              ? new Date(intake.submitted_at).toLocaleString()
+              : "recently"}
+            .
+          </p>
+          {report?.id ? (
+            <Button variant="brand" asChild className="w-full sm:w-auto">
+              <Link href={`/reports/${report.id}`}>View report progress</Link>
+            </Button>
+          ) : (
+            <Button variant="outline" asChild>
+              <Link href="/intake">Back to intake</Link>
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    </FormPanel>
   )
 }

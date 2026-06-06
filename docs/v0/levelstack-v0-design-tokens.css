@@ -1,0 +1,88 @@
+/**
+ * LevelStack — V0 design tokens (attach alongside levelstack-v0-design-tokens.json)
+ * Paste into v0 or use as @theme reference. Matches app/globals.css + report UI.
+ */
+:root {
+  /* Brand */
+  --lpd-orange: #ff6633;
+  --lpd-blue: #00d4f5;
+  --lpd-dark: #002147;
+
+  /* Report severity */
+  --lpd-severity-critical: #e24b4a;
+  --lpd-severity-attention: #ef9f27;
+  --lpd-severity-good: #639922;
+
+  /* Report v2 (levelstack-executive-summary-v2.png) — use --rpt-* on report UI, not hub --lpd-orange/--lpd-blue */
+  --rpt-orange: #f0ad4e;
+  --rpt-blue: #5bc0de;
+  --rpt-intro-bg: #e8f4fc;
+  --rpt-intro-border: #b8d4e8;
+  --rpt-header-meta: rgba(255, 255, 255, 0.82);
+  --rpt-header-divider: rgba(255, 255, 255, 0.12);
+
+  --report-header-bg: var(--lpd-dark);
+  --report-header-text: #ffffff;
+  --report-header-subtitle: var(--rpt-blue);
+  --report-header-meta: var(--rpt-header-meta);
+  --report-tab-active-underline: var(--rpt-orange);
+  --report-tab-bar-bg: #ffffff;
+
+  /* shadcn semantic (light mode — primary report view) */
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --border: 214.3 31.8% 91.4%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --destructive: 0 84.2% 60.2%;
+  --radius: 0.5rem;
+
+  /* Typography */
+  --font-sans: Inter, system-ui, -apple-system, sans-serif;
+  --font-heading: Poppins, Inter, sans-serif;
+  --font-mono: "Roboto Mono", monospace;
+
+  /* Layout */
+  --report-max-width: 87.5rem; /* 1400px */
+  --report-card-radius: 0.75rem;
+  --report-tab-height: 2.5rem;
+
+  /* Effects */
+  --gradient-brand: linear-gradient(
+    135deg,
+    hsl(193, 100%, 50%) 0%,
+    hsl(14, 100%, 60%) 100%
+  );
+  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-btn-orange: 0 10px 20px hsla(14, 100%, 60%, 0.4);
+}
+
+/* Severity utility classes for v0 output */
+.severity-critical {
+  color: var(--lpd-severity-critical);
+  background: color-mix(in srgb, var(--lpd-severity-critical) 12%, white);
+}
+.severity-attention {
+  color: var(--lpd-severity-attention);
+  background: color-mix(in srgb, var(--lpd-severity-attention) 12%, white);
+}
+.severity-good {
+  color: var(--lpd-severity-good);
+  background: color-mix(in srgb, var(--lpd-severity-good) 12%, white);
+}
+
+.report-header {
+  background: var(--report-header-bg);
+  color: var(--report-header-text);
+}
+
+.report-card {
+  border-radius: var(--report-card-radius);
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-card);
+  background: hsl(var(--card));
+}

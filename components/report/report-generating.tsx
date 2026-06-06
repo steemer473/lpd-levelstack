@@ -14,13 +14,6 @@ import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { PIPELINE_STEPS } from "@/lib/pipeline/constants"
 
 const stepIcons = [Search, Shield, Globe, Megaphone, BarChart3, Target] as const
@@ -129,50 +122,34 @@ export function ReportGenerating({ reportId, businessLabel }: ReportGeneratingPr
 
   if (failed) {
     return (
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Report generation failed</CardTitle>
-          <CardDescription>{failed}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Try again
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="text-center space-y-4">
+        <p className="text-destructive text-sm">{failed}</p>
+        <Button variant="brand" onClick={() => window.location.reload()}>
+          Try again
+        </Button>
+      </div>
     )
   }
 
   if (isComplete) {
     return (
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <CheckCircle2 className="h-16 w-16 text-green-600" />
-          </div>
-          <CardTitle className="text-2xl">Your LevelStack report is ready</CardTitle>
-          <CardDescription>Loading full report for {businessLabel}…</CardDescription>
-        </CardHeader>
-        <CardContent className="flex justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </CardContent>
-      </Card>
+      <div className="text-center py-6 space-y-4">
+        <CheckCircle2 className="h-16 w-16 text-green-600 mx-auto" />
+        <p className="text-lg font-semibold">Your LevelStack report is ready</p>
+        <p className="text-muted-foreground text-sm">
+          Loading full report for {businessLabel}…
+        </p>
+        <Loader2 className="h-6 w-6 animate-spin text-brand-orange mx-auto" />
+      </div>
     )
   }
 
   return (
-    <Card className="max-w-3xl mx-auto">
-      <CardHeader className="text-center">
-        <div className="flex justify-center mb-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        </div>
-        <CardTitle className="text-2xl">Building your LevelStack report</CardTitle>
-        <CardDescription className="text-base mt-2">
-          Researching digital presence for{" "}
-          <span className="font-medium text-foreground">{businessLabel}</span>
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div>
+      <div className="flex justify-center mb-6">
+        <Loader2 className="h-10 w-10 animate-spin text-brand-orange" />
+      </div>
+      <div>
         <div className="space-y-3">
           {PIPELINE_STEPS.map((step, index) => {
             const Icon = stepIcons[index] ?? Search
@@ -188,7 +165,7 @@ export function ReportGenerating({ reportId, businessLabel }: ReportGeneratingPr
                 key={step.id}
                 className={`flex items-center gap-4 rounded-lg border p-4 transition-all ${
                   active
-                    ? "border-primary bg-primary/5 shadow-sm"
+                    ? "border-brand-orange/40 bg-brand-orange/5 shadow-sm"
                     : done
                       ? "border-green-200 bg-green-50/80 dark:border-green-900 dark:bg-green-950/30"
                       : "border-muted bg-muted/30 opacity-70"
@@ -198,7 +175,7 @@ export function ReportGenerating({ reportId, businessLabel }: ReportGeneratingPr
                   {done ? (
                     <CheckCircle2 className="h-6 w-6 text-green-600" />
                   ) : active ? (
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <Loader2 className="h-6 w-6 animate-spin text-brand-orange" />
                   ) : (
                     <Icon className="h-6 w-6 text-muted-foreground" />
                   )}
@@ -207,13 +184,13 @@ export function ReportGenerating({ reportId, businessLabel }: ReportGeneratingPr
                   <div className="flex items-center justify-between gap-2">
                     <span
                       className={`font-medium text-sm ${
-                        active ? "text-primary" : done ? "text-green-800 dark:text-green-300" : ""
+                        active ? "text-brand-orange" : done ? "text-green-800" : ""
                       }`}
                     >
                       {step.label}
                     </span>
                     {active && (
-                      <span className="text-xs text-primary animate-pulse shrink-0">
+                      <span className="text-xs text-brand-orange animate-pulse shrink-0">
                         In progress
                       </span>
                     )}
@@ -243,7 +220,7 @@ export function ReportGenerating({ reportId, businessLabel }: ReportGeneratingPr
             </p>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

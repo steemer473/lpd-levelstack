@@ -1,4 +1,5 @@
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
+import { TERMS } from "@/lib/report/customer-terms"
 import type {
   LevelstackReportJson,
   ReportSection,
@@ -92,7 +93,7 @@ export function buildActionPlanFromSections(
       findingRef: searchFinding ? findingRef(searchFinding) : "Google Business Profile",
     },
     {
-      task: "Align homepage headline and primary CTA with your stated offer",
+      task: `Align homepage headline and primary ${TERMS.cta} with your stated offer`,
       sub: intake
         ? `${intake.primaryService} · ${intake.pricePoint}`
         : "Match service and price from intake",
@@ -120,7 +121,7 @@ export function buildActionPlanFromSections(
       : []),
     {
       task: runsAds
-        ? "Re-enable ads only after landing trust, CTA, and offer clarity pass a five-second test"
+        ? `Re-enable ads only after landing trust, ${TERMS.cta}, and offer clarity pass a five-second test`
         : "Publish one FAQ-style page for who you help, where, and credentials",
       sub: runsAds
         ? "Protects ad spend from trust gaps documented in the funnel section."

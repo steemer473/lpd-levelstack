@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "search-console-audit": {
+      "source": "/Users/stephaniedragsdale/.cursor/skills/search-console-audit",
+      "sourceType": "local",
+      "computedHash": "82e5b6659ee5859858dfb21e515423f32bd2798ce4af3dad850b31eb7766cf7b"
+    }
+  }
+}

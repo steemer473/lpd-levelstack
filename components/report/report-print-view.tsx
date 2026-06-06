@@ -1,0 +1,124 @@
+import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
+import {
+  planDisplayName,
+  readinessLabel,
+  REPORT_ASSESSMENT_TITLE,
+} from "@/lib/report/display-helpers"
+import {
+  resolveCompetitiveSnapshot,
+  resolveExecutiveContent,
+} from "@/lib/report/executive-summary-resolve"
+
+type ReportPrintViewProps = {
+  report: LevelstackReportJson
+}
+
+export function ReportPrintView({ report }: ReportPrintViewProps) {
+  const { meta, sections, actionPlan } = report
+  const content = resolveExecutiveContent(report)
+  const competitive = resolveCompetitiveSnapshot(report)
+  const contentSections = sections.filter((s) => s.id !== "action_plan")
+
+  return (
+    <article className="max-w-4xl mx-auto p-8 text-black bg-white text-sm leading-relaxed print:p-6">
+      <header className="border-b-2 border-gray-900 pb-4 mb-6">
+        <h1 className="text-xl font-semibold">
+          {meta.ownerName} · {meta.businessName}
+        </h1>
+        <p className="text-xs uppercase tracking-wide text-gray-500 mt-1">
+          {REPORT_ASSESSMENT_TITLE}
+        </p>
+        <div className="flex flex-wrap gap-4 mt-3 text-xs">
+          <span>Market: {meta.marketLabel}</span>
+          <span>Date: {meta.reportDate}</span>
+          <span>Type: {planDisplayName(meta.planId)}</span>
+          <span>
+            Score: {meta.overallScore}/100 ({readinessLabel(meta.overallScore)}) · Grade{" "}
+            {meta.letterGrade}
+          </span>
+        </div>
+      </header>
+
+      <section className="mb-8">
+        <h2 className="text-base font-semibold uppercase mb-3">Executive Summary</h2>
+        <h3 className="font-medium mb-1">What Prospects See</h3>
+        <p className="mb-3 text-gray-700">{content.insights.whatProspectsSee}</p>
+        <h3 className="font-medium mb-1">Reputation Gap</h3>
+        <p className="mb-3 text-gray-700">{content.insights.reputationGap}</p>
+        <h3 className="font-medium mb-1">Revenue Risk</h3>
+        <p className="mb-3 text-gray-700">{content.insights.revenueRisk}</p>
+        <h3 className="font-medium mb-1">Most Critical Issue</h3>
+        <p className="mb-3 font-medium text-red-800">{content.highlights.criticalIssue}</p>
+        <h3 className="font-medium mb-1">Business Impact</h3>
+        <p className="mb-3 text-gray-700">{content.highlights.businessImpact}</p>
+        <h3 className="font-medium mb-1">Highest Leverage Opportunity</h3>
+        <p className="mb-3 text-gray-700">{content.highlights.highestLeverageOpportunity}</p>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="text-base font-semibold uppercase mb-3">90-Day Action Plan</h2>
+        {(
+          [
+            ["0–30 Days", actionPlan.thisWeek],
+            ["31–60 Days", actionPlan.thisMonth],
+            ["61–90 Days", actionPlan.thisQuarter],
+          ] as const
+        ).map(([label, items]) => (
+          <div key={label} className="mb-4">
+            <h3 className="font-medium">{label}</h3>
+            <ul className="list-disc pl-5 mt-1">
+              {items.map((item, i) => (
+                <li key={i}>{item.task}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </section>
+
+      {competitive && competitive.rows.length > 0 && (
+        <section className="mb-8">
+          <h2 className="text-base font-semibold uppercase mb-3">Competitive Snapshot</h2>
+          <p className="text-xs text-gray-600 mb-2">Search: {competitive.searchQuery}</p>
+          <p className="mb-2 font-medium">{competitive.positionAlert}</p>
+          <table className="w-full text-xs border-collapse">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-1">#</th>
+                <th className="text-left py-1">Domain</th>
+                <th className="text-left py-1">SERP position</th>
+              </tr>
+            </thead>
+            <tbody>
+              {competitive.rows.map((row) => (
+                <tr key={row.rank} className="border-b border-gray-200">
+                  <td className="py-1">{row.rank}</td>
+                  <td className="py-1">{row.domain}</td>
+                  <td className="py-1">#{row.serpPosition}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
+      {contentSections.map((section) => (
+        <section key={section.id} className="mb-8 break-inside-avoid">
+          <h2 className="text-base font-semibold uppercase mb-2">
+            {section.label} ({section.score}/100)
+          </h2>
+          {section.findings.map((f, i) => (
+            <div key={i} className="mb-3 pl-0">
+              <p className="font-medium">{f.value}</p>
+              <p className="text-gray-700 text-xs mt-0.5">{f.detail}</p>
+            </div>
+          ))}
+        </section>
+      ))}
+
+      <footer className="border-t pt-4 text-xs text-gray-500 italic">
+        Generated by LevelStack · Level Play Digital. As of {meta.reportDate}. Diagnostic only
+        — you or your team execute fixes.
+      </footer>
+    </article>
+  )
+}

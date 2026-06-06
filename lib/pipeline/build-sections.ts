@@ -1,4 +1,5 @@
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
+import { TERMS } from "@/lib/report/customer-terms"
 
 import { buildActionPlanFromSections } from "@/lib/pipeline/action-plan"
 import { marketLabelFromIntake } from "@/lib/pipeline/context"
@@ -107,7 +108,7 @@ export async function buildReportSections(
           : "No active paid spend reported",
       detail:
         intake.hasActiveAdSpend === "yes"
-          ? "Sending paid traffic to a page that does not match ad promise is a common leak. Message match and a single CTA should be verified before scaling spend."
+          ? `Sending paid traffic to a page that does not match ad promise is a common leak. Message match and a single ${TERMS.cta} should be verified before scaling spend.`
           : "Organic and referral traffic still hit the same trust gaps — ads amplify whatever prospects already suspect.",
       severity:
         intake.hasActiveAdSpend === "yes" ? ("high" as const) : ("low" as const),
@@ -124,7 +125,7 @@ export async function buildReportSections(
     {
       label: "Positioning snapshot",
       value: `Competitors likely rank for “${intake.primaryService}” in your ${intake.geoMarket} market.`,
-      detail: `Without a named competitor list in intake, we infer top results are businesses with stronger review volume, clearer GBP categories, or older domains. Your report highlights gaps to close before prospects compare options.`,
+      detail: `Without a named competitor list in intake, we infer top results are businesses with stronger review volume, clearer ${TERMS.gbp} categories, or older domains. Your report highlights gaps to close before prospects compare options.`,
       severity: "medium" as const,
     },
   ]
@@ -147,8 +148,8 @@ export async function buildReportSections(
           severity: "medium",
         },
         {
-          platform: "Google AI Overview",
-          result: "Local packs and branded results depend on GBP + consistent NAP across the web.",
+          platform: TERMS.aiOverview,
+          result: `Local packs and branded results depend on ${TERMS.gbp} and consistent ${TERMS.nap} across the web.`,
           severity: "medium",
         },
       ],

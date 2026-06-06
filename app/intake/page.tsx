@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { FormPanel } from "@/components/ui/form-panel"
 import { createClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"
@@ -45,41 +46,40 @@ export default async function IntakePage() {
       .maybeSingle()
 
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Intake already submitted</CardTitle>
-          <CardDescription>
-            Your report is being generated or is ready to view — no need to submit
-            again.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {existingReport?.id ? (
-            <Button asChild>
-              <Link href={`/reports/${existingReport.id}`}>View your report</Link>
-            </Button>
-          ) : (
-            <Button asChild>
-              <Link href="/intake/complete">View confirmation</Link>
-            </Button>
-          )}
-        </CardContent>
-      </Card>
+      <FormPanel className="max-w-2xl mx-auto">
+        <Card className="border-0 shadow-none">
+          <CardHeader>
+            <CardTitle>Intake already submitted</CardTitle>
+            <CardDescription>
+              Your report is being generated or is ready to view — no need to submit
+              again.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {existingReport?.id ? (
+              <Button variant="brand" asChild>
+                <Link href={`/reports/${existingReport.id}`}>View your report</Link>
+              </Button>
+            ) : (
+              <Button variant="brand" asChild>
+                <Link href="/intake/complete">View confirmation</Link>
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      </FormPanel>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Business intake questionnaire
-        </h1>
-        <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-          Plan for 10–15 minutes. All fields are required. Your answers anchor the
-          automated research that builds your LevelStack report.
+    <FormPanel className="max-w-3xl mx-auto">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold">Start Your LevelStack Intake</h2>
+        <p className="text-muted-foreground text-sm mt-1">
+          All fields are required. We use this only to build your diagnostic report.
         </p>
       </div>
       <LevelstackIntakeForm />
-    </div>
+    </FormPanel>
   )
 }

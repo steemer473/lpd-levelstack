@@ -1,0 +1,197 @@
+{
+  "$comment": "Upload with docs/v0/V0-RULES.md + assets/levelstack-report-header-v2.png. V0-RULES overrides project-brief and sample HTML. Do NOT attach levelstack-sample-report.html.",
+  "meta": {
+    "name": "Level Play Digital — LevelStack",
+    "product": "LevelStack ($497 digital presence audit)",
+    "page": "/reports/[reportId]",
+    "stack": "Next.js 16, React 19, Tailwind 4, shadcn/ui, lucide-react",
+    "fonts": {
+      "sans": "Inter, system-ui, sans-serif",
+      "heading": "Poppins, Inter, sans-serif",
+      "mono": "Roboto Mono, monospace"
+    }
+  },
+  "color": {
+    "brand": {
+      "orange": "#FF6633",
+      "orangeHsl": "hsl(14, 100%, 60%)",
+      "blue": "#00D4F5",
+      "blueHsl": "hsl(193, 100%, 50%)",
+      "dark": "#002147",
+      "darkHsl": "hsl(212, 100%, 14%)"
+    },
+    "report": {
+      "headerBackground": "#002147",
+      "headerText": "#FFFFFF",
+      "headerSubtitle": "#5BC0DE",
+      "headerTextMeta": "rgba(255, 255, 255, 0.82)",
+      "headerDivider": "rgba(255, 255, 255, 0.12)",
+      "headerScoreBoxBg": "rgba(255, 255, 255, 0.06)",
+      "headerScoreBoxBorder": "rgba(255, 255, 255, 0.14)",
+      "accentOrange": "#F0AD4E",
+      "accentBlue": "#5BC0DE",
+      "tabBarBackground": "#FFFFFF",
+      "tabActiveText": "#111827",
+      "tabInactiveText": "#6B7280",
+      "tabActiveUnderline": "#F0AD4E",
+      "tabActiveIcon": "#F0AD4E",
+      "introPanelBg": "#E8F4FC",
+      "introPanelBorder": "#B8D4E8",
+      "comment": "v2 screenshot — flat header, white tab bar. Do NOT use headerBackgroundAlt, heroMesh, or dark-band tabs."
+    },
+    "severity": {
+      "critical": "#E24B4A",
+      "attention": "#EF9F27",
+      "good": "#639922",
+      "criticalBgLight": "#FEF2F2",
+      "attentionBgLight": "#FFFBEB",
+      "goodBgLight": "#F0FDF4"
+    },
+    "semanticLight": {
+      "background": "#FFFFFF",
+      "foreground": "hsl(222.2, 84%, 4.9%)",
+      "muted": "hsl(210, 40%, 96.1%)",
+      "mutedForeground": "hsl(215.4, 16.3%, 46.9%)",
+      "card": "#FFFFFF",
+      "border": "hsl(214.3, 31.8%, 91.4%)",
+      "primary": "hsl(222.2, 47.4%, 11.2%)",
+      "primaryForeground": "hsl(210, 40%, 98%)",
+      "destructive": "hsl(0, 84.2%, 60.2%)"
+    },
+    "semanticDark": {
+      "background": "hsl(222.2, 84%, 4.9%)",
+      "foreground": "hsl(210, 40%, 98%)",
+      "muted": "hsl(217.2, 32.6%, 17.5%)",
+      "mutedForeground": "hsl(215, 20.2%, 65.1%)",
+      "card": "hsl(222.2, 84%, 4.9%)",
+      "border": "hsl(217.2, 32.6%, 17.5%)"
+    },
+    "pageShell": {
+      "pageGradientFrom": "#FFFFFF",
+      "pageGradientTo": "hsl(210, 40%, 96.1%)",
+      "upsellStripBg": "#002147",
+      "upsellText": "rgba(255, 255, 255, 0.60)",
+      "upsellCta": "#FF6633"
+    },
+    "competitiveTable": {
+      "youColumn": "#B91C1C",
+      "competitorGood": "#15803D"
+    }
+  },
+  "gradient": {
+    "brandText": "linear-gradient(135deg, hsl(193, 100%, 50%) 0%, hsl(14, 100%, 60%) 100%)",
+    "btnPrimary": "linear-gradient(135deg, hsl(14, 100%, 60%) 0%, hsl(193, 100%, 50%) 100%)",
+    "heroMesh": "DO NOT USE on report header — marketing shell only"
+  },
+  "typography": {
+    "scale": {
+      "micro": "10px",
+      "caption": "11px",
+      "xs": "12px",
+      "sm": "14px",
+      "base": "16px",
+      "lg": "18px",
+      "xl": "20px",
+      "2xl": "24px",
+      "3xl": "30px"
+    },
+    "weight": {
+      "normal": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "letterSpacing": {
+      "uppercaseLabel": "0.08em",
+      "wideMeta": "0.04em"
+    },
+    "roles": {
+      "reportTitle": { "size": "20px", "weight": 500, "family": "sans" },
+      "sectionTitle": { "size": "15px", "weight": 500, "family": "sans" },
+      "dashboardTitle": { "size": "14px", "weight": 600, "transform": "uppercase", "family": "sans" },
+      "findingLabel": { "size": "10px", "weight": 500, "transform": "uppercase", "family": "sans" },
+      "findingValue": { "size": "14px", "weight": 500, "lineHeight": 1.5, "family": "sans" },
+      "body": { "size": "14px", "weight": 400, "lineHeight": 1.6, "family": "sans" }
+    }
+  },
+  "spacing": {
+    "reportCardPadding": "24px",
+    "sectionPaddingY": "20px",
+    "findingGap": "10px",
+    "tabHeight": "40px",
+    "gradeBox": "80px",
+    "maxContentWidth": "1152px"
+  },
+  "radius": {
+    "sm": "4px",
+    "md": "6px",
+    "lg": "8px",
+    "xl": "12px",
+    "card": "12px",
+    "pill": "9999px"
+  },
+  "shadow": {
+    "card": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+    "cardElevated": "0 4px 6px -1px rgb(0 0 0 / 0.08)",
+    "nav": "0 10px 15px -3px rgb(0 0 0 / 0.1)"
+  },
+  "breakpoint": {
+    "sm": "640px",
+    "md": "768px",
+    "lg": "1024px",
+    "xl": "1280px"
+  },
+  "shadcnTailwindMapping": {
+    "comment": "Map these in tailwind theme or use arbitrary values",
+    "background": "semanticLight.background",
+    "foreground": "semanticLight.foreground",
+    "muted": "semanticLight.muted",
+    "muted-foreground": "semanticLight.mutedForeground",
+    "card": "semanticLight.card",
+    "border": "semanticLight.border",
+    "primary": "semanticLight.primary",
+    "destructive": "semanticLight.destructive",
+    "brand-orange": "brand.orange",
+    "brand-blue": "brand.blue",
+    "lpd-dark": "brand.dark",
+    "lpd-critical": "severity.critical",
+    "lpd-attention": "severity.attention",
+    "lpd-good": "severity.good"
+  },
+  "components": {
+    "reportCard": {
+      "border": "1px solid semanticLight.border",
+      "radius": "radius.card",
+      "shadow": "shadow.card"
+    },
+    "findingCard": {
+      "background": "semanticLight.muted at 50% opacity",
+      "padding": "16px",
+      "radius": "radius.lg"
+    },
+    "severityBadge": {
+      "fontSize": "typography.scale.caption",
+      "padding": "2px 8px",
+      "radius": "radius.sm"
+    },
+    "scoreBar": {
+      "height": "6px",
+      "track": "semanticLight.border",
+      "fillCritical": "severity.critical",
+      "fillAttention": "severity.attention",
+      "fillGood": "severity.good"
+    },
+    "reportHeader": {
+      "comment": "Match levelstack-report-header-v2.png — NOT levelstack-sample-report.html",
+      "layout": "row1: title+assessment subtitle left, score+grade boxes right; row2: stacked meta columns with vertical dividers left, stat pills right",
+      "forbidden": [
+        "market as second title line instead of assessment subtitle",
+        "no score or grade boxes",
+        "four meta columns only without stat pills",
+        "tabs on dark band",
+        "hub orange #FF6633 on header accents",
+        "hero mesh on header"
+      ]
+    }
+  }
+}
