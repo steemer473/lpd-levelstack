@@ -76,14 +76,16 @@ export default function Page() {
             </a>
           </Button>
         </div>
-        <p className="text-muted-foreground text-xs text-center mt-4">
-          Supabase:{" "}
-          {supabaseConfigured ? (
-            <span className="text-foreground font-medium">configured</span>
-          ) : (
-            <span>set keys in .env.local</span>
-          )}
-        </p>
+        {process.env.NODE_ENV === "development" && (
+          <p className="text-muted-foreground text-xs text-center mt-4">
+            Supabase:{" "}
+            {supabaseConfigured ? (
+              <span className="text-foreground font-medium">configured</span>
+            ) : (
+              <span>set keys in .env.local</span>
+            )}
+          </p>
+        )}
       </FormPanel>
 
       <section className="max-w-5xl mx-auto px-2 pb-8">

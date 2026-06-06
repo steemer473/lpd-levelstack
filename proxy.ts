@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr"
 import { type NextRequest, NextResponse } from "next/server"
 
 import { env } from "@/env.mjs"
+import { isDevReportPreviewEnabled } from "@/lib/dev-report-preview"
 import { hasLevelStackAccess } from "@/lib/levelstack-access"
 import { updateSession } from "@/lib/supabase/middleware"
 
@@ -19,6 +20,10 @@ export async function proxy(request: NextRequest) {
   const isAuthRoute = pathname.startsWith("/auth/")
 
   if (!isProtectedProductRoute || isAuthRoute) {
+    return sessionResponse
+  }
+
+  if (isDevReportPreviewEnabled() && pathname.startsWith("/reports/")) {
     return sessionResponse
   }
 

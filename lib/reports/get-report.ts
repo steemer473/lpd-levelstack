@@ -1,3 +1,4 @@
+import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
 export type LevelstackReportRow = {
@@ -22,6 +23,22 @@ export async function getReportForUser(
     .select("id, status, report_json, plan_id, error_message, job_id, intake_id")
     .eq("id", reportId)
     .eq("user_id", userId)
+    .maybeSingle()
+
+  return data
+}
+
+/** Dev preview — load any report by id (service role). */
+export async function getReportById(
+  reportId: string,
+): Promise<LevelstackReportRow | null> {
+  const supabase = createAdminClient()
+  if (!supabase) return null
+
+  const { data } = await supabase
+    .from("levelstack_reports")
+    .select("id, status, report_json, plan_id, error_message, job_id, intake_id")
+    .eq("id", reportId)
     .maybeSingle()
 
   return data

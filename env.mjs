@@ -3,19 +3,31 @@ import { z } from "zod"
 
 const emptyToUndefined = (v) => (v === "" ? undefined : v)
 
+const isVercel = process.env.VERCEL === "1"
+const isVercelProduction = process.env.VERCEL_ENV === "production"
+
+const optionalString = z.preprocess(emptyToUndefined, z.string().min(1).optional())
+const optionalUrl = z.preprocess(emptyToUndefined, z.string().url().optional())
+
+const requiredInVercelProduction = (schema) =>
+  isVercelProduction ? schema : optionalString
+
+const requiredUrlInVercelProduction = (schema) =>
+  isVercelProduction ? schema : optionalUrl
+
 export const env = createEnv({
   server: {
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-    SUPABASE_SERVICE_ROLE_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
-    RESEND_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    SUPABASE_SERVICE_ROLE_KEY: requiredInVercelProduction(z.string().min(1)),
+    RESEND_API_KEY: optionalString,
     FROM_EMAIL: z.preprocess(emptyToUndefined, z.string().email().optional()),
-    FROM_NAME: z.preprocess(emptyToUndefined, z.string().optional()),
-    OPENAI_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
-    ANTHROPIC_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
-    SERPAPI_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
-    FIRECRAWL_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    FROM_NAME: optionalString,
+    OPENAI_API_KEY: requiredInVercelProduction(z.string().min(1)),
+    ANTHROPIC_API_KEY: optionalString,
+    SERPAPI_KEY: requiredInVercelProduction(z.string().min(1)),
+    FIRECRAWL_API_KEY: optionalString,
     /** Optional — raises PageSpeed Insights API quota (works without key at low volume) */
-    GOOGLE_PAGESPEED_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    GOOGLE_PAGESPEED_API_KEY: optionalString,
     /** Development only — skip hub `orders` entitlement check for /intake */
     LEVELSTACK_DEV_BYPASS_ENTITLEMENT: z
       .enum(["true", "false"])
@@ -27,10 +39,10 @@ export const env = createEnv({
       .transform((v) => v === "true"),
   },
   client: {
-    NEXT_PUBLIC_APP_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
-    NEXT_PUBLIC_HUB_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
-    NEXT_PUBLIC_SUPABASE_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
+    NEXT_PUBLIC_APP_URL: requiredUrlInVercelProduction(z.string().url()),
+    NEXT_PUBLIC_HUB_URL: requiredUrlInVercelProduction(z.string().url()),
+    NEXT_PUBLIC_SUPABASE_URL: requiredUrlInVercelProduction(z.string().url()),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: requiredInVercelProduction(z.string().min(1)),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -51,3 +63,15 @@ export const env = createEnv({
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   },
 })
+
+if (isVercel && env.LEVELSTACK_DEV_BYPASS_ENTITLEMENT) {
+  throw new Error(
+    "LEVELSTACK_DEV_BYPASS_ENTITLEMENT must not be enabled on Vercel (production or preview).",
+  )
+}
+
+if (isVercel && env.LEVELSTACK_DEV_SKIP_WEBSITE_CHECK) {
+  throw new Error(
+    "LEVELSTACK_DEV_SKIP_WEBSITE_CHECK must not be enabled on Vercel (production or preview).",
+  )
+}

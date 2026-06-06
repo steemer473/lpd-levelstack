@@ -7,6 +7,9 @@ import { createAdminClient } from "@/lib/supabase/admin"
 
 type RouteContext = { params: Promise<{ reportId: string }> }
 
+/** Vercel Fluid Compute — report synthesis often runs 1–3 minutes */
+export const maxDuration = 300
+
 export async function POST(request: Request, context: RouteContext) {
   const auth = await requireLevelStackIntakeAccess()
   if (!auth.ok) {
