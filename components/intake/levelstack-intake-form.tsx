@@ -475,7 +475,7 @@ export function LevelstackIntakeForm() {
         </Card>
 
         <div className="flex flex-col gap-2 sm:flex-row">
-          <Button type="submit" disabled={submitting}>
+          <Button type="submit" variant="brand" disabled={submitting}>
             {submitting ? "Submitting…" : "Submit intake"}
           </Button>
           <Button type="button" variant="outline" asChild>

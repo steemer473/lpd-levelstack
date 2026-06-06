@@ -1,6 +1,7 @@
 import Link from "next/link"
+import { BarChart3, CheckCircle2, Shield, Target } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
+import { ProductShell } from "@/components/layout/product-shell"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -9,7 +10,27 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { FormPanel } from "@/components/ui/form-panel"
 import { env } from "@/env.mjs"
+import { getHubPricingUrl } from "@/lib/urls"
+
+const HIGHLIGHTS = [
+  {
+    icon: Target,
+    name: "Six readiness sections",
+    description: "Search, reputation, presence, funnel, competitive, action plan",
+  },
+  {
+    icon: BarChart3,
+    name: "Automated research",
+    description: "SERP, site signals, and synthesis tailored to your intake",
+  },
+  {
+    icon: Shield,
+    name: "Diagnostic only",
+    description: "Clear priorities — no ranking or revenue guarantees",
+  },
+] as const
 
 export default function Page() {
   const supabaseConfigured = Boolean(
@@ -17,49 +38,72 @@ export default function Page() {
   )
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center p-6">
-      <Card className="w-full max-w-lg">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle>LevelStack</CardTitle>
-            <Badge variant="secondary">Phase 0</Badge>
-          </div>
-          <CardDescription>
-            Product delivery app — purchase and checkout run on the commercial
-            hub.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4 text-sm">
-          <p>
-            Scaffold is ready. Next: configure Supabase env vars, apply{" "}
-            <code className="text-xs">supabase/migrations/</code>, then Phase 1
-            (entitlement + <code className="text-xs">/intake</code>).
-          </p>
-          <p className="text-muted-foreground">
-            Supabase:{" "}
-            {supabaseConfigured ? (
-              <span className="text-foreground">configured</span>
-            ) : (
-              <span>set keys in .env.local (see .env.example)</span>
-            )}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button asChild>
-              <Link href="/auth/sign-in?redirect=/intake">Sign in → intake</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="https://levelplaydigital.com/platform/levelstack#pricing">
-                Purchase on hub
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <a href="/levelstack-sample-report.html" target="_blank" rel="noreferrer">
-                Sample report
-              </a>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <ProductShell
+      maxWidth="full"
+      overlapHero
+      hero={{
+        tagline: "LevelStack",
+        heading: "Your six-section business readiness report",
+        headingHighlight: "readiness report",
+        description:
+          "Purchase on Level Play Digital, complete intake here, and view your diagnostic report when research finishes.",
+        badges: [
+          { icon: CheckCircle2, label: "Six sections" },
+          { icon: Shield, label: "Research-backed" },
+          { icon: BarChart3, label: "Action plan" },
+        ],
+      }}
+    >
+      <FormPanel className="max-w-md mx-auto mb-16">
+        <h2 className="text-xl font-semibold text-center mb-1">Get started</h2>
+        <p className="text-muted-foreground text-sm text-center mb-6">
+          Sign in after purchase to complete intake and open your report.
+        </p>
+        <div className="flex flex-col gap-3">
+          <Button variant="brand" asChild className="w-full">
+            <Link href="/auth/sign-in?redirect=/intake">Sign in → intake</Link>
+          </Button>
+          <Button variant="outline" asChild className="w-full">
+            <Link href={getHubPricingUrl()}>Purchase on hub</Link>
+          </Button>
+          <Button variant="ghost" asChild className="w-full">
+            <a
+              href="/levelstack-sample-report.html"
+              target="_blank"
+              rel="noreferrer"
+            >
+              View sample report
+            </a>
+          </Button>
+        </div>
+        <p className="text-muted-foreground text-xs text-center mt-4">
+          Supabase:{" "}
+          {supabaseConfigured ? (
+            <span className="text-foreground font-medium">configured</span>
+          ) : (
+            <span>set keys in .env.local</span>
+          )}
+        </p>
+      </FormPanel>
+
+      <section className="max-w-5xl mx-auto px-2 pb-8">
+        <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 gradient-text">
+          What LevelStack delivers
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {HIGHLIGHTS.map(({ icon: Icon, name, description }) => (
+            <Card key={name} className="card-hover">
+              <CardHeader>
+                <Icon className="w-8 h-8 text-brand-orange mb-2" />
+                <CardTitle className="text-lg">{name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>{description}</CardDescription>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+    </ProductShell>
   )
 }

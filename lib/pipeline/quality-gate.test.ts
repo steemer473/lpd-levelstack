@@ -29,6 +29,22 @@ function minimalReport(
       ],
       criticalIssue: "Homepage trust signals are weak for Test Co.",
       firstSteps: ["Fix landing CTA"],
+      insights: {
+        whatProspectsSee:
+          "When prospects search Test Co, example.com appears at position #2 on Google.",
+        reputationGap:
+          "You rated reputation highly, but https://yelp.com/biz/test-co shows mixed signals.",
+        revenueRisk:
+          "Active Meta ad spend may waste budget until landing page trust and CTA are fixed.",
+      },
+      highlights: {
+        businessImpact:
+          "Weak homepage trust for Test Co reduces paid and organic conversion efficiency.",
+        highestLeverageOpportunity:
+          "Fix landing CTA and trust signals before scaling ad spend.",
+      },
+      strengths: ["Site at position #2 for branded search"],
+      topOpportunities: ["Pause ads until landing fixed"],
     },
     sections: [
       {

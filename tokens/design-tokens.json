@@ -1,0 +1,324 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "color": {
+    "brand": {
+      "orange": {
+        "$value": "hsl(14, 100%, 60%)",
+        "$type": "color",
+        "$description": "Primary CTA accent, focus ring, gradient start"
+      },
+      "blue": {
+        "$value": "hsl(193, 100%, 50%)",
+        "$type": "color",
+        "$description": "Secondary accent, outline CTAs, gradient end"
+      }
+    },
+    "scale": {
+      "dark": {
+        "900": { "$value": "hsl(210, 40%, 8%)", "$type": "color", "$description": "Deepest surface" },
+        "800": { "$value": "hsl(217, 32%, 17%)", "$type": "color" },
+        "700": { "$value": "hsl(217, 32%, 25%)", "$type": "color" },
+        "600": { "$value": "hsl(217, 32%, 35%)", "$type": "color" }
+      },
+      "light": {
+        "50": { "$value": "hsl(0, 0%, 98%)", "$type": "color" },
+        "100": { "$value": "hsl(240, 5%, 96%)", "$type": "color" },
+        "200": { "$value": "hsl(240, 6%, 90%)", "$type": "color" },
+        "300": { "$value": "hsl(240, 5%, 84%)", "$type": "color" },
+        "400": { "$value": "hsl(240, 5%, 65%)", "$type": "color" },
+        "500": { "$value": "hsl(240, 4%, 46%)", "$type": "color" }
+      }
+    },
+    "semantic": {
+      "light": {
+        "background": { "$value": "hsl(0, 0%, 100%)", "$type": "color" },
+        "foreground": { "$value": "hsl(222.2, 84%, 4.9%)", "$type": "color" },
+        "muted": { "$value": "hsl(210, 40%, 96.1%)", "$type": "color" },
+        "mutedForeground": { "$value": "hsl(215.4, 16.3%, 46.9%)", "$type": "color" },
+        "card": { "$value": "hsl(0, 0%, 100%)", "$type": "color" },
+        "cardForeground": { "$value": "hsl(222.2, 84%, 4.9%)", "$type": "color" },
+        "popover": { "$value": "hsl(0, 0%, 100%)", "$type": "color" },
+        "popoverForeground": { "$value": "hsl(222.2, 84%, 4.9%)", "$type": "color" },
+        "border": { "$value": "hsl(214.3, 31.8%, 91.4%)", "$type": "color" },
+        "input": { "$value": "hsl(214.3, 31.8%, 91.4%)", "$type": "color" },
+        "primary": { "$value": "hsl(222.2, 47.4%, 11.2%)", "$type": "color" },
+        "primaryForeground": { "$value": "hsl(210, 40%, 98%)", "$type": "color" },
+        "secondary": { "$value": "hsl(210, 40%, 96.1%)", "$type": "color" },
+        "secondaryForeground": { "$value": "hsl(222.2, 47.4%, 11.2%)", "$type": "color" },
+        "accent": { "$value": "hsl(210, 40%, 96.1%)", "$type": "color" },
+        "accentForeground": { "$value": "hsl(222.2, 47.4%, 11.2%)", "$type": "color" },
+        "destructive": { "$value": "hsl(0, 84.2%, 60.2%)", "$type": "color" },
+        "destructiveForeground": { "$value": "hsl(210, 40%, 98%)", "$type": "color" },
+        "ring": { "$value": "hsl(222.2, 84%, 4.9%)", "$type": "color" }
+      },
+      "dark": {
+        "background": { "$value": "hsl(222.2, 84%, 4.9%)", "$type": "color" },
+        "foreground": { "$value": "hsl(210, 40%, 98%)", "$type": "color" },
+        "muted": { "$value": "hsl(217.2, 32.6%, 17.5%)", "$type": "color" },
+        "mutedForeground": { "$value": "hsl(215, 20.2%, 65.1%)", "$type": "color" },
+        "card": { "$value": "hsl(222.2, 84%, 4.9%)", "$type": "color" },
+        "cardForeground": { "$value": "hsl(210, 40%, 98%)", "$type": "color" },
+        "popover": { "$value": "hsl(222.2, 84%, 4.9%)", "$type": "color" },
+        "popoverForeground": { "$value": "hsl(210, 40%, 98%)", "$type": "color" },
+        "border": { "$value": "hsl(217.2, 32.6%, 17.5%)", "$type": "color" },
+        "input": { "$value": "hsl(217.2, 32.6%, 17.5%)", "$type": "color" },
+        "primary": { "$value": "hsl(210, 40%, 98%)", "$type": "color" },
+        "primaryForeground": { "$value": "hsl(222.2, 47.4%, 11.2%)", "$type": "color" },
+        "secondary": { "$value": "hsl(217.2, 32.6%, 17.5%)", "$type": "color" },
+        "secondaryForeground": { "$value": "hsl(210, 40%, 98%)", "$type": "color" },
+        "accent": { "$value": "hsl(217.2, 32.6%, 17.5%)", "$type": "color" },
+        "accentForeground": { "$value": "hsl(210, 40%, 98%)", "$type": "color" },
+        "destructive": { "$value": "hsl(0, 62.8%, 30.6%)", "$type": "color" },
+        "destructiveForeground": { "$value": "hsl(210, 40%, 98%)", "$type": "color" },
+        "ring": { "$value": "hsl(212.7, 26.8%, 83.9%)", "$type": "color" }
+      }
+    },
+    "surface": {
+      "pricingBackground": {
+        "light": { "$value": "#f7fafc", "$type": "color", "$description": "Pricing section background (light)" },
+        "dark": { "$value": "#111827", "$type": "color", "$description": "Pricing section background (dark)" }
+      },
+      "hero": {
+        "background": {
+          "$value": "hsl(210, 59.18%, 37.37%)",
+          "$type": "color",
+          "$description": "Homepage hero section background"
+        }
+      }
+    },
+    "sidebar": {
+      "border": { "$value": "hsl(220, 13%, 91%)", "$type": "color" },
+      "accent": { "$value": "hsl(220, 14.3%, 95.9%)", "$type": "color" }
+    },
+    "focus": {
+      "outline": { "$value": "hsl(14, 100%, 60%)", "$type": "color", "$description": "focus-visible outline (matches brand orange)" }
+    }
+  },
+  "dimension": {
+    "radius": {
+      "sm": { "$value": "0.25rem", "$type": "dimension" },
+      "md": { "$value": "0.375rem", "$type": "dimension" },
+      "lg": { "$value": "0.5rem", "$type": "dimension", "$description": "Default --radius in CSS" },
+      "xl": { "$value": "0.75rem", "$type": "dimension" },
+      "2xl": { "$value": "1rem", "$type": "dimension" },
+      "full": { "$value": "9999px", "$type": "dimension" }
+    },
+    "layout": {
+      "maxWidth": {
+        "content": { "$value": "80rem", "$type": "dimension", "$description": "max-w-7xl (1280px)" }
+      },
+      "sidebar": {
+        "width": { "$value": "16rem", "$type": "dimension" },
+        "widthIcon": { "$value": "3rem", "$type": "dimension" }
+      }
+    },
+    "spacing": {
+      "0": { "$value": "0", "$type": "dimension" },
+      "1": { "$value": "0.25rem", "$type": "dimension" },
+      "2": { "$value": "0.5rem", "$type": "dimension" },
+      "3": { "$value": "0.75rem", "$type": "dimension" },
+      "4": { "$value": "1rem", "$type": "dimension" },
+      "5": { "$value": "1.25rem", "$type": "dimension" },
+      "6": { "$value": "1.5rem", "$type": "dimension" },
+      "8": { "$value": "2rem", "$type": "dimension" },
+      "10": { "$value": "2.5rem", "$type": "dimension" },
+      "12": { "$value": "3rem", "$type": "dimension" },
+      "16": { "$value": "4rem", "$type": "dimension" },
+      "20": { "$value": "5rem", "$type": "dimension" },
+      "24": { "$value": "6rem", "$type": "dimension" }
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "sans": {
+        "$value": "Inter, system-ui, -apple-system, sans-serif",
+        "$type": "fontFamily",
+        "$description": "Runtime: var(--font-inter) from next/font"
+      },
+      "heading": {
+        "$value": "Poppins, Inter, sans-serif",
+        "$type": "fontFamily",
+        "$description": "Runtime: var(--font-poppins) from next/font"
+      },
+      "mono": {
+        "$value": "Roboto Mono, monospace",
+        "$type": "fontFamily",
+        "$description": "Runtime: var(--font-roboto-mono) from next/font"
+      }
+    },
+    "fontSize": {
+      "xs": { "$value": "0.75rem", "$type": "dimension" },
+      "sm": { "$value": "0.875rem", "$type": "dimension" },
+      "base": { "$value": "1rem", "$type": "dimension" },
+      "lg": { "$value": "1.125rem", "$type": "dimension" },
+      "xl": { "$value": "1.25rem", "$type": "dimension" },
+      "2xl": { "$value": "1.5rem", "$type": "dimension" },
+      "3xl": { "$value": "1.875rem", "$type": "dimension" },
+      "4xl": { "$value": "2.25rem", "$type": "dimension" },
+      "5xl": { "$value": "3rem", "$type": "dimension" },
+      "6xl": { "$value": "3.75rem", "$type": "dimension" },
+      "7xl": { "$value": "4.5rem", "$type": "dimension" }
+    },
+    "fontWeight": {
+      "light": { "$value": "300", "$type": "fontWeight" },
+      "normal": { "$value": "400", "$type": "fontWeight" },
+      "medium": { "$value": "500", "$type": "fontWeight" },
+      "semibold": { "$value": "600", "$type": "fontWeight" },
+      "bold": { "$value": "700", "$type": "fontWeight" },
+      "extrabold": { "$value": "800", "$type": "fontWeight" }
+    },
+    "lineHeight": {
+      "none": { "$value": "1", "$type": "number" },
+      "tight": { "$value": "1.25", "$type": "number" },
+      "snug": { "$value": "1.375", "$type": "number" },
+      "normal": { "$value": "1.5", "$type": "number" },
+      "relaxed": { "$value": "1.625", "$type": "number" },
+      "loose": { "$value": "2", "$type": "number" },
+      "heroH1": { "$value": "1.2", "$type": "number", "$description": "Mobile hero H1; scales down on larger breakpoints via .hero-h1" },
+      "body": { "$value": "1.6", "$type": "number", "$description": ".line-spacing-consistent" }
+    },
+    "role": {
+      "display": {
+        "fontFamily": { "$value": "heading", "$type": "string", "$description": "Use --font-heading / typography.fontFamily.heading" },
+        "fontSize": { "$value": "4.5rem", "$type": "dimension", "$description": "Aligns with fontSize.7xl" },
+        "fontWeight": { "$value": "800", "$type": "fontWeight" },
+        "lineHeight": { "$value": "1.1", "$type": "number" },
+        "letterSpacing": { "$value": "-0.02em", "$type": "dimension" }
+      },
+      "h1": {
+        "fontFamily": { "$value": "heading", "$type": "string", "$description": "Use --font-heading" },
+        "fontSize": { "$value": "3rem", "$type": "dimension", "$description": "fontSize.5xl" },
+        "fontWeight": { "$value": "700", "$type": "fontWeight" },
+        "lineHeight": { "$value": "1.2", "$type": "number", "$description": "Match lineHeight.heroH1 on mobile via .hero-h1" }
+      },
+      "h2": {
+        "fontFamily": { "$value": "heading", "$type": "string" },
+        "fontSize": { "$value": "2.25rem", "$type": "dimension", "$description": "fontSize.4xl" },
+        "fontWeight": { "$value": "700", "$type": "fontWeight" },
+        "lineHeight": { "$value": "1.25", "$type": "number" }
+      },
+      "h3": {
+        "fontFamily": { "$value": "heading", "$type": "string" },
+        "fontSize": { "$value": "1.875rem", "$type": "dimension", "$description": "fontSize.3xl" },
+        "fontWeight": { "$value": "600", "$type": "fontWeight" },
+        "lineHeight": { "$value": "1.3", "$type": "number" }
+      },
+      "h4": {
+        "fontFamily": { "$value": "heading", "$type": "string" },
+        "fontSize": { "$value": "1.5rem", "$type": "dimension", "$description": "fontSize.2xl" },
+        "fontWeight": { "$value": "600", "$type": "fontWeight" },
+        "lineHeight": { "$value": "1.35", "$type": "number" }
+      },
+      "body": {
+        "fontFamily": { "$value": "sans", "$type": "string", "$description": "Use --font-sans" },
+        "fontSize": { "$value": "1rem", "$type": "dimension", "$description": "fontSize.base" },
+        "fontWeight": { "$value": "400", "$type": "fontWeight" },
+        "lineHeight": { "$value": "1.6", "$type": "number", "$description": "lineHeight.body / .line-spacing-consistent" }
+      },
+      "bodyLarge": {
+        "fontFamily": { "$value": "sans", "$type": "string" },
+        "fontSize": { "$value": "1.125rem", "$type": "dimension", "$description": "fontSize.lg" },
+        "fontWeight": { "$value": "400", "$type": "fontWeight" },
+        "lineHeight": { "$value": "1.625", "$type": "number", "$description": "lineHeight.relaxed" }
+      },
+      "caption": {
+        "fontFamily": { "$value": "sans", "$type": "string" },
+        "fontSize": { "$value": "0.75rem", "$type": "dimension", "$description": "fontSize.xs" },
+        "fontWeight": { "$value": "400", "$type": "fontWeight" },
+        "lineHeight": { "$value": "1.5", "$type": "number" }
+      },
+      "label": {
+        "fontFamily": { "$value": "sans", "$type": "string" },
+        "fontSize": { "$value": "0.875rem", "$type": "dimension", "$description": "fontSize.sm" },
+        "fontWeight": { "$value": "500", "$type": "fontWeight" },
+        "lineHeight": { "$value": "1.25", "$type": "number" }
+      },
+      "code": {
+        "fontFamily": { "$value": "mono", "$type": "string", "$description": "Use --font-mono" },
+        "fontSize": { "$value": "0.875rem", "$type": "dimension" },
+        "fontWeight": { "$value": "400", "$type": "fontWeight" },
+        "lineHeight": { "$value": "1.5", "$type": "number" }
+      }
+    }
+  },
+  "breakpoint": {
+    "xs": { "$value": "480px", "$type": "dimension", "$description": "Custom small devices / hero tweaks" },
+    "sm": { "$value": "640px", "$type": "dimension", "$description": "Tailwind sm" },
+    "md": { "$value": "768px", "$type": "dimension", "$description": "Tailwind md" },
+    "lg": { "$value": "1024px", "$type": "dimension", "$description": "Tailwind lg" },
+    "xl": { "$value": "1280px", "$type": "dimension", "$description": "Tailwind xl" },
+    "2xl": { "$value": "1536px", "$type": "dimension", "$description": "Tailwind 2xl" }
+  },
+  "zIndex": {
+    "base": { "$value": "0", "$type": "number" },
+    "raised": { "$value": "10", "$type": "number" },
+    "dropdown": { "$value": "50", "$type": "number" },
+    "sticky": { "$value": "100", "$type": "number" },
+    "overlay": { "$value": "200", "$type": "number" },
+    "modal": { "$value": "300", "$type": "number" },
+    "toast": { "$value": "400", "$type": "number" },
+    "max": { "$value": "9999", "$type": "number", "$description": "Main nav uses z-50; reserve max for dev-only" }
+  },
+  "icon": {
+    "size": {
+      "xs": { "$value": "0.875rem", "$type": "dimension", "$description": "14px — inline with sm text" },
+      "sm": { "$value": "1rem", "$type": "dimension", "$description": "16px" },
+      "md": { "$value": "1.25rem", "$type": "dimension", "$description": "20px — default UI icons" },
+      "lg": { "$value": "1.5rem", "$type": "dimension", "$description": "24px" },
+      "xl": { "$value": "2rem", "$type": "dimension", "$description": "32px — hero CTAs" }
+    }
+  },
+  "borderWidth": {
+    "hairline": { "$value": "1px", "$type": "dimension" },
+    "DEFAULT": { "$value": "1px", "$type": "dimension" },
+    "2": { "$value": "2px", "$type": "dimension" },
+    "4": { "$value": "4px", "$type": "dimension" }
+  },
+  "shadow": {
+    "sm": { "$value": "0 1px 2px 0 rgb(0 0 0 / 0.05)", "$type": "shadow" },
+    "card": { "$value": "0 1px 2px 0 rgb(0 0 0 / 0.05)", "$type": "shadow", "$description": "Card default (shadow-sm)" },
+    "cardHover": {
+      "$value": "0 20px 40px hsla(0, 0%, 0%, 0.3)",
+      "$type": "shadow",
+      "$description": ".card-hover:hover"
+    },
+    "btnPrimaryHover": {
+      "$value": "0 10px 20px hsla(14, 100%, 60%, 0.4)",
+      "$type": "shadow",
+      "$description": ".btn-primary:hover"
+    },
+    "nav": { "$value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)", "$type": "shadow", "$description": "Navigation when scrolled (shadow-lg)" }
+  },
+  "duration": {
+    "fast": { "$value": "150ms", "$type": "duration" },
+    "normal": { "$value": "300ms", "$type": "duration" },
+    "slow": { "$value": "800ms", "$type": "duration" },
+    "typewriter": { "$value": "4000ms", "$type": "duration" },
+    "cursorBlink": { "$value": "750ms", "$type": "duration" },
+    "shimmer": { "$value": "3000ms", "$type": "duration" },
+    "pulseGlow": { "$value": "2000ms", "$type": "duration" }
+  },
+  "cubicBezier": {
+    "easeOut": { "$value": [0, 0, 0.2, 1], "$type": "cubicBezier" },
+    "easeInOut": { "$value": [0.4, 0, 0.2, 1], "$type": "cubicBezier" }
+  },
+  "effect": {
+    "gradient": {
+      "brandText": {
+        "$value": "linear-gradient(135deg, hsl(193, 100%, 50%) 0%, hsl(14, 100%, 60%) 100%)",
+        "$type": "string",
+        "$description": ".gradient-text background (CSS background-image)"
+      },
+      "btnPrimary": {
+        "$value": "linear-gradient(135deg, hsl(14, 100%, 60%) 0%, hsl(193, 100%, 50%) 100%)",
+        "$type": "string",
+        "$description": ".btn-primary background (CSS background-image)"
+      },
+      "heroHeading": {
+        "$value": "linear-gradient(to right, hsl(14, 100%, 60%), rgba(255,255,255,0.9), hsl(193, 100%, 50%))",
+        "$type": "string",
+        "$description": "Homepage H1 text gradient (bg-gradient-to-r equivalent)"
+      }
+    }
+  }
+}

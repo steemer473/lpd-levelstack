@@ -8,6 +8,11 @@ import type { SerpOrganicResult } from "@/lib/research/serp"
 import { hostnameFromUrl, resultsMentionDomain } from "@/lib/research/serp"
 import type { ResearchBundle } from "@/lib/pipeline/research-types"
 import type { ReportSection } from "@/lib/pipeline/report-types"
+import {
+  businessSearchSeverity,
+  ownerSearchSeverity,
+} from "@/lib/pipeline/search-finding-severity"
+import { TERMS } from "@/lib/report/customer-terms"
 
 type ScoreRow = NonNullable<ReportSection["scoreRows"]>[number]
 
@@ -77,7 +82,10 @@ export function buildSectionsFromResearch(
       detail: businessSearch?.results.length
         ? `Top results: ${formatTopResults(businessSearch.results)}`
         : (businessSearch?.limitation ?? ""),
-      severity: businessHit ? ("medium" as const) : ("high" as const),
+      severity: businessSearchSeverity(
+        businessHit,
+        Boolean(businessSearch?.results.length),
+      ),
     },
     {
       label: `Google — "${intake.ownerName}"`,
@@ -88,7 +96,10 @@ export function buildSectionsFromResearch(
       detail: ownerSearch?.results.length
         ? formatTopResults(ownerSearch.results)
         : (ownerSearch?.limitation ?? ""),
-      severity: "medium" as const,
+      severity: ownerSearchSeverity(
+        ownerSearch?.results ?? [],
+        buyerHost,
+      ),
     },
   ]
 
@@ -99,7 +110,7 @@ export function buildSectionsFromResearch(
   const gbp = bundle.digitalPresence.gbp
   const digitalScoreRows: ScoreRow[] = [
     {
-      label: "HTTPS",
+      label: TERMS.https,
       value: site.usesHttps ? "Yes" : "No",
       percent: site.usesHttps ? 100 : 20,
       tone: site.usesHttps ? ("green" as const) : ("red" as const),
@@ -111,7 +122,7 @@ export function buildSectionsFromResearch(
       tone: site.title ? ("amber" as const) : ("red" as const),
     },
     {
-      label: "CTA language",
+      label: `${TERMS.cta} language`,
       value: site.hasCtaLanguage ? "Detected" : "Weak / missing",
       percent: site.hasCtaLanguage ? 75 : 25,
       tone: site.hasCtaLanguage ? ("green" as const) : ("amber" as const),
@@ -125,7 +136,7 @@ export function buildSectionsFromResearch(
     ...(psi.mobileScore != null
       ? [
           {
-            label: "Mobile performance (PageSpeed)",
+            label: `Mobile performance (${TERMS.pageSpeed})`,
             value: `${psi.mobileScore}/100`,
             percent: psi.mobileScore,
             tone:
@@ -140,7 +151,7 @@ export function buildSectionsFromResearch(
     ...(gbp.found
       ? [
           {
-            label: "Google Business Profile",
+            label: TERMS.gbp,
             value:
               gbp.rating != null && gbp.reviewCount != null
                 ? `${gbp.rating}★ · ${gbp.reviewCount} reviews`
@@ -159,7 +170,7 @@ export function buildSectionsFromResearch(
         ]
       : [
           {
-            label: "Google Business Profile",
+            label: TERMS.gbp,
             value: "Not confirmed in Maps search",
             percent: 25,
             tone: "red" as const,
@@ -172,8 +183,8 @@ export function buildSectionsFromResearch(
       label: "Homepage signals",
       value: site.title ? `Title: “${site.title}”` : "Could not read page title.",
       detail: [
-        site.metaDescription ? `Meta: ${site.metaDescription}` : null,
-        site.h1 ? `H1: ${site.h1}` : null,
+        site.metaDescription ? `${TERMS.metaDescription}: ${site.metaDescription}` : null,
+        site.h1 ? `${TERMS.mainHeading}: ${site.h1}` : null,
         site.limitation,
       ]
         .filter(Boolean)
@@ -186,9 +197,9 @@ export function buildSectionsFromResearch(
             label: "Mobile site speed",
             value: `Lighthouse mobile score ${psi.mobileScore}/100`,
             detail: [
-              psi.lcp ? `LCP: ${psi.lcp}` : null,
-              psi.cls ? `CLS: ${psi.cls}` : null,
-              "Source: Google PageSpeed Insights (mobile).",
+              psi.lcp ? `${TERMS.lcp}: ${psi.lcp}` : null,
+              psi.cls ? `${TERMS.cls}: ${psi.cls}` : null,
+              `Source: ${TERMS.pageSpeed} (mobile).`,
             ]
               .filter(Boolean)
               .join(" "),
@@ -204,7 +215,7 @@ export function buildSectionsFromResearch(
         ? [
             {
               label: "Mobile site speed",
-              value: "PageSpeed data unavailable",
+              value: `${TERMS.pageSpeed} data unavailable`,
               detail: psi.limitation,
               severity: "medium" as const,
             },
@@ -213,7 +224,7 @@ export function buildSectionsFromResearch(
     ...(gbp.found
       ? [
           {
-            label: "Google Business Profile",
+            label: TERMS.gbp,
             value:
               gbp.rating != null
                 ? `${gbp.title ?? intake.primaryBusinessName} — ${gbp.rating}★ (${gbp.reviewCount ?? "?"} reviews)`
@@ -236,10 +247,10 @@ export function buildSectionsFromResearch(
         ]
       : [
           {
-            label: "Google Business Profile",
+            label: TERMS.gbp,
             value: gbp.limitation ?? "No confirmed Maps listing",
             detail:
-              "Claim and complete your profile if prospects search local + service terms.",
+              `Claim and complete your ${TERMS.gbp} if prospects search local + service terms.`,
             severity: "high" as const,
           },
         ]),
@@ -255,10 +266,10 @@ export function buildSectionsFromResearch(
       detail: [
         bundle.revenueFunnel.intakeNotes,
         site.hasCtaLanguage
-          ? "CTA-style language detected on homepage."
-          : "Limited CTA language detected on homepage — prospects may not see a clear next step.",
+          ? `${TERMS.cta} language detected on homepage.`
+          : `Limited ${TERMS.cta} language on homepage — prospects may not see a clear next step.`,
         funnelPsi.mobileScore != null
-          ? `Mobile PageSpeed: ${funnelPsi.mobileScore}/100${funnelPsi.mobileScore < 60 ? " — slow mobile experience hurts ad and organic conversion." : "."}`
+          ? `Mobile ${TERMS.pageSpeed} score: ${funnelPsi.mobileScore}/100${funnelPsi.mobileScore < 60 ? " — slow mobile experience hurts ad and organic conversion." : "."}`
           : null,
       ]
         .filter(Boolean)
@@ -273,8 +284,8 @@ export function buildSectionsFromResearch(
             detail: [
               "Prospects who click ads land on your site before they trust you from search.",
               site.hasCtaLanguage
-                ? "Homepage shows some CTA language; still verify message match with ad copy and offer."
-                : "Weak homepage CTA/trust signals increase wasted spend — consider pausing scale until landing is fixed.",
+                ? `Homepage shows some ${TERMS.cta} language; still verify message match with ad copy and offer.`
+                : `Weak homepage ${TERMS.cta} and trust signals increase wasted spend — consider pausing scale until landing is fixed.`,
             ].join(" "),
             severity: site.hasCtaLanguage ? ("high" as const) : ("critical" as const),
           },
@@ -316,7 +327,7 @@ export function buildSectionsFromResearch(
               youColumnIndex: 0,
             },
             {
-              label: "Review signal (SERP)",
+              label: `Review signal (${TERMS.serp})`,
               cells: [
                 yourGbp,
                 ...compDomains.map((d) => {
@@ -339,7 +350,7 @@ export function buildSectionsFromResearch(
               youColumnIndex: 0,
             },
             {
-              label: "Mobile score",
+              label: `Mobile score (${TERMS.pageSpeed})`,
               cells: [
                 yourPsi != null ? `${yourPsi}/100` : "—",
                 ...compDomains.map(() => "—"),
@@ -374,14 +385,14 @@ export function buildSectionsFromResearch(
       findings: searchFindings,
       aiPreview: [
         {
-          platform: "Google AI Overview",
-          result: aiOverview ?? "No AI overview snippet returned for footprint queries.",
+          platform: TERMS.aiOverview,
+          result: aiOverview ?? `No ${TERMS.aiOverview} snippet returned for footprint queries.`,
           severity: aiOverview ? ("medium" as const) : ("high" as const),
         },
         {
           platform: "ChatGPT / Perplexity",
           result:
-            "Live AI citation checks are not automated in v1; improve entity clarity on site and GBP.",
+            `Live AI citation checks are not automated in v1; improve entity clarity on site and ${TERMS.gbp}.`,
           severity: "medium" as const,
         },
       ],
@@ -464,10 +475,46 @@ export function buildExecutiveSummaryFromResearch(
     "This report is diagnostic only — LevelStack identifies gaps; you or your team execute fixes. No ranking or revenue outcomes are guaranteed.",
   )
 
+  const whatProspectsSee = paragraphs[0] ?? ""
+  const reputationGap = paragraphs[1] ?? ""
+  const revenueRisk =
+    intake.hasActiveAdSpend === "yes" && paragraphs[2]
+      ? paragraphs[2]
+      : paragraphs.find((p) => /ad spend|paid|convert/i.test(p)) ??
+        `Conversion risk remains if trust signals and offer clarity do not match what prospects see in search for ${intake.primaryService}.`
+
+  const goodFindings = allFindings.filter((f) => f.severity === "good" || f.severity === "low")
+  const urgentFindings = allFindings.filter(
+    (f) => f.severity === "critical" || f.severity === "high",
+  )
+
+  const strengths = goodFindings.slice(0, 3).map((f) => f.value)
+  const topOpportunities = urgentFindings.slice(0, 3).map((f) => f.value)
+
+  const lowestSection = [...sections]
+    .filter((s) => s.id !== "action_plan")
+    .sort((a, b) => a.score - b.score)[0]
+
   return {
     paragraphs,
     criticalIssue: critical?.value ?? "Review search footprint and homepage clarity first.",
     firstSteps: [],
+    insights: {
+      whatProspectsSee,
+      reputationGap,
+      revenueRisk,
+    },
+    highlights: {
+      businessImpact: critical
+        ? `Unresolved ${critical.label.toLowerCase()} issues can waste marketing spend and slow trust before prospects book ${intake.primaryService}.`
+        : `Gaps in ${lowestSection?.label.toLowerCase() ?? "search and presence"} can reduce marketing efficiency for ${intake.primaryBusinessName}.`,
+      highestLeverageOpportunity:
+        urgentFindings[0]?.value ??
+        goodFindings[0]?.value ??
+        `Improve ${lowestSection?.label.toLowerCase() ?? "search footprint"} to strengthen how prospects evaluate ${intake.primaryBusinessName}.`,
+    },
+    strengths: strengths.length > 0 ? strengths : undefined,
+    topOpportunities: topOpportunities.length > 0 ? topOpportunities : undefined,
   }
 }
 

@@ -4,7 +4,9 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "build:tokens": "node scripts/build-design-tokens.mjs",
     "dev": "next dev --port 3001",
+    "prebuild": "pnpm build:tokens",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "lighthouse": {
+      "command": "npx",
+      "args": ["-y", "@danielsogl/lighthouse-mcp@latest"],
+      "comment": "No API key required. Used by /seo-performance-audit."
+    },
+    "firecrawl-mcp": {
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "envFile": "${workspaceFolder}/.env.local",
+      "comment": "Set FIRECRAWL_API_KEY in .env.local. Used by /seo-performance-audit."
+    }
+  }
+}

@@ -82,7 +82,7 @@ Defined in hub [`data/levelstackPlans.ts`](../../../data/levelstackPlans.ts), re
 
 ### 0.8 Sample report (reference implementation)
 
-**Canonical UI reference:** [`assets/levelstack-sample-report.html`](assets/levelstack-sample-report.html) — tabbed six-section layout, finding cards, competitive grid, action plan, upsell strips.
+**Canonical UI reference:** [`assets/levelstack-executive-summary-v2.png`](../assets/levelstack-executive-summary-v2.png) — v2 report layout. [`assets/levelstack-sample-report.html`](../assets/levelstack-sample-report.html) — copy tone only (legacy v1 layout).
 
 **Layout reference (scores & summary):** [SEO audit results page](https://seo.levelplaydigital.com/results/cmpxhp9uf0000fw1qynk3qz65) on `seo.levelplaydigital.com` — overall score hero, category breakdown, issue priority counts, executive problem framing.
 
@@ -478,10 +478,9 @@ Zero manual intervention for Standard tier. Per-section scope:
 
 ### 10.3 Report delivery — final output specification
 
-The LevelStack report combines **two visual references**:
+The LevelStack report visual reference is **`assets/levelstack-executive-summary-v2.png`** (header: `assets/levelstack-report-header-v2.png`). Implementation: `styles/report-final-design.css`, `components/report/report-header.tsx`, `components/report/executive-summary-v2.tsx`.
 
-1. **Summary dashboard** — layout and score aesthetics from the [LPD SEO audit results page](https://seo.levelplaydigital.com/results/cmpxhp9uf0000fw1qynk3qz65) (overall grade, issue counts, category scores, priority breakdown, executive problem callout).
-2. **Section detail** — tabbed six-section UI from [`assets/levelstack-sample-report.html`](assets/levelstack-sample-report.html) (findings, AI cards, competitive grid, action plan, upsell strips).
+[`assets/levelstack-sample-report.html`](assets/levelstack-sample-report.html) is **legacy v1** — use for **copy tone / finding depth only**, not layout or header structure.
 
 Both web view and PDF must present the same content. PDF is a permanent download (no 30-day expiry like the free SEO tool).
 
@@ -489,11 +488,11 @@ Both web view and PDF must present the same content. PDF is a permanent download
 
 | Block | Purpose | Reference |
 |-------|---------|-----------|
-| **Report header** | Business name, market meta, report date, tier, sections complete, finding counts | Sample HTML `.report-header` |
+| **Report header** | Title + assessment subtitle; score + grade boxes; stacked meta columns + stat pills | `levelstack-report-header-v2.png` |
 | **Executive summary** | 2–4 paragraphs synthesizing cross-section findings, business impact, and top priority — for a non-technical owner | Required addition (see §10.3.2) |
 | **Summary dashboard** | Overall LevelStack score/grade, total issues, priority breakdown, six section score cards, biggest problem areas | SEO audit results page pattern |
-| **Section tabs** | Six tabs with traffic-light severity dot per section | Sample HTML `#tabs` |
-| **Section panels** | One active panel per tab; findings + section-specific modules | Sample HTML `.panel` |
+| **Section tabs** | Seven tabs on white bar (Executive summary default); orange active underline | v2 screenshot |
+| **Section panels** | One active panel per tab; findings + section-specific modules | v2 + sample HTML tone for finding copy |
 | **Report footer** | LevelStack · Level Play Digital attribution; generation date | Sample HTML `.report-footer` |
 
 #### 10.3.2 Executive summary (required)
@@ -523,8 +522,8 @@ Adapt the [SEO audit results](https://seo.levelplaydigital.com/results/cmpxhp9uf
 
 **Visual tokens (align both references):**
 
-- Dark header: `#090E18` (`--lpd-dark`)
-- Accent cyan: `#00D4F5` · Accent orange: `#FF6633` — CTAs, active tab underline
+- Dark header: `#002147` (`--lpd-dark`) — flat, no hero mesh
+- Report accents: `--rpt-blue` `#5BC0DE`, `--rpt-orange` `#F0AD4E` (header/subtitle/grade). Hub `#00D4F5` / `#FF6633` for marketing CTAs only
 - Severity: red `#E24B4A`, amber `#EF9F27`, green `#639922` — dots, badges, score bars
 
 Reuse LPD design tokens from hub where possible (`scripts/build-design-tokens.mjs`).
@@ -562,7 +561,7 @@ Horizontal scroll tabs on mobile; grids collapse or scroll; PDF may layout diffe
 
 Internal/marketing samples use `Sample Report` badge (`.sample-badge`). Paid reports use live meta counts only.
 
-Reference: [`assets/levelstack-sample-report.html`](assets/levelstack-sample-report.html).
+Layout reference: [`assets/levelstack-executive-summary-v2.png`](../assets/levelstack-executive-summary-v2.png). Copy tone: [`assets/levelstack-sample-report.html`](../assets/levelstack-sample-report.html).
 
 ### 10.4 Review call add-on (`levelstack-review-call` only)
 

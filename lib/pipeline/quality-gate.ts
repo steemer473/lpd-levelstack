@@ -105,11 +105,56 @@ export function runQualityGate(
     report.executiveSummary.paragraphs.some(
       (p) =>
         p.includes(intake.primaryBusinessName) || p.includes(intake.ownerName),
-    ) || report.executiveSummary.criticalIssue.includes(intake.primaryBusinessName)
+    ) ||
+    report.executiveSummary.criticalIssue.includes(intake.primaryBusinessName) ||
+    (report.executiveSummary.insights?.whatProspectsSee.includes(
+      intake.primaryBusinessName,
+    ) ??
+      false)
 
   if (!businessNamed) {
     warnings.push(
       "Executive summary does not mention business or owner name from intake.",
+    )
+  }
+
+  const insights = report.executiveSummary.insights
+  if (insights) {
+    const insightBlob = [
+      insights.whatProspectsSee,
+      insights.reputationGap,
+      insights.revenueRisk,
+    ].join("\n")
+    const insightEvidence = EVIDENCE_PATTERNS.filter((p) => p.test(insightBlob)).length
+    if (insightEvidence < 2) {
+      warnings.push(
+        "Structured exec insights cite fewer than 2 evidence types (URL, position, domain).",
+      )
+    }
+    for (const pattern of BOILERPLATE_PATTERNS) {
+      if (pattern.test(insightBlob)) {
+        warnings.push(`Exec insight boilerplate detected: ${pattern.source}`)
+      }
+    }
+    if (intake.hasActiveAdSpend === "yes" && !/ad|paid|spend|landing/i.test(insights.revenueRisk)) {
+      warnings.push(
+        "Intake reports active ad spend but insights.revenueRisk does not address paid traffic.",
+      )
+    }
+  } else {
+    warnings.push(
+      "Executive summary missing structured insights object (whatProspectsSee, reputationGap, revenueRisk).",
+    )
+  }
+
+  const highlights = report.executiveSummary.highlights
+  if (highlights) {
+    if (!highlights.businessImpact.trim() || !highlights.highestLeverageOpportunity.trim()) {
+      warnings.push("Executive highlights missing businessImpact or highestLeverageOpportunity.")
+    }
+  } else {
+    warnings.push(
+      "Executive summary missing highlights object (businessImpact, highestLeverageOpportunity).",
     )
   }
 

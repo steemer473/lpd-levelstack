@@ -58,6 +58,27 @@ export const actionPlanSchema = z.object({
   thisQuarter: z.array(actionItemSchema).max(4),
 })
 
+export const executiveInsightsSchema = z.object({
+  whatProspectsSee: z.string(),
+  reputationGap: z.string(),
+  revenueRisk: z.string(),
+})
+
+export const executiveHighlightsSchema = z.object({
+  businessImpact: z.string(),
+  highestLeverageOpportunity: z.string(),
+})
+
+export const executiveSummarySchema = z.object({
+  paragraphs: z.array(z.string()),
+  criticalIssue: z.string(),
+  firstSteps: z.array(z.string()),
+  insights: executiveInsightsSchema.optional(),
+  highlights: executiveHighlightsSchema.optional(),
+  strengths: z.array(z.string()).max(3).optional(),
+  topOpportunities: z.array(z.string()).max(3).optional(),
+})
+
 export const levelstackReportJsonSchema = z.object({
   meta: z.object({
     businessName: z.string(),
@@ -73,11 +94,7 @@ export const levelstackReportJsonSchema = z.object({
     mediumCount: z.number(),
     lowCount: z.number(),
   }),
-  executiveSummary: z.object({
-    paragraphs: z.array(z.string()),
-    criticalIssue: z.string(),
-    firstSteps: z.array(z.string()),
-  }),
+  executiveSummary: executiveSummarySchema,
   sections: z.array(reportSectionSchema),
   actionPlan: actionPlanSchema,
 })

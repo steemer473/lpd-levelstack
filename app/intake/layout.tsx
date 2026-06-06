@@ -1,5 +1,7 @@
+import { CheckCircle2, Clock, Shield } from "lucide-react"
 import { redirect } from "next/navigation"
 
+import { ProductShell } from "@/components/layout/product-shell"
 import { hasLevelStackAccess } from "@/lib/levelstack-access"
 import { createClient } from "@/lib/supabase/server"
 
@@ -29,13 +31,24 @@ export default async function IntakeLayout({
   }
 
   return (
-    <div className="bg-background min-h-svh">
-      <header className="border-b">
-        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
-          <span className="font-semibold">LevelStack intake</span>
-        </div>
-      </header>
-      <main className="mx-auto max-w-3xl px-4 py-8">{children}</main>
-    </div>
+    <ProductShell
+      maxWidth="lg"
+      showSignOut
+      overlapHero
+      hero={{
+        tagline: "LevelStack",
+        heading: "Complete your business intake questionnaire",
+        headingHighlight: "business intake",
+        description:
+          "Plan for 10–15 minutes. Your answers anchor automated research across six readiness sections.",
+        badges: [
+          { icon: Clock, label: "10–15 minutes" },
+          { icon: Shield, label: "Secure & private" },
+          { icon: CheckCircle2, label: "One-time submit" },
+        ],
+      }}
+    >
+      {children}
+    </ProductShell>
   )
 }

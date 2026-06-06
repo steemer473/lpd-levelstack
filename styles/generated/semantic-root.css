@@ -1,0 +1,135 @@
+/**
+ * AUTO-GENERATED from tokens/design-tokens.json — do not edit by hand.
+ * Regenerate: pnpm build:tokens
+ */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+
+    --accent-orange: hsl(14 100% 60%);
+    --accent-blue: hsl(193 100% 50%);
+    --hero-bg: hsl(210 59.18% 37.37%);
+    --dark-900: hsl(210 40% 8%);
+    --dark-800: hsl(217 32% 17%);
+    --dark-700: hsl(217 32% 25%);
+    --dark-600: hsl(217 32% 35%);
+    --light-50: hsl(0 0% 98%);
+    --light-100: hsl(240 5% 96%);
+    --light-200: hsl(240 6% 90%);
+    --light-300: hsl(240 5% 84%);
+    --light-400: hsl(240 5% 65%);
+    --light-500: hsl(240 4% 46%);
+
+    --pricing-bg: #f7fafc;
+
+    --sidebar-width: 16rem;
+    --sidebar-width-icon: 3rem;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-accent: 220 14.3% 95.9%;
+
+    --effect-gradient-brand-text: linear-gradient(135deg, hsl(193, 100%, 50%) 0%, hsl(14, 100%, 60%) 100%);
+    --effect-gradient-btn-primary: linear-gradient(135deg, hsl(14, 100%, 60%) 0%, hsl(193, 100%, 50%) 100%);
+    --shadow-btn-primary-hover: 0 10px 20px hsla(14, 100%, 60%, 0.4);
+    --shadow-card-hover: 0 20px 40px hsla(0, 0%, 0%, 0.3);
+
+    --lh-body: 1.6;
+    --lh-hero-h1: 1.2;
+
+    /* LevelStack report + product shell (brief §10.3, sample HTML) */
+    --lpd-dark: #002147;
+    --lpd-orange: #FF6633;
+    --lpd-blue: #00D4F5;
+    --lpd-severity-critical: #E24B4A;
+    --lpd-severity-attention: #EF9F27;
+    --lpd-severity-good: #639922;
+
+    /* LevelStack report surfaces */
+    --report-header-border: rgba(255, 255, 255, 0.10);
+    --report-tab-active-border: var(--lpd-orange);
+    --report-intro-bg: color-mix(in srgb, var(--lpd-blue) 8%, white);
+    --report-intro-border: color-mix(in srgb, var(--lpd-blue) 25%, white);
+    --report-text-title: 1.25rem;
+    --report-text-section: 0.9375rem;
+    --report-text-body: 0.875rem;
+    --report-text-detail: 0.8125rem;
+    --report-text-meta: 0.75rem;
+    --report-text-caption: 0.6875rem;
+    --report-text-micro: 0.625rem;
+    --report-text-score: 1.875rem;
+    --report-text-grade: 3rem;
+
+    /* seo-audit-nextjs (apps/web/globals.css + tailwind.config.js) */
+    --seo-brand-dark: #0B0F19;
+    --seo-brand-blue: #2563EB;
+    --seo-brand-orange: #F97316;
+    --seo-brand-light: #EFF6FF;
+
+    --breakpoint-xs: 480px;
+    --breakpoint-sm: 640px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1280px;
+    --breakpoint-2xl: 1536px;
+    --z-base: 0;
+    --z-raised: 10;
+    --z-dropdown: 50;
+    --z-sticky: 100;
+    --z-overlay: 200;
+    --z-modal: 300;
+    --z-toast: 400;
+    --z-max: 9999;
+    --icon-size-xs: 0.875rem;
+    --icon-size-sm: 1rem;
+    --icon-size-md: 1.25rem;
+    --icon-size-lg: 1.5rem;
+    --icon-size-xl: 2rem;
+    --border-width-2: 2px;
+    --border-width-4: 4px;
+    --border-width-hairline: 1px;
+    --border-width-default: 1px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 212.7 26.8% 83.9%;
+      --pricing-bg: #111827;
+    }
+  }
+}

@@ -1,0 +1,136 @@
+/* Level Play Digital utilities — aligned with lpd-redesign/styles/tailwind.css */
+
+@layer utilities {
+  .gradient-text {
+    background: var(--effect-gradient-brand-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-orange);
+  }
+
+  .dark-hero-title {
+    @apply bg-gradient-to-r from-[hsl(14,100%,60%)] via-white/90 to-[hsl(193,100%,50%)] bg-clip-text text-transparent;
+  }
+
+  .btn-primary-gradient {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: var(--effect-gradient-btn-primary);
+    color: hsl(0 0% 100%);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary-gradient:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-btn-primary-hover);
+  }
+
+  .product-surface {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--background)) 0%,
+      color-mix(in srgb, var(--light-100) 40%, hsl(var(--background))) 100%
+    );
+  }
+
+  .bg-lpd-hero {
+    background-color: var(--lpd-dark);
+    background-image:
+      linear-gradient(
+        165deg,
+        var(--lpd-dark) 0%,
+        color-mix(in srgb, var(--lpd-dark) 92%, var(--lpd-blue) 8%) 55%,
+        color-mix(in srgb, var(--lpd-dark) 88%, var(--lpd-orange) 6%) 100%
+      ),
+      radial-gradient(
+        ellipse 80% 50% at 20% 40%,
+        color-mix(in srgb, var(--lpd-blue) 12%, transparent),
+        transparent
+      ),
+      radial-gradient(
+        ellipse 60% 40% at 80% 60%,
+        color-mix(in srgb, var(--lpd-orange) 10%, transparent),
+        transparent
+      );
+  }
+
+  .report-intro-panel {
+    background: var(--report-intro-bg);
+    border-color: var(--report-intro-border);
+  }
+
+  .severity-tint-critical {
+    color: var(--lpd-severity-critical);
+    background: color-mix(in srgb, var(--lpd-severity-critical) 12%, white);
+    border-color: color-mix(in srgb, var(--lpd-severity-critical) 35%, white);
+  }
+
+  .severity-tint-attention {
+    color: var(--lpd-severity-attention);
+    background: color-mix(in srgb, var(--lpd-severity-attention) 12%, white);
+    border-color: color-mix(in srgb, var(--lpd-severity-attention) 35%, white);
+  }
+
+  .severity-tint-good {
+    color: var(--lpd-severity-good);
+    background: color-mix(in srgb, var(--lpd-severity-good) 12%, white);
+    border-color: color-mix(in srgb, var(--lpd-severity-good) 35%, white);
+  }
+
+  .severity-tint-blue {
+    color: var(--lpd-blue);
+    background: color-mix(in srgb, var(--lpd-blue) 10%, white);
+    border-color: color-mix(in srgb, var(--lpd-blue) 30%, white);
+  }
+
+  .text-report-title {
+    font-size: var(--report-text-title);
+  }
+
+  .text-report-section {
+    font-size: var(--report-text-section);
+  }
+
+  .text-report-body {
+    font-size: var(--report-text-body);
+  }
+
+  .text-report-detail {
+    font-size: var(--report-text-detail);
+  }
+
+  .text-report-meta {
+    font-size: var(--report-text-meta);
+  }
+
+  .text-report-caption {
+    font-size: var(--report-text-caption);
+  }
+
+  .text-report-micro {
+    font-size: var(--report-text-micro);
+  }
+
+  .text-report-score {
+    font-size: var(--report-text-score);
+  }
+
+  .text-report-grade {
+    font-size: var(--report-text-grade);
+  }
+}

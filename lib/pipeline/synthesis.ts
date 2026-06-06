@@ -10,10 +10,12 @@ import { buildReportSections } from "@/lib/pipeline/build-sections"
 import { runQualityGate } from "@/lib/pipeline/quality-gate"
 import {
   actionPlanSchema,
+  executiveSummarySchema,
   reportSectionSchema,
   type LevelstackReportJson,
   type ReportSection,
 } from "@/lib/pipeline/report-types"
+import { normalizeSynthesisPayload } from "@/lib/pipeline/normalize-llm-synthesis"
 import {
   buildExecutiveSummaryFromResearch,
   buildSectionsFromResearch,
@@ -22,7 +24,7 @@ import {
 import { SYNTHESIS_SYSTEM_PROMPT } from "@/lib/pipeline/synthesis-prompts"
 import type { ResearchBundle } from "@/lib/pipeline/research-types"
 
-const executiveSummarySchema = z.object({
+const synthesisExecutiveSchema = executiveSummarySchema.extend({
   paragraphs: z.array(z.string()).min(2).max(5),
   criticalIssue: z.string().min(1),
   firstSteps: z.array(z.string()).min(1).max(4),
@@ -30,7 +32,7 @@ const executiveSummarySchema = z.object({
 
 const synthesisCoreSchema = z.object({
   sections: z.array(reportSectionSchema),
-  executiveSummary: executiveSummarySchema,
+  executiveSummary: synthesisExecutiveSchema,
 })
 
 const synthesisFullSchema = synthesisCoreSchema.extend({
@@ -229,7 +231,22 @@ Produce sections, executiveSummary, and actionPlan per schema.`
     )
   }
 
-  const fullParsed = synthesisFullSchema.safeParse(result.json)
+  const baselineSections = researchBundleHasSerpData(bundle)
+    ? buildSectionsFromResearch(intake, bundle)
+    : planSource
+
+  const normalized = normalizeSynthesisPayload(
+    result.json,
+    baselineSections,
+    intake,
+    researchBundleHasSerpData(bundle) ? bundle : null,
+  )
+
+  const fullParsed = synthesisFullSchema.safeParse({
+    sections: normalized.sections,
+    executiveSummary: normalized.executiveSummary,
+    actionPlan: normalized.actionPlan,
+  })
   if (fullParsed.success) {
     const actionPlan = normalizeLlmActionPlan(fullParsed.data.actionPlan)
     const firstSteps =
@@ -245,7 +262,10 @@ Produce sections, executiveSummary, and actionPlan per schema.`
     )
   }
 
-  const coreParsed = synthesisCoreSchema.safeParse(result.json)
+  const coreParsed = synthesisCoreSchema.safeParse({
+    sections: normalized.sections,
+    executiveSummary: normalized.executiveSummary,
+  })
   if (coreParsed.success) {
     console.warn("[synthesis] actionPlan missing or invalid; using finding-linked fallback")
     const actionPlan = buildActionPlanFromSections(coreParsed.data.sections, intake)

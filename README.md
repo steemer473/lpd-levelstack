@@ -5,7 +5,9 @@ Delivery app for [LevelStack](https://levelplaydigital.com/platform/levelstack) 
 ## Docs
 
 - [Project brief & PRD](docs/project-brief.md)
-- Sample report UI reference: [assets/levelstack-sample-report.html](assets/levelstack-sample-report.html)
+- Report UI visual reference (v2): [assets/levelstack-executive-summary-v2.png](assets/levelstack-executive-summary-v2.png) · header crop: [assets/levelstack-report-header-v2.png](assets/levelstack-report-header-v2.png)
+- **v0 rules (attach this in v0):** [docs/v0/V0-RULES.md](docs/v0/V0-RULES.md) — overrides sample HTML / project-brief for layout
+- Legacy copy-tone reference only: [assets/levelstack-sample-report.html](assets/levelstack-sample-report.html) (v1 layout — not for design generation)
 
 ## Stack
 
@@ -15,6 +17,7 @@ Next.js 16 (App Router), React 19, TypeScript, Tailwind v4, shadcn/ui (`radix-ve
 
 ```bash
 pnpm install
+pnpm build:tokens
 cp .env.example .env.local
 # Fill Supabase URL/keys from the same project as lpd-redesign
 pnpm dev
