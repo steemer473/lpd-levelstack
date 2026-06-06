@@ -4,6 +4,7 @@ import {
   Globe,
   LayoutGrid,
   Search,
+  Shield,
   Star,
   Target,
   TrendingUp,
@@ -25,8 +26,13 @@ export const REPORT_ASSESSMENT_TITLE =
   "DIGITAL PRESENCE & REVENUE FUNNEL ASSESSMENT" as const
 
 export function planDisplayName(planId: string | null): string {
-  if (planId === "levelstack-review-call") return "LevelStack + Review Call"
-  if (planId === "levelstack-standard") return "LevelStack Assessment"
+  if (planId === "levelstack-strategy-call" || planId === "levelstack-review-call") {
+    return "LevelStack + Strategy Call"
+  }
+  if (planId === "levelstack-full-report" || planId === "levelstack-standard") {
+    return "LevelStack Full Report"
+  }
+  if (planId === "levelstack-free-snapshot") return "LevelStack Free Snapshot"
   return "LevelStack Assessment"
 }
 
@@ -41,8 +47,11 @@ export function readinessLabel(score: number): string {
 export const TAB_ICONS: Record<string, LucideIcon> = {
   executive_summary: LayoutGrid,
   search_footprint: Search,
+  social_offsite: Globe,
   online_reputation: Star,
   digital_presence: Globe,
+  infrastructure_security: Shield,
+  positioning_consistency: Target,
   revenue_funnel: TrendingUp,
   competitive_context: Target,
   action_plan: ClipboardList,
@@ -122,9 +131,20 @@ export function priorityBreakdown(meta: LevelstackReportJson["meta"]) {
 export const SECTION_TAB_ORDER: { id: string; label: string }[] = [
   { id: "executive_summary", label: "Executive summary" },
   { id: "search_footprint", label: "Search footprint" },
+  { id: "social_offsite", label: "Social & off-site" },
   { id: "online_reputation", label: "Reputation" },
   { id: "digital_presence", label: "Digital presence" },
+  { id: "infrastructure_security", label: "Infrastructure" },
+  { id: "positioning_consistency", label: "Positioning" },
   { id: "revenue_funnel", label: "Revenue funnel" },
   { id: "competitive_context", label: "Competitive context" },
   { id: "action_plan", label: "Action plan" },
 ]
+
+export const LOCKED_SECTION_LABELS: Record<string, string> = {
+  infrastructure_security: "Infrastructure & security",
+  positioning_consistency: "Positioning consistency",
+  revenue_funnel: "Revenue funnel diagnosis",
+  competitive_context: "Competitive context snapshot",
+  action_plan: "Full prioritized action plan",
+}

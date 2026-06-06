@@ -46,9 +46,9 @@ export default function Page() {
         heading: "Your six-section business readiness report",
         headingHighlight: "readiness report",
         description:
-          "Purchase on Level Play Digital, complete intake here, and view your diagnostic report when research finishes.",
+          "Start with a free snapshot or purchase the full report on Level Play Digital, then complete intake and view your diagnostic report.",
         badges: [
-          { icon: CheckCircle2, label: "Six sections" },
+          { icon: CheckCircle2, label: "Free snapshot" },
           { icon: Shield, label: "Research-backed" },
           { icon: BarChart3, label: "Action plan" },
         ],
@@ -61,10 +61,13 @@ export default function Page() {
         </p>
         <div className="flex flex-col gap-3">
           <Button variant="brand" asChild className="w-full">
-            <Link href="/auth/sign-in?redirect=/intake">Sign in → intake</Link>
+            <Link href="/free">Get free snapshot</Link>
           </Button>
           <Button variant="outline" asChild className="w-full">
-            <Link href={getHubPricingUrl()}>Purchase on hub</Link>
+            <Link href="/auth/sign-in?redirect=/intake">Sign in → full intake</Link>
+          </Button>
+          <Button variant="outline" asChild className="w-full">
+            <Link href={getHubPricingUrl()}>Upgrade — full report $97</Link>
           </Button>
           <Button variant="ghost" asChild className="w-full">
             <a

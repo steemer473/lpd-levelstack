@@ -31,6 +31,31 @@ export function serviceMarketQuery(intake: LevelstackIntakeFormValues): string {
   return service
 }
 
+export function brandNameSearchQueries(intake: LevelstackIntakeFormValues): string[] {
+  const bareBrand = intake.primaryBusinessName.trim()
+  return [
+    bareBrand,
+    businessNameForSearch(intake),
+    ...priorNamesForSearch(intake),
+  ].filter(Boolean)
+}
+
+export function directoryReviewQueries(intake: LevelstackIntakeFormValues): string[] {
+  const business = businessNameForSearch(intake)
+  const domain = intake.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")
+  return [
+    `${business} reviews`,
+    `site:yelp.com ${business}`,
+    `site:clutch.co ${business}`,
+    `site:g2.com ${business}`,
+    `site:capterra.com ${business}`,
+    `site:producthunt.com ${business}`,
+    `site:crunchbase.com ${business}`,
+    `"${business}" ${domain}`,
+    scopedSearchPhrase(`${intake.primaryBusinessName.trim()} complaints`, intake),
+  ].filter(Boolean)
+}
+
 export function searchFootprintQueries(intake: LevelstackIntakeFormValues): string[] {
   const queries = [
     businessNameForSearch(intake),

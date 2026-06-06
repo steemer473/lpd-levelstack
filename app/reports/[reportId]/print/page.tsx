@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 
 import { ReportPrintClient } from "@/components/report/report-print-client"
 import { levelstackReportJsonSchema } from "@/lib/pipeline/report-types"
-import { getReportForUser } from "@/lib/reports/get-report"
+import { resolveReportAccess } from "@/lib/reports/get-report"
 import { createClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"
@@ -27,8 +27,8 @@ export default async function ReportPrintPage({ params, searchParams }: PageProp
     redirect(`/auth/sign-in?redirect=/reports/${reportId}/print`)
   }
 
-  const report = await getReportForUser(reportId, user.id)
-  if (!report || report.status !== "completed") {
+  const report = await resolveReportAccess(reportId, user.id)
+  if (!report || report.status !== "ready") {
     redirect(`/reports/${reportId}`)
   }
 

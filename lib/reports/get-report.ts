@@ -1,14 +1,46 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
+import { isDevReportPreviewEnabled } from "@/lib/dev-report-preview"
 
 export type LevelstackReportRow = {
   id: string
   status: string
   report_json: unknown
   plan_id: string | null
+  report_tier?: string | null
   error_message: string | null
   job_id: string | null
   intake_id: string
+  user_id?: string
+}
+
+const REPORT_COLUMNS =
+  "id, status, report_json, plan_id, report_tier, error_message, job_id, intake_id, user_id"
+const REPORT_COLUMNS_LEGACY =
+  "id, status, report_json, plan_id, error_message, job_id, intake_id, user_id"
+
+async function queryReportById(
+  supabase: NonNullable<ReturnType<typeof createAdminClient>>,
+  reportId: string,
+): Promise<LevelstackReportRow | null> {
+  const { data, error } = await supabase
+    .from("levelstack_reports")
+    .select(REPORT_COLUMNS)
+    .eq("id", reportId)
+    .maybeSingle()
+
+  if (!error) return data
+
+  if (error.code === "42703" || error.message.includes("report_tier")) {
+    const { data: legacy } = await supabase
+      .from("levelstack_reports")
+      .select(REPORT_COLUMNS_LEGACY)
+      .eq("id", reportId)
+      .maybeSingle()
+    return legacy
+  }
+
+  return null
 }
 
 export async function getReportForUser(
@@ -18,14 +50,26 @@ export async function getReportForUser(
   const supabase = await createClient()
   if (!supabase) return null
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("levelstack_reports")
-    .select("id, status, report_json, plan_id, error_message, job_id, intake_id")
+    .select(REPORT_COLUMNS)
     .eq("id", reportId)
     .eq("user_id", userId)
     .maybeSingle()
 
-  return data
+  if (!error) return data
+
+  if (error.code === "42703" || error.message.includes("report_tier")) {
+    const { data: legacy } = await supabase
+      .from("levelstack_reports")
+      .select(REPORT_COLUMNS_LEGACY)
+      .eq("id", reportId)
+      .eq("user_id", userId)
+      .maybeSingle()
+    return legacy
+  }
+
+  return null
 }
 
 /** Dev preview — load any report by id (service role). */
@@ -34,19 +78,33 @@ export async function getReportById(
 ): Promise<LevelstackReportRow | null> {
   const supabase = createAdminClient()
   if (!supabase) return null
+  return queryReportById(supabase, reportId)
+}
 
-  const { data } = await supabase
-    .from("levelstack_reports")
-    .select("id, status, report_json, plan_id, error_message, job_id, intake_id")
-    .eq("id", reportId)
-    .maybeSingle()
+/**
+ * Resolve a report for the current viewer.
+ * Owners always use RLS. In local dev preview, falls back to service-role lookup
+ * so rebuild/status APIs work when the signed-in hub account ≠ report owner.
+ */
+export async function resolveReportAccess(
+  reportId: string,
+  userId: string | null,
+): Promise<LevelstackReportRow | null> {
+  if (userId) {
+    const owned = await getReportForUser(reportId, userId)
+    if (owned) return owned
+  }
 
-  return data
+  if (isDevReportPreviewEnabled()) {
+    return getReportById(reportId)
+  }
+
+  return null
 }
 
 export async function getReportStatusPayload(
   reportId: string,
-  userId: string,
+  userId: string | null,
 ): Promise<{
   reportId: string
   reportStatus: string
@@ -57,17 +115,16 @@ export async function getReportStatusPayload(
   error: string | null
   businessName: string | null
 } | null> {
-  const supabase = await createClient()
-  if (!supabase) return null
-
-  const { data: report } = await supabase
-    .from("levelstack_reports")
-    .select("id, status, error_message, job_id, report_json")
-    .eq("id", reportId)
-    .eq("user_id", userId)
-    .maybeSingle()
+  const report = await resolveReportAccess(reportId, userId)
 
   if (!report) return null
+
+  const supabase = await createClient()
+  const admin = createAdminClient()
+  const jobClient =
+    isDevReportPreviewEnabled() && admin ? admin : supabase
+
+  if (!jobClient) return null
 
   let jobStatus: string | null = null
   let currentStep: string | null = null
@@ -81,7 +138,7 @@ export async function getReportStatusPayload(
   }
 
   if (report.job_id) {
-    const { data: job } = await supabase
+    const { data: job } = await jobClient
       .from("levelstack_research_jobs")
       .select("status, metadata, error_message")
       .eq("id", report.job_id)

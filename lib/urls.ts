@@ -5,6 +5,11 @@ export function getAppUrl(path = ""): string {
   return path ? new URL(path, base).toString() : base
 }
 
+export function getHubFreeSnapshotUrl(): string {
+  const base = env.NEXT_PUBLIC_HUB_URL ?? "https://levelplaydigital.com"
+  return new URL("/free", base).toString()
+}
+
 export function getHubPricingUrl(): string {
   const base = env.NEXT_PUBLIC_HUB_URL ?? "https://levelplaydigital.com"
   return new URL("/platform/levelstack#pricing", base).toString()

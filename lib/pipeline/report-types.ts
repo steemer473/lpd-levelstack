@@ -50,6 +50,22 @@ export const actionItemSchema = z.object({
   who: z.string(),
   time: z.string(),
   findingRef: z.string().optional(),
+  automatorFlag: z.boolean().optional(),
+})
+
+export const insightBlockSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  severity: z.enum(["low", "medium", "high"]),
+  summary: z.string(),
+  details: z.array(z.string()),
+})
+
+export const signalStatusRowSchema = z.object({
+  label: z.string(),
+  value: z.string(),
+  percent: z.number().min(0).max(100),
+  tone: z.enum(["red", "amber", "green"]),
 })
 
 export const actionPlanSchema = z.object({
@@ -86,6 +102,9 @@ export const levelstackReportJsonSchema = z.object({
     marketLabel: z.string(),
     reportDate: z.string(),
     planId: z.string().nullable(),
+    reportTier: z
+      .enum(["free_snapshot", "full_report", "strategy_call"])
+      .optional(),
     overallScore: z.number(),
     letterGrade: z.string(),
     totalFindings: z.number(),
@@ -93,10 +112,21 @@ export const levelstackReportJsonSchema = z.object({
     highCount: z.number(),
     mediumCount: z.number(),
     lowCount: z.number(),
+    issueCountForUpgrade: z.number().optional(),
+    lockedSectionCount: z.number().optional(),
+    partnerBranding: z
+      .object({
+        companyName: z.string(),
+        logoUrl: z.string().nullable().optional(),
+        accentColorHex: z.string(),
+      })
+      .optional(),
   }),
   executiveSummary: executiveSummarySchema,
   sections: z.array(reportSectionSchema),
   actionPlan: actionPlanSchema,
+  signalRows: z.array(signalStatusRowSchema).optional(),
+  insights: z.array(insightBlockSchema).optional(),
 })
 
 export type LevelstackReportJson = z.infer<typeof levelstackReportJsonSchema>

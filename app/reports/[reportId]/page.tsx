@@ -10,7 +10,7 @@ import { FormPanel } from "@/components/ui/form-panel"
 import { isDevReportPreviewEnabled } from "@/lib/dev-report-preview"
 import { isPlaceholderReport } from "@/lib/pipeline/placeholder-report"
 import { levelstackReportJsonSchema } from "@/lib/pipeline/report-types"
-import { getReportById, getReportForUser } from "@/lib/reports/get-report"
+import { getReportById, resolveReportAccess } from "@/lib/reports/get-report"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
@@ -35,9 +35,7 @@ export default async function ReportPage({ params }: PageProps) {
     redirect(`/auth/sign-in?redirect=/reports/${reportId}`)
   }
 
-  const report = user
-    ? await getReportForUser(reportId, user.id)
-    : await getReportById(reportId)
+  const report = await resolveReportAccess(reportId, user?.id ?? null)
   if (!report) {
     return (
       <ProductShell maxWidth="md" showSignOut resultsStyle>
@@ -55,13 +53,20 @@ export default async function ReportPage({ params }: PageProps) {
   }
 
   if (report.status === "failed") {
+    const isDev = process.env.NODE_ENV === "development"
+
     return (
-      <ProductShell maxWidth="md" showSignOut resultsStyle>
-        <FormPanel className="max-w-lg mx-auto">
-          <h1 className="text-xl font-semibold mb-2">Report generation failed</h1>
-          <p className="text-muted-foreground text-sm mb-4">
-            {report.error_message ?? "Something went wrong while building your report."}
-          </p>
+      <ProductShell maxWidth="md" showSignOut={Boolean(user)} resultsStyle>
+        <FormPanel className="max-w-lg mx-auto space-y-4">
+          <div>
+            <h1 className="text-xl font-semibold mb-2">Report generation failed</h1>
+            <p className="text-muted-foreground text-sm">
+              {report.error_message ?? "Something went wrong while building your report."}
+            </p>
+          </div>
+          {isDev && (devPreview || user) && (
+            <RegenerateReportButton reportId={reportId} />
+          )}
           <Button asChild variant="brand">
             <Link href="/intake">Back to intake</Link>
           </Button>
@@ -117,7 +122,7 @@ export default async function ReportPage({ params }: PageProps) {
   return (
     <ProductShell showSignOut={Boolean(user)} resultsStyle>
       <div className="space-y-4 w-full">
-        {isDev && user && (
+        {isDev && (devPreview || user) && (
           <RegenerateReportButton
             reportId={reportId}
             isStalePlaceholder={isStalePlaceholder}

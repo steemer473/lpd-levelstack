@@ -32,13 +32,14 @@ import type { LevelstackReportJson, ReportSection } from "@/lib/pipeline/report-
 import {
   LPD,
   biggestProblemSections,
+  LOCKED_SECTION_LABELS,
   priorityBreakdown,
   scoreBarColor,
   sectionStatusBadge,
   SECTION_TAB_ORDER,
 } from "@/lib/report/display-helpers"
 import { REPORT_INTRO } from "@/lib/report/section-guides"
-import { getHubSeoWaitlistUrl } from "@/lib/urls"
+import { getHubPricingUrl, getHubSeoWaitlistUrl } from "@/lib/urls"
 import { cn } from "@/lib/utils"
 
 export type ReportViewProps = {
@@ -195,6 +196,59 @@ export function CompetitiveGrid({ section }: { section: ReportSection }) {
         </table>
       </div>
     </DataPanel>
+  )
+}
+
+export function UpgradeBanner({ report }: { report: LevelstackReportJson }) {
+  if (report.meta.reportTier !== "free_snapshot") return null
+
+  const issueCount =
+    report.meta.issueCountForUpgrade ??
+    report.meta.criticalCount + report.meta.highCount
+
+  return (
+    <div className="rpt-upsell mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border border-brand-orange/30 bg-brand-orange/5">
+      <div className="text-sm leading-relaxed">
+        <p className="font-medium">
+          We found {issueCount} issue{issueCount === 1 ? "" : "s"} in your public presence.
+        </p>
+        <p className="text-muted-foreground mt-1">
+          Your revenue funnel diagnosis, competitive position, and full prioritized action plan
+          are in your Full Report.
+        </p>
+      </div>
+      <Button variant="brand" asChild className="shrink-0">
+        <Link href={getHubPricingUrl()}>Upgrade — $97</Link>
+      </Button>
+    </div>
+  )
+}
+
+export function LockedSectionPanel({ sectionId }: { sectionId: string }) {
+  const label = LOCKED_SECTION_LABELS[sectionId] ?? "This section"
+  return (
+    <div className="px-6 py-8 text-center">
+      <p className="text-lg font-semibold mb-2">{label}</p>
+      <p className="text-muted-foreground text-sm max-w-md mx-auto mb-4">
+        Included in the Full LevelStack Report ($97): revenue funnel diagnosis, competitive
+        context, infrastructure findings, and your prioritized action plan.
+      </p>
+      <Button variant="brand" asChild>
+        <Link href={getHubPricingUrl()}>Unlock full report</Link>
+      </Button>
+    </div>
+  )
+}
+
+export function AutomatorFlagCallout() {
+  return (
+    <p className="text-[11px] mt-2 p-2 rounded bg-muted/60 border border-border/60 text-muted-foreground leading-relaxed">
+      <strong className="text-foreground">SEO Automator Pro:</strong> This issue is monitored
+      and corrected automatically by SEO Automator Pro.{" "}
+      <Link href={getHubSeoWaitlistUrl()} className="text-brand-orange underline">
+        Learn more
+      </Link>
+    </p>
   )
 }
 
@@ -395,6 +449,7 @@ export function ActionPlanPanel({ report }: { report: LevelstackReportJson }) {
                       From: {item.findingRef}
                     </p>
                   ) : null}
+                  {item.automatorFlag ? <AutomatorFlagCallout /> : null}
                 </div>
                 <span className="text-xs text-muted-foreground text-right pt-0.5">
                   {item.who}
@@ -784,6 +839,9 @@ export function ReportTabContent({
   }
 
   if (activeTab === "action_plan") {
+    if (report.meta.reportTier === "free_snapshot") {
+      return <LockedSectionPanel sectionId="action_plan" />
+    }
     return (
       <div className="px-6 py-5">
         <SectionPanelHeader
@@ -805,6 +863,21 @@ export function ReportTabContent({
         )}
       </div>
     )
+  }
+
+  const lockedIds = new Set([
+    "infrastructure_security",
+    "positioning_consistency",
+    "revenue_funnel",
+    "competitive_context",
+    "action_plan",
+  ])
+
+  if (
+    report.meta.reportTier === "free_snapshot" &&
+    lockedIds.has(activeTab)
+  ) {
+    return <LockedSectionPanel sectionId={activeTab} />
   }
 
   return sections

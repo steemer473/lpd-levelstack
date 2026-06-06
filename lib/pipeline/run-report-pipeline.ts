@@ -1,16 +1,30 @@
+import { scoreAllSignals } from "@/lib/audit/score-all-signals"
+import { assembleReportFromSignals } from "@/lib/pipeline/assemble-from-signals"
+import { synthesizeFreeSearchFootprint } from "@/lib/pipeline/search-footprint-synthesis"
 import { levelstackIntakeSchema } from "@/lib/intake/schema"
-import { assembleReportJson } from "@/lib/pipeline/build-sections"
-import { RESEARCH_COLLECTORS } from "@/lib/pipeline/collect-research"
-import { PIPELINE_STEPS } from "@/lib/pipeline/constants"
-import { emptyResearchBundle } from "@/lib/pipeline/research-types"
+import {
+  collectPaidEnrichment,
+  runAuditOperations,
+} from "@/lib/pipeline/collect-research"
+import {
+  AUDIT_OPERATIONS,
+  FREE_TIER_OPERATION_IDS,
+  FULL_TIER_OPERATION_IDS,
+  PIPELINE_STEPS,
+} from "@/lib/pipeline/constants"
 import { levelstackReportJsonSchema } from "@/lib/pipeline/report-types"
 import {
   appendActionPlanSection,
   synthesizeReportSections,
 } from "@/lib/pipeline/synthesis"
+import { assembleReportJson } from "@/lib/pipeline/build-sections"
+import { emptyResearchBundle } from "@/lib/pipeline/research-types"
+import { sendReportReadyEmail, scheduleNurtureEmails } from "@/lib/email/report-delivery"
+import { planIdToReportTier, type ReportTier } from "@/lib/levelstack-plans"
+import { resolveReportPlanId } from "@/lib/pipeline/resolve-report-plan-id"
 import { createAdminClient } from "@/lib/supabase/admin"
 
-const STEP_DELAY_MS = 100
+const STEP_DELAY_MS = 50
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -20,6 +34,15 @@ export type RunReportPipelineParams = {
   jobId: string
   reportId: string
   intakeId: string
+}
+
+function pipelineStepsForTier(reportTier: ReportTier) {
+  if (reportTier === "free_snapshot") {
+    return PIPELINE_STEPS.filter((s) =>
+      ["search_footprint", "social_offsite", "action_plan"].includes(s.id),
+    )
+  }
+  return PIPELINE_STEPS
 }
 
 export async function runReportPipeline({
@@ -39,10 +62,10 @@ export async function runReportPipeline({
       status: "running",
       started_at: new Date().toISOString(),
       metadata: {
-        current_step: PIPELINE_STEPS[0].id,
+        current_step: AUDIT_OPERATIONS[0].id,
         completed_steps: [],
         progress: 0,
-        research_mode: "2.3",
+        research_mode: "prd-v2",
       },
     })
     .eq("id", jobId)
@@ -50,18 +73,26 @@ export async function runReportPipeline({
     .select("id")
     .maybeSingle()
 
-  if (!claimed) {
-    return
-  }
+  if (!claimed) return
 
   const { data: intakeRow, error: intakeError } = await admin
     .from("levelstack_intakes")
     .select("form_data, user_id")
     .eq("id", intakeId)
-    .single()
+    .maybeSingle()
 
-  if (intakeError || !intakeRow) {
-    await failPipeline(admin, jobId, reportId, intakeError?.message ?? "Intake not found")
+  if (intakeError) {
+    await failPipeline(
+      admin,
+      jobId,
+      reportId,
+      `Intake lookup failed (${intakeId}): ${intakeError.message}`,
+    )
+    return
+  }
+
+  if (!intakeRow) {
+    await failPipeline(admin, jobId, reportId, `Intake not found (${intakeId})`)
     return
   }
 
@@ -71,68 +102,132 @@ export async function runReportPipeline({
     return
   }
 
-  const { data: reportRow } = await admin
+  const { data: reportRow, error: reportError } = await admin
     .from("levelstack_reports")
-    .select("plan_id, status")
+    .select("plan_id, status, user_id")
     .eq("id", reportId)
-    .single()
+    .maybeSingle()
+
+  if (reportError) {
+    await failPipeline(
+      admin,
+      jobId,
+      reportId,
+      `Report lookup failed (${reportId}): ${reportError.message}`,
+    )
+    return
+  }
 
   if (!reportRow) {
-    await failPipeline(admin, jobId, reportId, "Report not found")
+    await failPipeline(admin, jobId, reportId, `Report not found (${reportId})`)
     return
   }
 
-  if (reportRow.status === "ready") {
-    return
+  if (reportRow.status === "ready") return
+
+  const { data: jobRow } = await admin
+    .from("levelstack_research_jobs")
+    .select("metadata")
+    .eq("id", jobId)
+    .maybeSingle()
+
+  const planId = await resolveReportPlanId({
+    supabase: admin,
+    userId: intakeRow.user_id,
+    reportPlanId: reportRow.plan_id ?? null,
+    jobMetadata: jobRow?.metadata as { plan_id?: string } | null,
+    purchaseMotivation: parsed.data.purchaseMotivation,
+  })
+
+  if (planId !== reportRow.plan_id) {
+    await admin.from("levelstack_reports").update({ plan_id: planId }).eq("id", reportId)
   }
 
-  const planId = reportRow.plan_id ?? null
+  const reportTier: ReportTier = planIdToReportTier(planId)
+
+  const operationIds =
+    reportTier === "free_snapshot"
+      ? [...FREE_TIER_OPERATION_IDS]
+      : [...FULL_TIER_OPERATION_IDS]
+
+  const uiSteps = pipelineStepsForTier(reportTier)
   const completedSteps: string[] = []
   const bundle = emptyResearchBundle()
   bundle.digitalPresence.website.url = parsed.data.websiteUrl
   bundle.revenueFunnel.website.url = parsed.data.websiteUrl
 
-  await admin
-    .from("levelstack_reports")
-    .update({ status: "generating" })
-    .eq("id", reportId)
+  await admin.from("levelstack_reports").update({ status: "generating" }).eq("id", reportId)
 
   try {
-    for (const [i, step] of PIPELINE_STEPS.entries()) {
-      const progress = Math.round(((i + 1) / PIPELINE_STEPS.length) * 100)
-      const nextStep = PIPELINE_STEPS[i + 1]
-      const collector = RESEARCH_COLLECTORS[step.id]
+    for (const [i, op] of operationIds.entries()) {
+      await runAuditOperations(parsed.data, bundle, [op])
+      completedSteps.push(op)
 
-      if (collector) {
-        await collector(parsed.data, bundle)
-      }
-
-      completedSteps.push(step.id)
-
+      const progress = Math.round(((i + 1) / operationIds.length) * 85)
       await admin
         .from("levelstack_research_jobs")
         .update({
           metadata: {
-            current_step: nextStep?.id ?? null,
+            current_step: operationIds[i + 1] ?? null,
             completed_steps: [...completedSteps],
             progress,
-            research_mode: "2.3",
+            research_mode: "prd-v2",
+            report_tier: reportTier,
           },
         })
         .eq("id", jobId)
 
-      if (step.id !== "action_plan") {
-        await sleep(STEP_DELAY_MS)
-      }
+      await sleep(STEP_DELAY_MS)
     }
 
-    const synthesis = await synthesizeReportSections(parsed.data, bundle)
+    if (reportTier !== "free_snapshot") {
+      await collectPaidEnrichment(parsed.data, bundle)
+    }
 
-    const fullSections = appendActionPlanSection(synthesis.sections)
-    const reportJson = assembleReportJson(parsed.data, fullSections, planId, {
-      executiveSummary: synthesis.executiveSummary,
-      actionPlan: synthesis.actionPlan,
-    })
+    const audit = scoreAllSignals(parsed.data, bundle, reportTier)
+
+    let reportJson
+    if (reportTier === "free_snapshot") {
+      const { section: searchFootprint } = await synthesizeFreeSearchFootprint(
+        parsed.data,
+        bundle,
+        audit,
+      )
+      reportJson = assembleReportFromSignals(
+        parsed.data,
+        audit,
+        planId,
+        reportTier,
+        { searchFootprintOverride: searchFootprint },
+      )
+    } else {
+      const synthesis = await synthesizeReportSections(parsed.data, bundle)
+      const fullSections = appendActionPlanSection(synthesis.sections)
+      reportJson = assembleReportJson(parsed.data, fullSections, planId, {
+        executiveSummary: {
+          ...synthesis.executiveSummary,
+          paragraphs: [
+            `Overall presence score: ${audit.overallScore}/100 (${audit.letterGrade}).`,
+            ...synthesis.executiveSummary.paragraphs,
+          ],
+        },
+        actionPlan: synthesis.actionPlan,
+      })
+      reportJson.meta.overallScore = audit.overallScore
+      reportJson.meta.letterGrade = audit.letterGrade
+      reportJson.meta.reportTier = reportTier
+      reportJson.signalRows = audit.signals.map((s) => ({
+        label: s.label,
+        value: s.status.toUpperCase(),
+        percent: s.status === "pass" ? 100 : s.status === "warning" ? 50 : 0,
+        tone:
+          s.status === "pass"
+            ? ("green" as const)
+            : s.status === "warning"
+              ? ("amber" as const)
+              : ("red" as const),
+      }))
+    }
 
     const validated = levelstackReportJsonSchema.safeParse(reportJson)
     if (!validated.success) {
@@ -140,14 +235,31 @@ export async function runReportPipeline({
       return
     }
 
-    await admin
+    const readyUpdate = {
+      status: "ready" as const,
+      report_json: validated.data,
+      error_message: null,
+      report_tier: reportTier,
+    }
+
+    const { error: readyError } = await admin
       .from("levelstack_reports")
-      .update({
-        status: "ready",
-        report_json: validated.data,
-        error_message: null,
-      })
+      .update(readyUpdate)
       .eq("id", reportId)
+
+    if (readyError?.message.includes("report_tier")) {
+      await admin
+        .from("levelstack_reports")
+        .update({
+          status: "ready",
+          report_json: validated.data,
+          error_message: null,
+        })
+        .eq("id", reportId)
+    } else if (readyError) {
+      await failPipeline(admin, jobId, reportId, readyError.message)
+      return
+    }
 
     await admin
       .from("levelstack_research_jobs")
@@ -156,15 +268,40 @@ export async function runReportPipeline({
         completed_at: new Date().toISOString(),
         metadata: {
           current_step: null,
-          completed_steps: PIPELINE_STEPS.map((s) => s.id),
+          completed_steps: uiSteps.map((s) => s.id),
           progress: 100,
-          research_mode: "2.3",
-          synthesis_llm: synthesis.usedLlm,
-          quality_warnings: synthesis.qualityWarnings,
-          quality_passed: synthesis.qualityWarnings.length === 0,
+          research_mode: "prd-v2",
+          report_tier: reportTier,
+          overall_score: audit.overallScore,
         },
       })
       .eq("id", jobId)
+
+    const { data: userRow } = await admin.auth.admin.getUserById(intakeRow.user_id)
+    const email = userRow?.user?.email
+    if (email) {
+      const { recordPdfDeliveryPath } = await import("@/lib/pdf/record-pdf-path")
+      await recordPdfDeliveryPath(reportId, admin).catch(() => undefined)
+
+      await sendReportReadyEmail({
+        to: email,
+        businessName: parsed.data.primaryBusinessName,
+        reportId,
+        reportTier,
+        topFinding:
+          audit.signals.find((s) => s.status === "fail")?.finding ??
+          audit.signals.find((s) => s.status === "warning")?.finding,
+      })
+      await scheduleNurtureEmails({
+        to: email,
+        businessName: parsed.data.primaryBusinessName,
+        reportId,
+        reportTier,
+        topFinding:
+          audit.signals.find((s) => s.status === "fail")?.finding ??
+          audit.signals[0]?.finding,
+      })
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : "Pipeline failed"
     await failPipeline(admin, jobId, reportId, message)
@@ -188,9 +325,6 @@ async function failPipeline(
 
   await admin
     .from("levelstack_reports")
-    .update({
-      status: "failed",
-      error_message: message,
-    })
+    .update({ status: "failed", error_message: message })
     .eq("id", reportId)
 }

@@ -37,6 +37,7 @@ export function RegenerateReportButton({
         return
       }
       setLoading(false)
+      router.push(`/reports/${reportId}`)
       router.refresh()
     } catch {
       setError("Network error — try again.")

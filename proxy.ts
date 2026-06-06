@@ -17,9 +17,14 @@ export async function proxy(request: NextRequest) {
     pathname === "/api/intake" ||
     pathname.startsWith("/reports/")
 
+  const isPublicFreeRoute =
+    pathname === "/free" ||
+    pathname.startsWith("/free/") ||
+    pathname === "/api/free-intake"
+
   const isAuthRoute = pathname.startsWith("/auth/")
 
-  if (!isProtectedProductRoute || isAuthRoute) {
+  if (!isProtectedProductRoute || isAuthRoute || isPublicFreeRoute) {
     return sessionResponse
   }
 
@@ -71,5 +76,12 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/intake", "/intake/:path*", "/reports/:path*", "/api/intake"],
+  matcher: [
+    "/intake",
+    "/intake/:path*",
+    "/reports/:path*",
+    "/api/intake",
+    "/free",
+    "/free/:path*",
+  ],
 }
