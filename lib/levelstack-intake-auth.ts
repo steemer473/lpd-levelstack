@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server"
 import type { User } from "@supabase/supabase-js"
 
-import { hasLevelStackAccess } from "@/lib/levelstack-access"
+import {
+  hasLevelStackAccess,
+  requirePaidIntakeAccess,
+} from "@/lib/levelstack-access"
 import { createClient } from "@/lib/supabase/server"
 import { getHubPricingUrl } from "@/lib/urls"
 
@@ -48,7 +51,7 @@ export async function requireLevelStackIntakeAccess(): Promise<LevelStackIntakeA
       response: NextResponse.json(
         {
           success: false,
-          message: "A completed LevelStack purchase is required.",
+          message: "LevelStack access is required.",
           purchaseUrl: getHubPricingUrl(),
         },
         { status: 403, headers: intakeSecurityHeaders },
@@ -57,4 +60,38 @@ export async function requireLevelStackIntakeAccess(): Promise<LevelStackIntakeA
   }
 
   return { ok: true, user }
+}
+
+/** Paid full intake — requires $97+ order (not free snapshot only). */
+export async function requirePaidLevelStackIntakeAccess(): Promise<LevelStackIntakeAuthResult> {
+  const base = await requireLevelStackIntakeAccess()
+  if (!base.ok) return base
+
+  const supabase = await createClient()
+  if (!supabase) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { success: false, message: "Authentication is not configured." },
+        { status: 500, headers: intakeSecurityHeaders },
+      ),
+    }
+  }
+
+  const paid = await requirePaidIntakeAccess(supabase, base.user.id)
+  if (!paid) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        {
+          success: false,
+          message: "A paid LevelStack report is required for full intake.",
+          purchaseUrl: getHubPricingUrl(),
+        },
+        { status: 403, headers: intakeSecurityHeaders },
+      ),
+    }
+  }
+
+  return base
 }

@@ -28,36 +28,35 @@ export default async function PurchaseRequiredPage() {
       overlapHero
       hero={{
         tagline: "Access",
-        heading: "LevelStack purchase required",
-        headingHighlight: "purchase required",
+        heading: "LevelStack access required",
+        headingHighlight: "access required",
         description: user
-          ? `Signed in as ${user.email}. Complete checkout on the hub to unlock intake.`
-          : "Purchase LevelStack on Level Play Digital, then sign in here.",
+          ? `Signed in as ${user.email}. Start with a free snapshot or purchase the full report.`
+          : "Get a free snapshot or purchase the full report on Level Play Digital.",
       }}
     >
       <FormPanel className="max-w-lg mx-auto">
         <Card className="border-0 shadow-none">
           <CardHeader>
-            <CardTitle className="text-lg">Unlock intake</CardTitle>
+            <CardTitle className="text-lg">Get started</CardTitle>
             <CardDescription>
-              Intake opens when hub checkout records a completed order with plan{" "}
-              <code className="text-xs">levelstack-standard</code> or{" "}
-              <code className="text-xs">levelstack-review-call</code>.
+              Free snapshot: no purchase required. Full intake requires{" "}
+              <code className="text-xs">levelstack-full-report</code> ($97) or{" "}
+              <code className="text-xs">levelstack-strategy-call</code> ($297) on the hub.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <Button variant="brand" asChild>
-              <a href={getHubPricingUrl()}>Purchase on hub</a>
+              <Link href="/free">Get free snapshot</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <a href={getHubPricingUrl()}>Full report — $97</a>
             </Button>
             {!user ? (
-              <Button variant="outline" asChild>
+              <Button variant="ghost" asChild>
                 <Link href="/auth/sign-in?redirect=/intake">Sign in</Link>
               </Button>
-            ) : (
-              <Button variant="outline" asChild>
-                <Link href="/auth/sign-in?redirect=/intake">Switch account</Link>
-              </Button>
-            )}
+            ) : null}
           </CardContent>
         </Card>
       </FormPanel>

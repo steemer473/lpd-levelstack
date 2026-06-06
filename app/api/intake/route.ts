@@ -3,7 +3,8 @@ import { after, NextResponse } from "next/server"
 import { env } from "@/env.mjs"
 import { runReportPipeline } from "@/lib/pipeline/run-report-pipeline"
 import { getLevelStackPlanId } from "@/lib/levelstack-access"
-import { requireLevelStackIntakeAccess } from "@/lib/levelstack-intake-auth"
+import { requirePaidLevelStackIntakeAccess } from "@/lib/levelstack-intake-auth"
+import { planIdToReportTier } from "@/lib/levelstack-plans"
 import { isWebsiteReachable } from "@/lib/intake/validate-website"
 import { levelstackIntakeSchema } from "@/lib/intake/schema"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -13,7 +14,7 @@ import { createClient } from "@/lib/supabase/server"
 export const maxDuration = 300
 
 export async function POST(request: Request) {
-  const auth = await requireLevelStackIntakeAccess()
+  const auth = await requirePaidLevelStackIntakeAccess()
   if (!auth.ok) {
     return auth.response
   }
@@ -102,6 +103,7 @@ export async function POST(request: Request) {
   }
 
   const planId = await getLevelStackPlanId(supabase, auth.user.id)
+  const reportTier = planIdToReportTier(planId)
   const formData = {
     ...data,
     priorBusinessNames: data.priorBusinessNames.map((n) => n.trim()).filter(Boolean),
@@ -139,7 +141,7 @@ export async function POST(request: Request) {
       intake_id: intake.id,
       user_id: auth.user.id,
       status: "pending",
-      metadata: { plan_id: planId },
+      metadata: { plan_id: planId, report_tier: reportTier },
     })
     .select("id")
     .single()
@@ -159,6 +161,7 @@ export async function POST(request: Request) {
       job_id: job.id,
       status: "pending",
       plan_id: planId,
+      report_tier: reportTier,
     })
     .select("id")
     .single()

@@ -67,6 +67,20 @@ export function ReportGenerating({ reportId, businessLabel }: ReportGeneratingPr
   useEffect(() => {
     async function startPipeline() {
       try {
+        const statusRes = await fetch(`/api/reports/${reportId}/status`)
+        if (statusRes.ok) {
+          const status = (await statusRes.json()) as StatusResponse & {
+            jobStatus?: string | null
+          }
+          if (
+            status.jobStatus === "running" ||
+            status.reportStatus === "generating" ||
+            status.reportStatus === "ready"
+          ) {
+            return
+          }
+        }
+
         await fetch(`/api/reports/${reportId}/run`, { method: "POST" })
       } catch {
         /* poll will surface errors */

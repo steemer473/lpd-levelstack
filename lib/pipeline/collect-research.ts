@@ -1,4 +1,13 @@
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
+import { businessNameForSearch } from "@/lib/intake/location"
+import {
+  analyzeSubdomains,
+  detectInfrastructureFromSerp,
+  detectNameCollisionsFromSerp,
+  enumerateSubdomains,
+} from "@/lib/research/domain-analysis"
+import { fetchAboutAndFooterSignals } from "@/lib/research/about-footer"
+import { fetchBrandMentions } from "@/lib/research/brand-mentions"
 import { fetchCompetitorSnapshots } from "@/lib/research/competitor"
 import { mapsLocationHint } from "@/lib/intake/location"
 import { fetchGbpSignals } from "@/lib/research/gbp"
@@ -9,67 +18,127 @@ import {
   runSerpQueries,
   topCompetitorDomains,
 } from "@/lib/research/serp"
+import { searchSocialPlatforms } from "@/lib/research/social-search"
 import { fetchSocialProfileSignals } from "@/lib/research/social"
-import { fetchWebsiteSignals } from "@/lib/research/website"
-import type { PipelineStepId } from "@/lib/pipeline/constants"
 import {
-  reputationQueries,
-  searchFootprintQueries,
+  fetchWebsiteExtendedSignals,
+  fetchWebsiteSignals,
+} from "@/lib/research/website"
+import type { AuditOperationId } from "@/lib/pipeline/constants"
+import {
+  directoryReviewQueries,
+  brandNameSearchQueries,
   serviceMarketQuery,
 } from "@/lib/pipeline/research-queries"
-import {
-  emptyResearchBundle,
-  type ResearchBundle,
-} from "@/lib/pipeline/research-types"
+import type { ResearchBundle } from "@/lib/pipeline/research-types"
 
-export type ResearchCollector = (
+export type OperationCollector = (
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
 ) => Promise<void>
 
-export async function collectSearchFootprint(
+/** Op 1 — bare brand name search */
+export async function collectBrandNameSearch(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
 ): Promise<void> {
   bundle.searchFootprint.searches = await runSerpQueries(
-    searchFootprintQueries(intake),
+    brandNameSearchQueries(intake),
+  )
+
+  const allResults = bundle.searchFootprint.searches.flatMap((s) => s.results)
+  const host = hostnameFromUrl(intake.websiteUrl)
+  bundle.nameCollisions = detectNameCollisionsFromSerp(
+    intake.primaryBusinessName,
+    host,
+    allResults,
+  )
+  bundle.infrastructureLeakage.instances = detectInfrastructureFromSerp(allResults)
+}
+
+/** Op 2 — primary domain fetch */
+export async function collectPrimaryDomainFetch(
+  intake: LevelstackIntakeFormValues,
+  bundle: ResearchBundle,
+): Promise<void> {
+  const [website, extended] = await Promise.all([
+    fetchWebsiteSignals(intake.websiteUrl),
+    fetchWebsiteExtendedSignals(intake.websiteUrl),
+  ])
+
+  bundle.primaryDomain.website = website
+  bundle.primaryDomain.extended = extended
+  bundle.digitalPresence.website = website
+  bundle.digitalPresence.websiteExtended = extended
+  bundle.revenueFunnel.website = website
+
+  const host = hostnameFromUrl(intake.websiteUrl)
+  if (host) {
+    const subdomains = await enumerateSubdomains(host)
+    const allSerp = bundle.searchFootprint.searches.flatMap((s) => s.results)
+    bundle.subdomainExposure.subdomains = analyzeSubdomains(subdomains, allSerp)
+  }
+}
+
+/** Op 3 — social media search */
+export async function collectSocialMediaSearch(
+  intake: LevelstackIntakeFormValues,
+  bundle: ResearchBundle,
+): Promise<void> {
+  const host = hostnameFromUrl(intake.websiteUrl) ?? intake.websiteUrl
+  bundle.socialSearch.platforms = await searchSocialPlatforms(
+    businessNameForSearch(intake),
+    host,
   )
 }
 
-export async function collectReputation(
+/** Op 4 — about / footer fetch */
+export async function collectAboutFooterFetch(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
 ): Promise<void> {
-  bundle.reputation.searches = await runSerpQueries(reputationQueries(intake))
+  bundle.aboutFooter = await fetchAboutAndFooterSignals(intake.websiteUrl)
 }
 
-export async function collectDigitalPresence(
+/** Op 5 — directory & review search */
+export async function collectDirectoryReviewSearch(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
 ): Promise<void> {
-  const [website, pageSpeed, gbp, social] = await Promise.all([
-    fetchWebsiteSignals(intake.websiteUrl),
+  bundle.reputation.searches = await runSerpQueries(
+    directoryReviewQueries(intake),
+  )
+}
+
+/** Op 6 — brand mention search */
+export async function collectBrandMentionSearch(
+  intake: LevelstackIntakeFormValues,
+  bundle: ResearchBundle,
+): Promise<void> {
+  const host = hostnameFromUrl(intake.websiteUrl)
+  bundle.brandMentions = await fetchBrandMentions(
+    businessNameForSearch(intake),
+    intake.websiteUrl,
+    host,
+  )
+}
+
+/** Paid-tier extras: PageSpeed, GBP, social from intake, competitive context */
+export async function collectPaidEnrichment(
+  intake: LevelstackIntakeFormValues,
+  bundle: ResearchBundle,
+): Promise<void> {
+  const [pageSpeed, gbp, social] = await Promise.all([
     fetchPageSpeedSignals(intake.websiteUrl),
     fetchGbpSignals(intake.primaryBusinessName, mapsLocationHint(intake)),
     fetchSocialProfileSignals(intake.socialProfiles),
   ])
 
-  bundle.digitalPresence.website = website
   bundle.digitalPresence.pageSpeed = pageSpeed
   bundle.digitalPresence.gbp = gbp
   bundle.digitalPresence.social = social
   bundle.digitalPresence.socialProfilesFromIntake = intake.socialProfiles
-}
-
-export async function collectRevenueFunnel(
-  intake: LevelstackIntakeFormValues,
-  bundle: ResearchBundle,
-): Promise<void> {
-  bundle.revenueFunnel.website = bundle.digitalPresence.website.url
-    ? bundle.digitalPresence.website
-    : await fetchWebsiteSignals(intake.websiteUrl)
-
-  bundle.revenueFunnel.pageSpeed = bundle.digitalPresence.pageSpeed
+  bundle.revenueFunnel.pageSpeed = pageSpeed
 
   bundle.revenueFunnel.intakeNotes = [
     `Offer: ${intake.primaryService} at ${intake.pricePoint}`,
@@ -77,16 +146,10 @@ export async function collectRevenueFunnel(
     `Email list: ~${intake.emailListSize}`,
     `Purchase motivation: ${intake.purchaseMotivation}`,
   ].join("\n")
-}
 
-export async function collectCompetitiveContext(
-  intake: LevelstackIntakeFormValues,
-  bundle: ResearchBundle,
-): Promise<void> {
   const q = serviceMarketQuery(intake)
   const serviceSearch = await googleOrganicSearch(q)
   const buyerHost = hostnameFromUrl(intake.websiteUrl)
-
   const competitorDomains = topCompetitorDomains(
     serviceSearch.results,
     buyerHost,
@@ -102,27 +165,38 @@ export async function collectCompetitiveContext(
       : []
 }
 
-export const RESEARCH_COLLECTORS: Partial<Record<PipelineStepId, ResearchCollector>> =
-  {
-    search_footprint: collectSearchFootprint,
-    online_reputation: collectReputation,
-    digital_presence: collectDigitalPresence,
-    revenue_funnel: collectRevenueFunnel,
-    competitive_context: collectCompetitiveContext,
+export const OPERATION_COLLECTORS: Record<AuditOperationId, OperationCollector> = {
+  brand_name_search: collectBrandNameSearch,
+  primary_domain_fetch: collectPrimaryDomainFetch,
+  social_media_search: collectSocialMediaSearch,
+  about_footer_fetch: collectAboutFooterFetch,
+  directory_review_search: collectDirectoryReviewSearch,
+  brand_mention_search: collectBrandMentionSearch,
+}
+
+export async function runAuditOperations(
+  intake: LevelstackIntakeFormValues,
+  bundle: ResearchBundle,
+  operationIds: AuditOperationId[],
+): Promise<void> {
+  for (const opId of operationIds) {
+    await OPERATION_COLLECTORS[opId](intake, bundle)
   }
+}
+
+/** @deprecated Use OPERATION_COLLECTORS — kept for tests */
+export const RESEARCH_COLLECTORS = OPERATION_COLLECTORS
 
 export async function collectAllResearch(
   intake: LevelstackIntakeFormValues,
 ): Promise<ResearchBundle> {
+  const { emptyResearchBundle } = await import("@/lib/pipeline/research-types")
+  const { FULL_TIER_OPERATION_IDS } = await import("@/lib/pipeline/constants")
   const bundle = emptyResearchBundle()
   bundle.digitalPresence.website.url = intake.websiteUrl
   bundle.revenueFunnel.website.url = intake.websiteUrl
 
-  await collectSearchFootprint(intake, bundle)
-  await collectReputation(intake, bundle)
-  await collectDigitalPresence(intake, bundle)
-  await collectRevenueFunnel(intake, bundle)
-  await collectCompetitiveContext(intake, bundle)
-
+  await runAuditOperations(intake, bundle, [...FULL_TIER_OPERATION_IDS])
+  await collectPaidEnrichment(intake, bundle)
   return bundle
 }

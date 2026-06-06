@@ -9,6 +9,7 @@ import {
   ReportTabContent,
   ReportTabNavigation,
   ScrollToTopButton,
+  UpgradeBanner,
   useReportTabs,
 } from "@/components/report/report-shared"
 import { DownloadPdfButton } from "@/components/report/download-pdf-button"
@@ -38,6 +39,8 @@ export function LevelstackReportView({ report, reportId }: LevelstackReportViewP
         className="levelstack-report overflow-x-hidden scroll-mt-24"
       >
         <ReportHeader meta={meta} sectionCount={nav.sectionCount} />
+
+        <UpgradeBanner report={report} />
 
         <ReportHowToRead
           open={nav.howToReadOpen}

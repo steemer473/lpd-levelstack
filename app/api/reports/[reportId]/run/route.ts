@@ -1,8 +1,9 @@
 import { after, NextResponse } from "next/server"
 
+import { isDevReportPreviewEnabled } from "@/lib/dev-report-preview"
 import { requireLevelStackIntakeAccess } from "@/lib/levelstack-intake-auth"
 import { runReportPipeline } from "@/lib/pipeline/run-report-pipeline"
-import { getReportForUser } from "@/lib/reports/get-report"
+import { resolveReportAccess } from "@/lib/reports/get-report"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 type RouteContext = { params: Promise<{ reportId: string }> }
@@ -11,13 +12,22 @@ type RouteContext = { params: Promise<{ reportId: string }> }
 export const maxDuration = 300
 
 export async function POST(request: Request, context: RouteContext) {
-  const auth = await requireLevelStackIntakeAccess()
-  if (!auth.ok) {
-    return auth.response
+  const devPreview = isDevReportPreviewEnabled()
+  const { reportId } = await context.params
+
+  let userId: string | null = null
+  if (!devPreview) {
+    const auth = await requireLevelStackIntakeAccess()
+    if (!auth.ok) {
+      return auth.response
+    }
+    userId = auth.user.id
+  } else {
+    const auth = await requireLevelStackIntakeAccess()
+    userId = auth.ok ? auth.user.id : null
   }
 
-  const { reportId } = await context.params
-  let report = await getReportForUser(reportId, auth.user.id)
+  let report = await resolveReportAccess(reportId, userId)
 
   if (!report) {
     return NextResponse.json(
@@ -39,13 +49,18 @@ export async function POST(request: Request, context: RouteContext) {
     if (admin) {
       await admin
         .from("levelstack_reports")
-        .update({ status: "pending", report_json: null, error_message: null })
+        .update({
+          status: "pending",
+          report_json: null,
+          error_message: null,
+          plan_id: null,
+        })
         .eq("id", reportId)
       await admin
         .from("levelstack_research_jobs")
         .update({ status: "pending", error_message: null, metadata: {} })
         .eq("id", report.job_id)
-      report = (await getReportForUser(reportId, auth.user.id))!
+      report = (await resolveReportAccess(reportId, userId)) ?? report
     }
   }
 
@@ -68,6 +83,23 @@ export async function POST(request: Request, context: RouteContext) {
 
   const jobId = report.job_id
   const intakeId = report.intake_id
+
+  const admin = createAdminClient()
+  if (admin) {
+    const { data: job } = await admin
+      .from("levelstack_research_jobs")
+      .select("status")
+      .eq("id", jobId)
+      .maybeSingle()
+
+    if (job?.status === "running") {
+      return NextResponse.json({
+        success: true,
+        started: false,
+        message: "Report generation is already in progress.",
+      })
+    }
+  }
 
   after(() =>
     runReportPipeline({

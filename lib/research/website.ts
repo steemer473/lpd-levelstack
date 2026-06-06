@@ -11,6 +11,14 @@ export type WebsiteSignals = {
   limitation: string | null
 }
 
+export type WebsiteExtendedSignals = {
+  ogImage: string | null
+  ogTitle: string | null
+  twitterCard: string | null
+  navLabels: string[]
+  heroText: string | null
+}
+
 const CTA_PATTERN =
   /\b(book|schedule|call|contact|get started|sign up|free consult|apply now)\b/i
 
@@ -51,6 +59,54 @@ export async function fetchWebsiteSignals(url: string): Promise<WebsiteSignals> 
       ...base,
       limitation: err instanceof Error ? err.message : "Could not fetch website.",
     }
+  }
+}
+
+export async function fetchWebsiteExtendedSignals(
+  url: string,
+): Promise<WebsiteExtendedSignals | null> {
+  try {
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(12_000),
+      headers: { "User-Agent": "LevelStack-ReportBot/1.0" },
+    })
+    if (!res.ok) return null
+    return parseExtendedSignals(await res.text())
+  } catch {
+    return null
+  }
+}
+
+function parseExtendedSignals(html: string): WebsiteExtendedSignals {
+  const ogImage =
+    html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1] ??
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)?.[1] ??
+    null
+  const ogTitle =
+    html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)?.[1] ?? null
+  const twitterCard =
+    html.match(/<meta[^>]+name=["']twitter:card["'][^>]+content=["']([^"']+)["']/i)?.[1] ??
+    html.match(/<meta[^>]+property=["']twitter:card["'][^>]+content=["']([^"']+)["']/i)?.[1] ??
+    null
+
+  const navLabels = [
+    ...html.matchAll(/<nav[\s\S]*?<\/nav>/gi),
+  ]
+    .flatMap((nav) =>
+      [...nav[0].matchAll(/>([^<]{2,40})</g)]
+        .map((m) => m[1]?.trim())
+        .filter((label): label is string => Boolean(label)),
+    )
+    .slice(0, 8)
+
+  const heroMatch = html.match(/<h1[^>]*>([^<]+)<\/h1>/i)?.[1]?.trim() ?? null
+
+  return {
+    ogImage,
+    ogTitle,
+    twitterCard,
+    navLabels,
+    heroText: heroMatch,
   }
 }
 

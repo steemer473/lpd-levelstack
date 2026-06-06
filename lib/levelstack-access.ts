@@ -1,11 +1,18 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { env } from "@/env.mjs"
-import { LEVELSTACK_PLAN_IDS } from "@/lib/levelstack-plans"
+import {
+  ALL_LEVELSTACK_PLAN_IDS,
+  canViewFullReport,
+  isPaidPlan,
+  planIdToReportTier,
+  type ReportTier,
+} from "@/lib/levelstack-plans"
+
+export type { ReportTier }
 
 /**
- * True when the user has a completed LevelStack order in shared hub `orders` (§8.5).
- * Product app reads only — hub webhook is source of truth for payment.
+ * True when the user has free snapshot entitlement or a completed LevelStack order.
  */
 export async function hasLevelStackAccess(
   supabase: SupabaseClient,
@@ -18,12 +25,15 @@ export async function hasLevelStackAccess(
     return true
   }
 
+  const free = await hasFreeSnapshotEntitlement(supabase, userId)
+  if (free) return true
+
   const { data: orders, error } = await supabase
     .from("orders")
     .select("id")
     .eq("user_id", userId)
     .eq("status", "completed")
-    .in("plan_id", [...LEVELSTACK_PLAN_IDS])
+    .in("plan_id", [...ALL_LEVELSTACK_PLAN_IDS])
     .limit(1)
 
   if (error) {
@@ -33,19 +43,37 @@ export async function hasLevelStackAccess(
   return Boolean(orders && orders.length > 0)
 }
 
+export async function hasFreeSnapshotEntitlement(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("levelstack_free_entitlements")
+    .select("user_id")
+    .eq("user_id", userId)
+    .maybeSingle()
+
+  if (error) {
+    if (error.code === "42P01") return false
+    throw error
+  }
+
+  return Boolean(data)
+}
+
 /**
  * Most recent completed LevelStack plan for the user, if any.
  */
 export async function getLevelStackPlanId(
   supabase: SupabaseClient,
   userId: string,
-): Promise<(typeof LEVELSTACK_PLAN_IDS)[number] | null> {
+): Promise<(typeof ALL_LEVELSTACK_PLAN_IDS)[number] | null> {
   const { data: orders, error } = await supabase
     .from("orders")
     .select("plan_id")
     .eq("user_id", userId)
     .eq("status", "completed")
-    .in("plan_id", [...LEVELSTACK_PLAN_IDS])
+    .in("plan_id", [...ALL_LEVELSTACK_PLAN_IDS])
     .order("created_at", { ascending: false })
     .limit(1)
 
@@ -54,15 +82,34 @@ export async function getLevelStackPlanId(
   }
 
   const planId = orders?.[0]?.plan_id
-  if (!planId || !(LEVELSTACK_PLAN_IDS as readonly string[]).includes(planId)) {
-    return null
+  if (!planId || !(ALL_LEVELSTACK_PLAN_IDS as readonly string[]).includes(planId)) {
+    const hasFree = await hasFreeSnapshotEntitlement(supabase, userId)
+    return hasFree ? "levelstack-free-snapshot" : null
   }
 
-  return planId as (typeof LEVELSTACK_PLAN_IDS)[number]
+  return planId as (typeof ALL_LEVELSTACK_PLAN_IDS)[number]
 }
 
-export function hasReviewCallTier(
-  planId: (typeof LEVELSTACK_PLAN_IDS)[number] | null,
-): boolean {
-  return planId === "levelstack-review-call"
+export async function getReportTierForUser(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<ReportTier> {
+  const planId = await getLevelStackPlanId(supabase, userId)
+  return planIdToReportTier(planId)
+}
+
+export { canViewFullReport, isPaidPlan, planIdToReportTier }
+
+export function hasReviewCallTier(planId: string | null | undefined): boolean {
+  return (
+    planId === "levelstack-strategy-call" || planId === "levelstack-review-call"
+  )
+}
+
+export async function requirePaidIntakeAccess(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<boolean> {
+  const planId = await getLevelStackPlanId(supabase, userId)
+  return isPaidPlan(planId)
 }

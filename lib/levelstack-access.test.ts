@@ -4,15 +4,22 @@ import { describe, expect, it, vi } from "vitest"
 import {
   getLevelStackPlanId,
   hasLevelStackAccess,
-  hasReviewCallTier,
+  hasFreeSnapshotEntitlement,
 } from "@/lib/levelstack-access"
-import { isLevelStackPlanId } from "@/lib/levelstack-plans"
+import {
+  canViewFullReport,
+  hasStrategyCallTier,
+  isAnyLevelStackPlanId,
+  isLevelStackPlanId,
+  planIdToReportTier,
+} from "@/lib/levelstack-plans"
 
 function mockSupabase(
   orders: { id?: string; plan_id?: string }[] | null,
   error: Error | null = null,
+  freeEntitlement = false,
 ) {
-  const chain = {
+  const ordersChain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     in: vi.fn().mockReturnThis(),
@@ -20,16 +27,41 @@ function mockSupabase(
     limit: vi.fn().mockResolvedValue({ data: orders, error }),
   }
 
+  const freeChain = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue({
+      data: freeEntitlement ? { user_id: "user-1" } : null,
+      error: null,
+    }),
+  }
+
   return {
-    from: vi.fn(() => chain),
+    from: vi.fn((table: string) => {
+      if (table === "levelstack_free_entitlements") return freeChain
+      return ordersChain
+    }),
   } as unknown as SupabaseClient
 }
 
 describe("levelstack-plans", () => {
-  it("recognizes canonical plan IDs", () => {
-    expect(isLevelStackPlanId("levelstack-standard")).toBe(true)
-    expect(isLevelStackPlanId("levelstack-review-call")).toBe(true)
+  it("recognizes PRD v2 and legacy plan IDs", () => {
+    expect(isLevelStackPlanId("levelstack-full-report")).toBe(true)
+    expect(isLevelStackPlanId("levelstack-free-snapshot")).toBe(true)
+    expect(isAnyLevelStackPlanId("levelstack-standard")).toBe(true)
     expect(isLevelStackPlanId("workflow-starter")).toBe(false)
+  })
+
+  it("maps plan IDs to report tiers", () => {
+    expect(planIdToReportTier("levelstack-free-snapshot")).toBe("free_snapshot")
+    expect(planIdToReportTier("levelstack-full-report")).toBe("full_report")
+    expect(planIdToReportTier("levelstack-strategy-call")).toBe("strategy_call")
+    expect(planIdToReportTier("levelstack-standard")).toBe("full_report")
+  })
+
+  it("gates full report by tier", () => {
+    expect(canViewFullReport("free_snapshot")).toBe(false)
+    expect(canViewFullReport("full_report")).toBe(true)
   })
 })
 
@@ -39,7 +71,12 @@ describe("hasLevelStackAccess", () => {
     await expect(hasLevelStackAccess(supabase, "user-1")).resolves.toBe(true)
   })
 
-  it("returns false when no orders", async () => {
+  it("returns true with free entitlement", async () => {
+    const supabase = mockSupabase([], null, true)
+    await expect(hasLevelStackAccess(supabase, "user-1")).resolves.toBe(true)
+  })
+
+  it("returns false when no orders or free entitlement", async () => {
     const supabase = mockSupabase([])
     await expect(hasLevelStackAccess(supabase, "user-1")).resolves.toBe(false)
   })
@@ -47,17 +84,32 @@ describe("hasLevelStackAccess", () => {
 
 describe("getLevelStackPlanId", () => {
   it("returns the latest plan_id", async () => {
-    const supabase = mockSupabase([{ plan_id: "levelstack-review-call" }])
+    const supabase = mockSupabase([{ plan_id: "levelstack-full-report" }])
     await expect(getLevelStackPlanId(supabase, "user-1")).resolves.toBe(
-      "levelstack-review-call",
+      "levelstack-full-report",
+    )
+  })
+
+  it("returns free snapshot when only free entitlement", async () => {
+    const supabase = mockSupabase([], null, true)
+    await expect(getLevelStackPlanId(supabase, "user-1")).resolves.toBe(
+      "levelstack-free-snapshot",
     )
   })
 })
 
-describe("hasReviewCallTier", () => {
-  it("is true only for review-call SKU", () => {
-    expect(hasReviewCallTier("levelstack-review-call")).toBe(true)
-    expect(hasReviewCallTier("levelstack-standard")).toBe(false)
-    expect(hasReviewCallTier(null)).toBe(false)
+describe("hasStrategyCallTier", () => {
+  it("is true only for strategy call SKUs", () => {
+    expect(hasStrategyCallTier("levelstack-strategy-call")).toBe(true)
+    expect(hasStrategyCallTier("levelstack-review-call")).toBe(true)
+    expect(hasStrategyCallTier("levelstack-full-report")).toBe(false)
+    expect(hasStrategyCallTier(null)).toBe(false)
+  })
+})
+
+describe("hasFreeSnapshotEntitlement", () => {
+  it("detects free entitlement row", async () => {
+    const supabase = mockSupabase([], null, true)
+    await expect(hasFreeSnapshotEntitlement(supabase, "user-1")).resolves.toBe(true)
   })
 })
