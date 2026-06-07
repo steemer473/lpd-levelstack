@@ -23,3 +23,14 @@ Without this variable, hub account sidebar, checkout success, and `/free` redire
 | Production | `https://levelstack.levelplaydigital.com` |
 
 See [vercel.md](./vercel.md) for full Vercel + Supabase auth redirect checklist.
+
+## GoHighLevel lead sync
+
+LevelStack syncs intake leads to GHL via server-side API (same location as the hub). Copy these from the **lpd-redesign** Vercel project (or hub `.env.local`):
+
+```bash
+GHL_API_KEY=       # same value as hub
+GHL_LOCATION_ID=   # same value as hub
+```
+
+Set in **lpd-levelstack** Vercel → Production and Preview. Without them, intake still succeeds but leads are not synced (logged as `[ghl]` warnings).

@@ -44,6 +44,7 @@ node scripts/sync-vercel-production-env.mjs   # Production only (from .env.local
 | `GOOGLE_PAGESPEED_API_KEY` | Higher PageSpeed API quota |
 | `RESEND_API_KEY` | Transactional email (magic link, report ready) |
 | `FROM_EMAIL` / `FROM_NAME` | With Resend; domain must be verified |
+| `GHL_API_KEY` / `GHL_LOCATION_ID` | GoHighLevel lead sync — copy from hub Vercel project |
 | `ANTHROPIC_API_KEY` | Alternate LLM (optional) |
 
 ### Never set on Vercel

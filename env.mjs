@@ -28,6 +28,9 @@ export const env = createEnv({
     FIRECRAWL_API_KEY: optionalString,
     /** Optional — raises PageSpeed Insights API quota (works without key at low volume) */
     GOOGLE_PAGESPEED_API_KEY: optionalString,
+    /** GoHighLevel — lead sync (same credentials as lpd-redesign) */
+    GHL_API_KEY: optionalString,
+    GHL_LOCATION_ID: optionalString,
     /** Development only — skip hub `orders` entitlement check for /intake */
     LEVELSTACK_DEV_BYPASS_ENTITLEMENT: z
       .enum(["true", "false"])
@@ -55,6 +58,8 @@ export const env = createEnv({
     SERPAPI_KEY: process.env.SERPAPI_KEY,
     FIRECRAWL_API_KEY: process.env.FIRECRAWL_API_KEY,
     GOOGLE_PAGESPEED_API_KEY: process.env.GOOGLE_PAGESPEED_API_KEY,
+    GHL_API_KEY: process.env.GHL_API_KEY,
+    GHL_LOCATION_ID: process.env.GHL_LOCATION_ID,
     LEVELSTACK_DEV_BYPASS_ENTITLEMENT: process.env.LEVELSTACK_DEV_BYPASS_ENTITLEMENT,
     LEVELSTACK_DEV_SKIP_WEBSITE_CHECK: process.env.LEVELSTACK_DEV_SKIP_WEBSITE_CHECK,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
