@@ -51,6 +51,7 @@ export const actionItemSchema = z.object({
   time: z.string(),
   findingRef: z.string().optional(),
   automatorFlag: z.boolean().optional(),
+  automatorProduct: z.enum(["seo", "workflow"]).optional(),
 })
 
 export const insightBlockSchema = z.object({

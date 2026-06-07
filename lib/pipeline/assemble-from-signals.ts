@@ -9,8 +9,20 @@ import type {
 import type { ReportTier } from "@/lib/levelstack-plans"
 import { PAID_ONLY_SECTION_IDS } from "@/lib/pipeline/constants"
 
-const AUTOMATOR_KEYWORDS =
-  /index|snippet|meta|google business|gbp|social|local seo|schema|visibility/i
+const SEO_AUTOMATOR_KEYWORDS =
+  /index|snippet|meta|google business|gbp|social|local seo|schema|visibility|search|seo|ai search/i
+const WORKFLOW_AUTOMATOR_KEYWORDS =
+  /workflow|process|handoff|follow-up|crm|pipeline|onboard|intake|automation|deliverable|ops/i
+
+function automatorMatch(text: string): { flag: boolean; product?: "seo" | "workflow" } {
+  if (WORKFLOW_AUTOMATOR_KEYWORDS.test(text)) {
+    return { flag: true, product: "workflow" }
+  }
+  if (SEO_AUTOMATOR_KEYWORDS.test(text)) {
+    return { flag: true, product: "seo" }
+  }
+  return { flag: false }
+}
 
 function severityFromStatus(status: SignalStatus) {
   if (status === "fail") return "critical" as const
@@ -208,15 +220,33 @@ export function assembleReportFromSignals(
           ...rawPlan,
           thisWeek: rawPlan.thisWeek.map((item) => ({
             ...item,
-            automatorFlag: AUTOMATOR_KEYWORDS.test(`${item.task} ${item.sub ?? ""}`),
+            ...(() => {
+              const m = automatorMatch(`${item.task} ${item.sub ?? ""}`)
+              return {
+                automatorFlag: m.flag,
+                ...(m.product ? { automatorProduct: m.product } : {}),
+              }
+            })(),
           })),
           thisMonth: rawPlan.thisMonth.map((item) => ({
             ...item,
-            automatorFlag: AUTOMATOR_KEYWORDS.test(`${item.task} ${item.sub ?? ""}`),
+            ...(() => {
+              const m = automatorMatch(`${item.task} ${item.sub ?? ""}`)
+              return {
+                automatorFlag: m.flag,
+                ...(m.product ? { automatorProduct: m.product } : {}),
+              }
+            })(),
           })),
           thisQuarter: rawPlan.thisQuarter.map((item) => ({
             ...item,
-            automatorFlag: AUTOMATOR_KEYWORDS.test(`${item.task} ${item.sub ?? ""}`),
+            ...(() => {
+              const m = automatorMatch(`${item.task} ${item.sub ?? ""}`)
+              return {
+                automatorFlag: m.flag,
+                ...(m.product ? { automatorProduct: m.product } : {}),
+              }
+            })(),
           })),
         }
 

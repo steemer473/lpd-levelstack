@@ -39,7 +39,7 @@ import {
   SECTION_TAB_ORDER,
 } from "@/lib/report/display-helpers"
 import { REPORT_INTRO } from "@/lib/report/section-guides"
-import { getHubPricingUrl, getHubSeoWaitlistUrl } from "@/lib/urls"
+import { getHubPricingUrl, getHubSeoWaitlistUrl, getHubWorkflowWaitlistUrl } from "@/lib/urls"
 import { cn } from "@/lib/utils"
 
 export type ReportViewProps = {
@@ -240,12 +240,22 @@ export function LockedSectionPanel({ sectionId }: { sectionId: string }) {
   )
 }
 
-export function AutomatorFlagCallout() {
+export function AutomatorFlagCallout({
+  product = "seo",
+}: {
+  product?: "seo" | "workflow"
+}) {
+  const isWorkflow = product === "workflow"
+  const label = isWorkflow ? "Workflow Automator Pro" : "SEO Automator Pro"
+  const href = isWorkflow ? getHubWorkflowWaitlistUrl() : getHubSeoWaitlistUrl()
+  const detail = isWorkflow
+    ? "This operational gap is addressed by structured workflows in Workflow Automator Pro."
+    : "This issue is monitored and corrected automatically by SEO Automator Pro."
+
   return (
     <p className="text-[11px] mt-2 p-2 rounded bg-muted/60 border border-border/60 text-muted-foreground leading-relaxed">
-      <strong className="text-foreground">SEO Automator Pro:</strong> This issue is monitored
-      and corrected automatically by SEO Automator Pro.{" "}
-      <Link href={getHubSeoWaitlistUrl()} className="text-brand-orange underline">
+      <strong className="text-foreground">{label}:</strong> {detail}{" "}
+      <Link href={href} className="text-brand-orange underline">
         Learn more
       </Link>
     </p>
@@ -449,7 +459,7 @@ export function ActionPlanPanel({ report }: { report: LevelstackReportJson }) {
                       From: {item.findingRef}
                     </p>
                   ) : null}
-                  {item.automatorFlag ? <AutomatorFlagCallout /> : null}
+                  {item.automatorFlag ? <AutomatorFlagCallout product={item.automatorProduct ?? "seo"} /> : null}
                 </div>
                 <span className="text-xs text-muted-foreground text-right pt-0.5">
                   {item.who}

@@ -31,10 +31,16 @@ import {
   type LevelstackIntakeFormValues,
 } from "@/lib/intake/schema"
 
-export function LevelstackIntakeForm() {
+type LevelstackIntakeFormProps = {
+  defaultValues?: LevelstackIntakeFormValues
+}
+
+export function LevelstackIntakeForm({
+  defaultValues = levelstackIntakeDefaults,
+}: LevelstackIntakeFormProps = {}) {
   const router = useRouter()
   const form = useForm<LevelstackIntakeFormValues>({
-    defaultValues: levelstackIntakeDefaults,
+    defaultValues,
   })
 
   const priorNames =

@@ -8,6 +8,7 @@ import { requirePaidLevelStackIntakeAccess } from "@/lib/levelstack-intake-auth"
 import { planIdToReportTier } from "@/lib/levelstack-plans"
 import { isWebsiteReachable } from "@/lib/intake/validate-website"
 import { levelstackIntakeSchema } from "@/lib/intake/schema"
+import { upgradeFreeSnapshotToPaidIntake } from "@/lib/intake/upgrade-free-snapshot"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
@@ -72,12 +73,54 @@ export async function POST(request: Request) {
     .limit(1)
     .maybeSingle()
 
+  const formData = {
+    ...data,
+    priorBusinessNames: data.priorBusinessNames.map((n) => n.trim()).filter(Boolean),
+  }
+
   if (existing) {
     const { data: existingReport } = await supabase
       .from("levelstack_reports")
-      .select("id, status, job_id")
+      .select("id, status, job_id, report_tier")
       .eq("intake_id", existing.id)
       .maybeSingle()
+
+    if (existingReport?.report_tier === "free_snapshot") {
+      const upgraded = await upgradeFreeSnapshotToPaidIntake({
+        supabase,
+        user: auth.user,
+        intakeId: existing.id,
+        reportId: existingReport.id,
+        formData,
+        onPipelineStart: ({ jobId, reportId, intakeId }) => {
+          after(() =>
+            runReportPipeline({ jobId, reportId, intakeId }).catch((err) =>
+              console.error("[pipeline]", err),
+            ),
+          )
+        },
+        onGhlSync: (payload) => {
+          after(() =>
+            syncPaidIntakeLead(payload).catch((err) => console.error("[ghl]", err)),
+          )
+        },
+      })
+
+      if (!upgraded.ok) {
+        return NextResponse.json(
+          { success: false, message: upgraded.message },
+          { status: 500 },
+        )
+      }
+
+      return NextResponse.json({
+        success: true,
+        upgraded: true,
+        intakeId: upgraded.intakeId,
+        jobId: upgraded.jobId,
+        reportId: upgraded.reportId,
+      })
+    }
 
     if (
       existingReport?.job_id &&
@@ -105,10 +148,6 @@ export async function POST(request: Request) {
 
   const planId = await getLevelStackPlanId(supabase, auth.user.id)
   const reportTier = planIdToReportTier(planId)
-  const formData = {
-    ...data,
-    priorBusinessNames: data.priorBusinessNames.map((n) => n.trim()).filter(Boolean),
-  }
 
   const admin = createAdminClient()
   if (!admin) {

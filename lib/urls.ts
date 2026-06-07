@@ -20,6 +20,11 @@ export function getHubSeoWaitlistUrl(): string {
   return new URL("/platform/seo", base).toString()
 }
 
+export function getHubWorkflowWaitlistUrl(): string {
+  const base = env.NEXT_PUBLIC_HUB_URL ?? "https://levelplaydigital.com"
+  return new URL("/platform/workflow", base).toString()
+}
+
 export function getHubSignInUrl(redirectPath: string): string {
   const base = env.NEXT_PUBLIC_HUB_URL ?? "https://levelplaydigital.com"
   const url = new URL("/auth/sign-in", base)
