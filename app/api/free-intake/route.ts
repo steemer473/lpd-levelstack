@@ -7,6 +7,7 @@ import {
 } from "@/lib/intake/free-snapshot-schema"
 import { isWebsiteReachable } from "@/lib/intake/validate-website"
 import { planIdToReportTier } from "@/lib/levelstack-plans"
+import { sendFreeSnapshotSignInEmail } from "@/lib/email/report-delivery"
 import { runReportPipeline } from "@/lib/pipeline/run-report-pipeline"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAppUrl } from "@/lib/urls"
@@ -175,19 +176,44 @@ export async function POST(request: Request) {
     }).catch((err) => console.error("[pipeline]", err)),
   )
 
-  const redirectTo = getAppUrl(`/reports/${report.id}`)
-  const { data: linkData } = await admin.auth.admin.generateLink({
+  const reportPath = `/reports/${report.id}`
+  const callbackUrl = getAppUrl(
+    `/auth/callback?next=${encodeURIComponent(reportPath)}`,
+  )
+
+  const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
     type: "magiclink",
     email,
-    options: { redirectTo: getAppUrl("/auth/callback") },
+    options: { redirectTo: callbackUrl },
   })
+
+  const magicLink = linkData?.properties?.action_link ?? null
+  let emailSent = false
+
+  if (magicLink) {
+    emailSent = await sendFreeSnapshotSignInEmail({
+      to: email,
+      businessName: data.businessName.trim(),
+      signInUrl: magicLink,
+    })
+  } else if (linkError) {
+    console.error("[free-intake] generateLink failed:", linkError.message)
+  }
+
+  const devFallback =
+    process.env.NODE_ENV === "development" && !emailSent && Boolean(magicLink)
 
   return NextResponse.json({
     success: true,
     reportId: report.id,
     intakeId: intake.id,
-    magicLink: linkData?.properties?.action_link ?? null,
-    message: "Check your email for a sign-in link to view your snapshot.",
-    redirectTo,
+    emailSent,
+    magicLink: devFallback ? magicLink : undefined,
+    message: emailSent
+      ? "Check your email for a sign-in link. Your snapshot is generating now."
+      : devFallback
+        ? "Email is not configured — use the dev sign-in link below."
+        : "Your snapshot is generating. Sign in with the same email to view your report.",
+    redirectTo: getAppUrl(reportPath),
   })
 }
