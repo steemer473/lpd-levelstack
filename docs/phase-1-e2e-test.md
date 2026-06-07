@@ -2,9 +2,17 @@
 
 ## Prerequisites
 
+**Local**
+
 - Hub (`lpd-redesign`): `NEXT_PUBLIC_LEVELSTACK_APP_URL=http://localhost:3001` in **hub** `.env.local`
 - Product (`lpd-levelstack`): `pnpm dev` on port **3001**; `NEXT_PUBLIC_APP_URL=http://localhost:3001`; `NEXT_PUBLIC_HUB_URL=http://localhost:3000`
 - Stripe test mode + LevelStack SKUs configured on hub
+
+**Production**
+
+- Product: https://levelstack.levelplaydigital.com (`NEXT_PUBLIC_APP_URL` must match)
+- Hub: `NEXT_PUBLIC_LEVELSTACK_APP_URL=https://levelstack.levelplaydigital.com`
+- Supabase redirect URLs include `https://levelstack.levelplaydigital.com/**` — see [vercel.md](./vercel.md)
 
 ## Flow
 

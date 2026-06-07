@@ -19,7 +19,7 @@ Apply in **`lpd-redesign`** before public launch. Product repo (`lpd-levelstack`
 3. `app/platform/levelstack/page.tsx` + `components/platform/levelstack-sections.tsx` — hero CTA to free snapshot, pricing table $0 / $97 / $297
 4. Checkout — order bump at $97: +$200 strategy call add-on (`levelstack-strategy-call-bump` or line item)
 5. `app/api/webhook/route.ts` — ensure `metadata.planId` writes new IDs to `orders`
-6. New route: `app/free/page.tsx` — redirect to product app `/free` (`NEXT_PUBLIC_LEVELSTACK_URL/free`)
+6. New route: `app/free/page.tsx` — redirect to product app `/free` (`NEXT_PUBLIC_LEVELSTACK_APP_URL/free`, production: `https://levelstack.levelplaydigital.com/free`)
 
 ## Marketing copy changes
 

@@ -13,7 +13,7 @@ import { resolve } from "node:path"
 import { spawnSync } from "node:child_process"
 
 const SCOPE = "steemer473s-projects"
-const PRODUCTION_APP_URL = "https://lpd-levelstack.vercel.app"
+const PRODUCTION_APP_URL = "https://levelstack.levelplaydigital.com"
 const PRODUCTION_HUB_URL = "https://levelplaydigital.com"
 
 const SENSITIVE = new Set([

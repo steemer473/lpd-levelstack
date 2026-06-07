@@ -2,7 +2,8 @@
 
 Separate Vercel project from `lpd-redesign` — **lpd-levelstack** on team `steemer473s-projects`.
 
-- **Production:** https://lpd-levelstack.vercel.app (custom domain TBD: `levelstack.levelplaydigital.com`)
+- **Production (primary):** https://levelstack.levelplaydigital.com
+- **Production (Vercel alias):** https://lpd-levelstack.vercel.app — still works; prefer custom domain in env vars and links
 - **Framework:** Next.js 16 · Build: `pnpm build` · Install: `pnpm install`
 - **Node:** 24.x (Vercel default) · **pnpm:** 9.x (pinned via `packageManager` in `package.json`)
 
@@ -25,9 +26,9 @@ node scripts/sync-vercel-production-env.mjs   # Production only (from .env.local
 
 ### Required (Production)
 
-| Variable | Example / notes |
+| Variable | Value / notes |
 |----------|-----------------|
-| `NEXT_PUBLIC_APP_URL` | `https://lpd-levelstack.vercel.app` (or custom domain) |
+| `NEXT_PUBLIC_APP_URL` | `https://levelstack.levelplaydigital.com` |
 | `NEXT_PUBLIC_HUB_URL` | `https://levelplaydigital.com` |
 | `NEXT_PUBLIC_SUPABASE_URL` | Same Supabase project as hub |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Same as hub |
@@ -41,8 +42,8 @@ node scripts/sync-vercel-production-env.mjs   # Production only (from .env.local
 |----------|--------|
 | `FIRECRAWL_API_KEY` | Website scrape in pipeline |
 | `GOOGLE_PAGESPEED_API_KEY` | Higher PageSpeed API quota |
-| `RESEND_API_KEY` | Phase 3+ email delivery |
-| `FROM_EMAIL` / `FROM_NAME` | With Resend |
+| `RESEND_API_KEY` | Transactional email (magic link, report ready) |
+| `FROM_EMAIL` / `FROM_NAME` | With Resend; domain must be verified |
 | `ANTHROPIC_API_KEY` | Alternate LLM (optional) |
 
 ### Never set on Vercel
@@ -55,13 +56,30 @@ node scripts/sync-vercel-production-env.mjs   # Production only (from .env.local
 
 ## Hub integration
 
-In **lpd-redesign** (hub), set:
+In **lpd-redesign** (hub), set the same product URL:
 
 ```bash
-NEXT_PUBLIC_LEVELSTACK_APP_URL=https://lpd-levelstack.vercel.app
+NEXT_PUBLIC_LEVELSTACK_APP_URL=https://levelstack.levelplaydigital.com
 ```
 
 See [hub-env.md](./hub-env.md).
+
+## Supabase auth redirect URLs
+
+Free snapshot magic links redirect through `/auth/callback` on the product origin. Add these in Supabase → **Authentication → URL Configuration → Redirect URLs**:
+
+```
+https://levelstack.levelplaydigital.com/**
+http://localhost:3001/**
+```
+
+Optional (Vercel default hostname still works as an alias):
+
+```
+https://lpd-levelstack.vercel.app/**
+```
+
+`NEXT_PUBLIC_APP_URL` must match the primary redirect entry or magic-link and email URLs will point at the wrong host.
 
 ## Pre-deploy verification
 
@@ -75,13 +93,7 @@ node scripts/verify-vercel-env.mjs
 
 ## Report pipeline timeout
 
-`/api/intake` and `/api/reports/[id]/run` export `maxDuration = 300` (5 min) for Fluid Compute so `after()` synthesis can finish.
-
-## Custom domain (when ready)
-
-1. Vercel project → **Settings → Domains** → add `levelstack.levelplaydigital.com`
-2. Update `NEXT_PUBLIC_APP_URL` to the custom domain
-3. Update hub `NEXT_PUBLIC_LEVELSTACK_APP_URL`
+`/api/intake`, `/api/free-intake`, and `/api/reports/[id]/run` export `maxDuration = 300` (5 min) for Fluid Compute so `after()` synthesis can finish.
 
 ## CI vs Vercel
 

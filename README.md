@@ -43,13 +43,13 @@ Quick path (Dashboard): copy `supabase/migrations/20250603000000_levelstack_prod
 - **Phase 0** — Scaffold (done)
 - **Phase 1** — Handoff + intake (done) — see [docs/phase-1-e2e-test.md](docs/phase-1-e2e-test.md)
 - **Phase 2** — Research + synthesis + **on-screen progress** — plan: [docs/plans/phase-2-instant-generation.md](docs/plans/phase-2-instant-generation.md)
-- **Phase 3** — Report UI, PDF, email
+- **Phase 3** — Report UI, PDF, email (free snapshot magic link live; nurture D3/D7/D14 TBD)
 
 No `STRIPE_*` in this app (v1).
 
 ## Vercel
 
-Project: **lpd-levelstack** on Vercel (`https://lpd-levelstack.vercel.app`). Full checklist: [docs/vercel.md](docs/vercel.md).
+Project: **lpd-levelstack** on Vercel — production: [levelstack.levelplaydigital.com](https://levelstack.levelplaydigital.com). Full checklist: [docs/vercel.md](docs/vercel.md).
 
 ```bash
 pnpm dlx vercel link --yes --project lpd-levelstack --scope steemer473s-projects
@@ -57,4 +57,4 @@ pnpm verify:env          # checklist from .env.local
 pnpm verify:research     # SerpAPI + OpenAI smoke test
 ```
 
-Set Production env vars in Vercel (Supabase, `SERPAPI_KEY`, `OPENAI_API_KEY`, public URLs). Hub (`lpd-redesign`) needs `NEXT_PUBLIC_LEVELSTACK_APP_URL` pointing to this deployment.
+Set Production env vars in Vercel (`NEXT_PUBLIC_APP_URL=https://levelstack.levelplaydigital.com`, Supabase, `SERPAPI_KEY`, `OPENAI_API_KEY`, Resend). Hub (`lpd-redesign`) needs matching `NEXT_PUBLIC_LEVELSTACK_APP_URL`. See [docs/vercel.md](docs/vercel.md) for Supabase auth redirect URLs.
