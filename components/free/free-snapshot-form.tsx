@@ -49,6 +49,7 @@ export function FreeSnapshotForm() {
         success?: boolean
         message?: string
         reportId?: string
+        emailSent?: boolean
         magicLink?: string
       }
 
@@ -62,12 +63,21 @@ export function FreeSnapshotForm() {
         return
       }
 
-      if (json.magicLink) {
+      if (json.emailSent) {
         setSuccessMessage(
           json.message ??
             "Check your email for a sign-in link. Your snapshot is generating now.",
         )
-      } else if (json.reportId) {
+        return
+      }
+
+      if (json.magicLink) {
+        setSuccessMessage(json.message ?? "Dev sign-in link ready.")
+        window.open(json.magicLink, "_blank", "noopener,noreferrer")
+        return
+      }
+
+      if (json.reportId) {
         router.push(`/reports/${json.reportId}`)
       }
     } catch {

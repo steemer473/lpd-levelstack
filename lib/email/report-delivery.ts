@@ -1,4 +1,4 @@
-import { env } from "@/env.mjs"
+import { sendEmail } from "@/lib/email/send-email"
 import { getAppUrl, getHubPricingUrl, getHubSeoWaitlistUrl } from "@/lib/urls"
 import type { ReportTier } from "@/lib/levelstack-plans"
 
@@ -14,35 +14,27 @@ type NurtureParams = ReportReadyParams & {
   topFinding?: string
 }
 
-async function sendEmail(params: {
+type FreeSnapshotSignInParams = {
   to: string
-  subject: string
-  html: string
-}): Promise<void> {
-  if (!env.RESEND_API_KEY || !env.FROM_EMAIL) {
-    console.info("[email] Skipped (RESEND_API_KEY or FROM_EMAIL not set):", params.subject)
-    return
-  }
+  businessName: string
+  signInUrl: string
+}
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: env.FROM_NAME
-        ? `${env.FROM_NAME} <${env.FROM_EMAIL}>`
-        : env.FROM_EMAIL,
-      to: params.to,
-      subject: params.subject,
-      html: params.html,
-    }),
+/** Magic-link sign-in for /free snapshot — sent immediately after intake submit. */
+export async function sendFreeSnapshotSignInEmail(
+  params: FreeSnapshotSignInParams,
+): Promise<boolean> {
+  return sendEmail({
+    to: params.to,
+    subject: `Sign in to view your LevelStack snapshot — ${params.businessName}`,
+    html: `
+      <p>Hi,</p>
+      <p>Your free LevelStack snapshot for <strong>${params.businessName}</strong> is generating now — usually under a minute.</p>
+      <p>Click below to sign in and watch progress. This link expires after a short time.</p>
+      <p><a href="${params.signInUrl}">Sign in and view your snapshot →</a></p>
+      <p style="color:#666;font-size:13px">If you did not request this, you can ignore this email.</p>
+    `,
   })
-
-  if (!res.ok) {
-    console.error("[email] Send failed:", await res.text())
-  }
 }
 
 export async function sendReportReadyEmail(params: ReportReadyParams): Promise<void> {
