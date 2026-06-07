@@ -1,6 +1,7 @@
 import { after, NextResponse } from "next/server"
 
 import { env } from "@/env.mjs"
+import { syncPaidIntakeLead } from "@/lib/ghl/sync-levelstack-lead"
 import { runReportPipeline } from "@/lib/pipeline/run-report-pipeline"
 import { getLevelStackPlanId } from "@/lib/levelstack-access"
 import { requirePaidLevelStackIntakeAccess } from "@/lib/levelstack-intake-auth"
@@ -180,6 +181,19 @@ export async function POST(request: Request) {
       intakeId: intake.id,
     }).catch((err) => console.error("[pipeline]", err)),
   )
+
+  const userEmail = auth.user.email
+  if (userEmail) {
+    after(() =>
+      syncPaidIntakeLead({
+        email: userEmail,
+        ownerName: formData.ownerName,
+        formData,
+        planId: planId ?? "levelstack-paid",
+        reportId: report.id,
+      }).catch((err) => console.error("[ghl]", err)),
+    )
+  }
 
   return NextResponse.json({
     success: true,

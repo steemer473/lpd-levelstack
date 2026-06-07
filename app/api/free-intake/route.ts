@@ -8,6 +8,7 @@ import {
 import { isWebsiteReachable } from "@/lib/intake/validate-website"
 import { planIdToReportTier } from "@/lib/levelstack-plans"
 import { sendFreeSnapshotSignInEmail } from "@/lib/email/report-delivery"
+import { syncFreeSnapshotLead } from "@/lib/ghl/sync-levelstack-lead"
 import { runReportPipeline } from "@/lib/pipeline/run-report-pipeline"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAppUrl } from "@/lib/urls"
@@ -174,6 +175,16 @@ export async function POST(request: Request) {
       reportId: report.id,
       intakeId: intake.id,
     }).catch((err) => console.error("[pipeline]", err)),
+  )
+
+  after(() =>
+    syncFreeSnapshotLead({
+      email,
+      businessName: data.businessName.trim(),
+      websiteUrl: data.websiteUrl,
+      marketCity: data.marketCity,
+      reportId: report.id,
+    }).catch((err) => console.error("[ghl]", err)),
   )
 
   const reportPath = `/reports/${report.id}`

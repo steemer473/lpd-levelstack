@@ -48,6 +48,8 @@ const recommended = [
   "FIRECRAWL_API_KEY",
   "GOOGLE_PAGESPEED_API_KEY",
   "RESEND_API_KEY",
+  "GHL_API_KEY",
+  "GHL_LOCATION_ID",
 ]
 
 console.log("Vercel Production environment checklist\n")
