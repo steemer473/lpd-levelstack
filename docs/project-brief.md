@@ -27,7 +27,7 @@ These decisions govern repo split, purchase flow, and what each codebase may bui
 | System | Repository | Deploy | Owns |
 |--------|------------|--------|------|
 | **Commercial hub** | `lpd-redesign` | `levelplaydigital.com` | Marketing `/platform/levelstack`, cart, Stripe Checkout, webhook → `orders`, `/account` billing summary |
-| **LevelStack product app** | New repo (e.g. `lpd-levelstack`) | `levelstack.levelplaydigital.com` (TBD) | Intake, research pipeline, report UI, PDF, review-call fulfillment, product-owned Supabase tables |
+| **LevelStack product app** | `lpd-levelstack` | `levelstack.levelplaydigital.com` | Intake, free snapshot, research pipeline, report UI, PDF, review-call fulfillment, product-owned Supabase tables |
 
 **Technology stack:** §9.
 
@@ -272,7 +272,7 @@ Implement `hasLevelStackAccess(supabase, userId)` mirroring [`lib/workflow-acces
 ### 8.4 Authentication
 
 - **Shared Supabase project** — same `auth.users` / `user_profiles`.
-- Cross-domain session: TBD (subdomain cookies, magic link from hub CTA, or re-auth). Document chosen approach in product repo ADR.
+- Cross-domain session: users sign in on product origin; free snapshot uses magic-link email (`/auth/callback` → report). See [ADR 001](./adr/001-auth-handoff.md).
 
 ### 8.5 Data ownership
 
@@ -364,7 +364,7 @@ Hub references: [`env.mjs`](../../../env.mjs), [`lib/supabase/`](../../../lib/su
 | **Package manager** | pnpm | Same as hub |
 | **Styling / UI** | Tailwind CSS v4, shadcn/ui, LPD design tokens | Report UI per §10.3; sample HTML + SEO results dashboard; reuse [`scripts/build-design-tokens.mjs`](../../../scripts/build-design-tokens.mjs) pattern or copy tokens |
 | **Forms** | react-hook-form + zod | Intake questionnaire (§10.1) |
-| **Hosting** | Vercel | Proposed: `levelstack.levelplaydigital.com` |
+| **Hosting** | Vercel | `levelstack.levelplaydigital.com` |
 | **Database** | Supabase PostgreSQL (shared project) | New tables: intakes, research_jobs, reports; RLS by `user_id` |
 | **Auth** | `@supabase/ssr` | Same `auth.users` as hub; cross-domain session = open question (§18) |
 | **Entitlement** | Supabase read on hub `orders` | `hasLevelStackAccess()` — **no Stripe SDK in product v1** |
@@ -401,13 +401,13 @@ Suggested tables: `levelstack_intakes`, `levelstack_research_jobs`, `levelstack_
 |----------|---------|
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Auth + RLS client |
 | `SUPABASE_SERVICE_ROLE_KEY` | Jobs, admin writes |
-| `NEXT_PUBLIC_APP_URL` | Product app base URL |
+| `NEXT_PUBLIC_APP_URL` | Product app base URL (`https://levelstack.levelplaydigital.com` in production) |
 | `NEXT_PUBLIC_HUB_URL` | Upsell + “purchase required” → `/platform/levelstack#pricing` |
-| `RESEND_API_KEY`, `FROM_EMAIL`, `FROM_NAME` | Report-ready email |
+| `RESEND_API_KEY`, `FROM_EMAIL`, `FROM_NAME` | Free-snapshot magic link + report-ready email |
 | `OPENAI_API_KEY` and/or `ANTHROPIC_API_KEY` | Synthesis |
-| Research keys (TBD) | e.g. `SERPAPI_KEY`, `FIRECRAWL_API_KEY` |
+| `SERPAPI_KEY`, `FIRECRAWL_API_KEY`, etc. | Research pipeline |
 
-**No `STRIPE_*` in product v1.** Hub env adds `NEXT_PUBLIC_LEVELSTACK_APP_URL` for account CTA.
+**No `STRIPE_*` in product v1.** Hub env adds `NEXT_PUBLIC_LEVELSTACK_APP_URL` (`https://levelstack.levelplaydigital.com` in production) for account and checkout CTAs.
 
 ### 9.6 Patterns to copy from hub (not the whole app)
 

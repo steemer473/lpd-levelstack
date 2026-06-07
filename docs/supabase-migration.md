@@ -203,4 +203,5 @@ Or use the Supabase dashboard **API → Generate types**.
 
 1. Restart dev: `pnpm dev` — home page should show **Supabase: configured**.
 2. Phase 1: `/intake` route + auth gate using `hasLevelStackAccess()`.
-3. Hub PR: `NEXT_PUBLIC_LEVELSTACK_APP_URL` + `/account` CTA.
+3. Hub PR: `NEXT_PUBLIC_LEVELSTACK_APP_URL=https://levelstack.levelplaydigital.com` + `/account` CTA.
+4. **Auth redirect URLs** (Supabase → Authentication → URL Configuration): add `https://levelstack.levelplaydigital.com/**` and `http://localhost:3001/**` for free-snapshot magic links. See [vercel.md](./vercel.md).
