@@ -61,7 +61,7 @@ export function FreeSnapshotForm() {
       }
 
       if (json.signInUrl) {
-        window.location.href = json.signInUrl
+        window.location.assign(json.signInUrl)
         return
       }
 
