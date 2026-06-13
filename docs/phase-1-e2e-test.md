@@ -25,7 +25,15 @@
    - `levelstack_intakes` → `status = submitted`
    - `levelstack_research_jobs` → `status = completed`
    - `levelstack_reports` → `status = ready`, `report_json` populated
-6. **Hub account** — `/account` shows LevelStack card + sidebar link when user has completed LevelStack `orders` row.
+7. **Hub account** — `/account` shows LevelStack card + sidebar link when user has completed LevelStack `orders` row.
+
+## Free snapshot flow
+
+1. **Open** `/free` on the product app.
+2. **Submit** business name, website, and email.
+3. **Instant redirect** — Browser follows the magic sign-in link to `/reports/[reportId]` (live progress screen).
+4. **Progress** — Three steps animate for free tier; page auto-refreshes when the snapshot is ready.
+5. **Email** — Backup sign-in link on submit; report-ready email when generation completes.
 
 ## Intake redirects to hub pricing?
 

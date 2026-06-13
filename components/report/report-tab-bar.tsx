@@ -1,5 +1,7 @@
 "use client"
 
+import { Lock } from "lucide-react"
+
 import { SectionGuideInfo } from "@/components/report/section-guide-info"
 import { TAB_ICONS } from "@/lib/report/display-helpers"
 import { cn } from "@/lib/utils"
@@ -8,6 +10,7 @@ type ReportTab = {
   id: string
   label: string
   section?: { status: "critical" | "attention" | "good" }
+  locked?: boolean
 }
 
 type ReportTabBarProps = {
@@ -47,6 +50,9 @@ export function ReportTabBar({ tabs, activeTab, onSelectTab }: ReportTabBarProps
                 <TabIcon className="rpt-tab-bar-icon h-3.5 w-3.5 shrink-0" aria-hidden />
               ) : null}
               <span>{tab.label}</span>
+              {tab.locked ? (
+                <Lock className="h-3 w-3 shrink-0 opacity-60" aria-label="Locked — upgrade to unlock" />
+              ) : null}
             </button>
             <SectionGuideInfo tabId={tab.id} />
           </div>

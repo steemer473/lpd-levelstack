@@ -29,11 +29,9 @@ export function FreeSnapshotForm() {
   })
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   async function onSubmit(values: FreeSnapshotFormValues) {
     setSubmitError(null)
-    setSuccessMessage(null)
 
     const parsed = freeSnapshotSchema.safeParse(values)
     if (!parsed.success) return
@@ -49,8 +47,7 @@ export function FreeSnapshotForm() {
         success?: boolean
         message?: string
         reportId?: string
-        emailSent?: boolean
-        magicLink?: string
+        signInUrl?: string
       }
 
       if (res.status === 409 && json.reportId) {
@@ -63,17 +60,8 @@ export function FreeSnapshotForm() {
         return
       }
 
-      if (json.emailSent) {
-        setSuccessMessage(
-          json.message ??
-            "Check your email for a sign-in link. Your snapshot is generating now.",
-        )
-        return
-      }
-
-      if (json.magicLink) {
-        setSuccessMessage(json.message ?? "Dev sign-in link ready.")
-        window.open(json.magicLink, "_blank", "noopener,noreferrer")
+      if (json.signInUrl) {
+        window.location.href = json.signInUrl
         return
       }
 
@@ -146,11 +134,6 @@ export function FreeSnapshotForm() {
         {submitError && (
           <p className="text-destructive text-sm rounded-md bg-destructive/10 border border-destructive/20 p-3">
             {submitError}
-          </p>
-        )}
-        {successMessage && (
-          <p className="text-sm rounded-md bg-emerald-500/10 border border-emerald-500/20 p-3 text-emerald-800 dark:text-emerald-200">
-            {successMessage}
           </p>
         )}
 

@@ -2,7 +2,7 @@
 
 ## Implemented
 
-- **v2 report shell** — flat `#002147` header (score + grade boxes, stacked meta + stat pills), white 7-tab bar (`components/report/levelstack-report-view.tsx`). Visual ref: `assets/levelstack-executive-summary-v2.png`
+- **v2 report shell** — flat `#002147` header (score + grade flat on navy, stacked meta + stat pills), white 7-tab bar (`components/report/levelstack-report-view.tsx`). Visual ref: [Figma frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4)
 - **Executive summary** — critical issue callout, first steps, scope note
 - **Readiness dashboard** — grade, overall score, priority counts, per-section score bars, biggest problem areas
 - **Section panels** — finding cards with critical/attention/good flags
@@ -26,4 +26,4 @@ Older `report_json` rows may lack `competitiveGrid` / `scoreRows`. Use **Rebuild
 
 **Next priority:** analysis quality and $497 launch bar — see [`phase-2.2-analysis-quality.md`](./phase-2.2-analysis-quality.md).
 
-Layout: `assets/levelstack-executive-summary-v2.png`, `docs/v0/V0-RULES.md`. Copy tone only: `assets/levelstack-sample-report.html`.
+Layout: [Figma frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4), `docs/v0/V0-RULES.md`. Copy tone only: `assets/levelstack-sample-report.html`.

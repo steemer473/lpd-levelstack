@@ -2,12 +2,17 @@ import type { AuditScoreBundle, SignalStatus } from "@/lib/audit/types"
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
 import { buildActionPlanFromSections } from "@/lib/pipeline/action-plan"
 import { marketLabelFromIntake } from "@/lib/pipeline/context"
+import {
+  PAID_ONLY_SECTION_IDS,
+} from "@/lib/pipeline/constants"
+import { extractUpgradeTeasers } from "@/lib/pipeline/assemble-free-report"
 import type {
   LevelstackReportJson,
   ReportSection,
 } from "@/lib/pipeline/report-types"
 import type { ReportTier } from "@/lib/levelstack-plans"
-import { PAID_ONLY_SECTION_IDS } from "@/lib/pipeline/constants"
+import type { ResearchBundle } from "@/lib/pipeline/research-types"
+import { emptyResearchBundle } from "@/lib/pipeline/research-types"
 
 const SEO_AUTOMATOR_KEYWORDS =
   /index|snippet|meta|google business|gbp|social|local seo|schema|visibility|search|seo|ai search/i
@@ -49,8 +54,18 @@ function signalRows(signals: AuditScoreBundle["signals"]) {
     label: s.label,
     value: s.status.toUpperCase(),
     percent: s.status === "pass" ? 100 : s.status === "warning" ? 50 : 0,
-    tone: s.status === "pass" ? ("green" as const) : s.status === "warning" ? ("amber" as const) : ("red" as const),
+    tone:
+      s.status === "pass" ? ("green" as const) : s.status === "warning" ? ("amber" as const) : ("red" as const),
   }))
+}
+
+function mapFinding(s: AuditScoreBundle["signals"][number]) {
+  return {
+    label: s.label,
+    value: s.finding,
+    detail: s.evidence.join(" · ") || "Based on automated audit signals.",
+    severity: severityFromStatus(s.status),
+  }
 }
 
 export function buildSectionsFromSignals(
@@ -64,15 +79,45 @@ export function buildSectionsFromSignals(
       s.id,
     ),
   )
-  const offsiteSignals = audit.signals.filter((s) =>
-    ["social_platform_coverage", "directory_presence", "third_party_mentions"].includes(s.id),
+  const reputationSignals = audit.signals.filter((s) =>
+    ["directory_presence", "third_party_mentions"].includes(s.id),
   )
-  const infraSignals = audit.signals.filter((s) =>
-    ["subdomain_exposure", "infrastructure_leakage"].includes(s.id),
+  const digitalSignals = audit.signals.filter((s) =>
+    [
+      "social_platform_coverage",
+      "subdomain_exposure",
+      "infrastructure_leakage",
+      "positioning_consistency",
+    ].includes(s.id),
   )
-  const positioningSignals = audit.signals.filter((s) =>
-    ["positioning_consistency"].includes(s.id),
-  )
+
+  const reputationInsights = audit.insights
+    .filter((i) => ["snippet_staleness", "name_collision"].includes(i.id))
+    .map((i) => ({
+      label: i.label,
+      value: i.summary,
+      detail: i.details.join("\n"),
+      severity:
+        i.severity === "high"
+          ? ("critical" as const)
+          : i.severity === "medium"
+            ? ("high" as const)
+            : ("medium" as const),
+    }))
+
+  const digitalInsights = audit.insights
+    .filter((i) => ["subdomain_exposure", "infrastructure_leakage"].includes(i.id))
+    .map((i) => ({
+      label: i.label,
+      value: i.summary,
+      detail: i.details.join("\n"),
+      severity:
+        i.severity === "high"
+          ? ("critical" as const)
+          : i.severity === "medium"
+            ? ("high" as const)
+            : ("medium" as const),
+    }))
 
   const sections: ReportSection[] = [
     options?.searchFootprintOverride ?? {
@@ -80,87 +125,44 @@ export function buildSectionsFromSignals(
       label: "Search footprint",
       status: sectionStatus(searchSignals),
       score: scoreFromSignals(searchSignals),
-      findings: searchSignals.map((s) => ({
-        label: s.label,
-        value: s.finding,
-        detail: s.evidence.join(" · ") || "Based on automated search research.",
-        severity: severityFromStatus(s.status),
-      })),
+      findings: searchSignals.map(mapFinding),
       scoreRows: signalRows(searchSignals),
     },
     {
-      id: "social_offsite",
-      label: "Social & off-site presence",
-      status: sectionStatus(offsiteSignals),
-      score: scoreFromSignals(offsiteSignals),
-      findings: offsiteSignals.map((s) => ({
-        label: s.label,
-        value: s.finding,
-        detail: s.evidence.join(" · ") || "Directory and social scan.",
-        severity: severityFromStatus(s.status),
-      })),
-      scoreRows: signalRows(offsiteSignals),
+      id: "online_reputation",
+      label: "Reputation",
+      status: sectionStatus(reputationSignals),
+      score: scoreFromSignals(reputationSignals),
+      findings: [
+        ...reputationSignals.map(mapFinding),
+        ...reputationInsights,
+        ...(reputationSignals.length === 0 && reputationInsights.length === 0
+          ? [
+              {
+                label: "Reputation self-assessment",
+                value: `You rated reputation ${intake.reputationScale}/10`,
+                detail: intake.complaintsAwareness.slice(0, 300),
+                severity:
+                  intake.reputationScale <= 6
+                    ? ("high" as const)
+                    : ("medium" as const),
+              },
+            ]
+          : []),
+      ],
+    },
+    {
+      id: "digital_presence",
+      label: "Digital presence",
+      status: sectionStatus(digitalSignals),
+      score: scoreFromSignals(digitalSignals),
+      findings: [...digitalSignals.map(mapFinding), ...digitalInsights],
+      scoreRows: signalRows(digitalSignals),
     },
   ]
 
   if (reportTier !== "free_snapshot") {
     sections.push(
-      {
-        id: "infrastructure_security",
-        label: "Infrastructure & security",
-        status: sectionStatus(infraSignals),
-        score: scoreFromSignals(infraSignals),
-        findings: [
-          ...infraSignals.map((s) => ({
-            label: s.label,
-            value: s.finding,
-            detail: s.evidence.join(" · "),
-            severity: severityFromStatus(s.status),
-          })),
-          ...audit.insights
-            .filter((i) =>
-              ["subdomain_exposure", "infrastructure_leakage"].includes(i.id),
-            )
-            .map((i) => ({
-              label: i.label,
-              value: i.summary,
-              detail: i.details.join("\n"),
-              severity:
-                i.severity === "high"
-                  ? ("critical" as const)
-                  : i.severity === "medium"
-                    ? ("high" as const)
-                    : ("medium" as const),
-            })),
-        ],
-      },
-      {
-        id: "positioning_consistency",
-        label: "Positioning consistency",
-        status: sectionStatus(positioningSignals),
-        score: scoreFromSignals(positioningSignals),
-        findings: [
-          ...positioningSignals.map((s) => ({
-            label: s.label,
-            value: s.finding,
-            detail: s.evidence.join(" · "),
-            severity: severityFromStatus(s.status),
-          })),
-          ...audit.insights
-            .filter((i) => ["snippet_staleness", "name_collision"].includes(i.id))
-            .map((i) => ({
-              label: i.label,
-              value: i.summary,
-              detail: i.details.join("\n"),
-              severity:
-                i.severity === "high"
-                  ? ("critical" as const)
-                  : i.severity === "medium"
-                    ? ("high" as const)
-                    : ("medium" as const),
-            })),
-        ],
-      },
       {
         id: "revenue_funnel",
         label: "Revenue funnel diagnosis",
@@ -202,7 +204,12 @@ export function assembleReportFromSignals(
   reportTier: ReportTier,
   options?: { searchFootprintOverride?: ReportSection },
 ): LevelstackReportJson {
-  const sections = buildSectionsFromSignals(intake, audit, reportTier, options)
+  const allSections = buildSectionsFromSignals(intake, audit, "full_report", options)
+  const sections =
+    reportTier === "free_snapshot"
+      ? buildSectionsFromSignals(intake, audit, reportTier, options)
+      : allSections
+
   const failCount = audit.signals.filter((s) => s.status === "fail").length
   const warnCount = audit.signals.filter((s) => s.status === "warning").length
 
@@ -215,42 +222,43 @@ export function assembleReportFromSignals(
 
   const actionPlan =
     reportTier === "free_snapshot"
-      ? rawPlan
+      ? {
+          thisWeek: rawPlan.thisWeek.slice(0, 4),
+          thisMonth: [] as typeof rawPlan.thisMonth,
+          thisQuarter: [] as typeof rawPlan.thisQuarter,
+        }
       : {
           ...rawPlan,
-          thisWeek: rawPlan.thisWeek.map((item) => ({
-            ...item,
-            ...(() => {
-              const m = automatorMatch(`${item.task} ${item.sub ?? ""}`)
-              return {
-                automatorFlag: m.flag,
-                ...(m.product ? { automatorProduct: m.product } : {}),
-              }
-            })(),
-          })),
-          thisMonth: rawPlan.thisMonth.map((item) => ({
-            ...item,
-            ...(() => {
-              const m = automatorMatch(`${item.task} ${item.sub ?? ""}`)
-              return {
-                automatorFlag: m.flag,
-                ...(m.product ? { automatorProduct: m.product } : {}),
-              }
-            })(),
-          })),
-          thisQuarter: rawPlan.thisQuarter.map((item) => ({
-            ...item,
-            ...(() => {
-              const m = automatorMatch(`${item.task} ${item.sub ?? ""}`)
-              return {
-                automatorFlag: m.flag,
-                ...(m.product ? { automatorProduct: m.product } : {}),
-              }
-            })(),
-          })),
+          thisWeek: rawPlan.thisWeek.map((item) => {
+            const m = automatorMatch(`${item.task} ${item.sub ?? ""}`)
+            return {
+              ...item,
+              automatorFlag: m.flag,
+              ...(m.product ? { automatorProduct: m.product } : {}),
+            }
+          }),
+          thisMonth: rawPlan.thisMonth.map((item) => {
+            const m = automatorMatch(`${item.task} ${item.sub ?? ""}`)
+            return {
+              ...item,
+              automatorFlag: m.flag,
+              ...(m.product ? { automatorProduct: m.product } : {}),
+            }
+          }),
+          thisQuarter: rawPlan.thisQuarter.map((item) => {
+            const m = automatorMatch(`${item.task} ${item.sub ?? ""}`)
+            return {
+              ...item,
+              automatorFlag: m.flag,
+              ...(m.product ? { automatorProduct: m.product } : {}),
+            }
+          }),
         }
 
-  const lockedSectionCount = [...PAID_ONLY_SECTION_IDS].length
+  const upgradeTeasers =
+    reportTier === "free_snapshot"
+      ? extractUpgradeTeasers(allSections, emptyResearchBundle())
+      : undefined
 
   return {
     meta: {
@@ -273,7 +281,8 @@ export function assembleReportFromSignals(
       lowCount: audit.signals.filter((s) => s.status === "pass").length,
       issueCountForUpgrade: failCount + warnCount,
       lockedSectionCount:
-        reportTier === "free_snapshot" ? lockedSectionCount : 0,
+        reportTier === "free_snapshot" ? PAID_ONLY_SECTION_IDS.size : 0,
+      upgradeTeasers,
     },
     executiveSummary: {
       paragraphs: [

@@ -3,17 +3,17 @@
  * Colors/styling from mockup only — not the hub/styleguide token pipeline.
  */
 .levelstack-report {
-  --rpt-navy: var(--lpd-dark);
+  --rpt-navy: #001e46;
   --rpt-page-bg: #f8f9fa;
-  --rpt-orange: #f0ad4e;
-  --rpt-blue: #5bc0de;
+  --rpt-orange: #f97316;
+  --rpt-blue: #38bdf8;
   --rpt-blue-link: #3182ce;
   --rpt-red: #d9534f;
   --rpt-green: #5cb85c;
   --rpt-intro-bg: #e8f4fc;
   --rpt-intro-border: #b8d4e8;
   --rpt-card-bg: #ffffff;
-  --rpt-card-border: #e5e7eb;
+  --rpt-card-border: #e2e8f0;
   --rpt-heading: #111827;
   --rpt-body: #4b5563;
   --rpt-muted: #6b7280;
@@ -28,7 +28,7 @@
   --rpt-green-tint-border: #bbf7d0;
   --rpt-red-alert-bg: #fef2f2;
   --rpt-red-alert-border: #fecaca;
-  --rpt-radius: 10px;
+  --rpt-radius: 12px;
   --rpt-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 
   font-family: var(--font-sans), Inter, system-ui, sans-serif;
@@ -56,6 +56,15 @@
 .levelstack-report .rpt-header {
   background: var(--rpt-navy);
   color: #fff;
+}
+
+.levelstack-report .rpt-header-subbar {
+  background: rgba(0, 0, 0, 0.13);
+}
+
+.levelstack-report .rpt-header h1 {
+  font-size: 26px;
+  line-height: 1.2;
 }
 
 .levelstack-report .rpt-tab-bar {
@@ -148,53 +157,56 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 9999px;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 18px;
   flex-shrink: 0;
 }
 
 .levelstack-report .rpt-icon-circle--blue {
-  background: color-mix(in srgb, var(--rpt-blue) 18%, white);
-  color: var(--rpt-blue-link);
+  background: #eff6ff;
+  color: #2563eb;
 }
 
 .levelstack-report .rpt-icon-circle--orange {
-  background: color-mix(in srgb, var(--rpt-orange) 22%, white);
-  color: #c8850a;
+  background: #fffbeb;
+  color: #d97706;
 }
 
-.levelstack-report .rpt-icon-circle--red {
-  background: color-mix(in srgb, var(--rpt-red) 16%, white);
-  color: var(--rpt-red);
+.levelstack-report .rpt-icon-circle--green {
+  background: #f0fdf4;
+  color: #059669;
 }
 
 .levelstack-report .rpt-highlight-critical {
-  background: var(--rpt-critical-bg);
-  border: 1px solid var(--rpt-critical-border);
+  background: #fef2f2;
+  border: 1px solid #ef4444;
   color: #991b1b;
 }
 
-.levelstack-report .rpt-highlight-critical .rpt-highlight-body {
+.levelstack-report .rpt-formatted-copy > :last-child {
+  margin-bottom: 0;
+}
+
+.levelstack-report .rpt-highlight-critical .rpt-formatted-copy .rpt-highlight-body {
   color: #7f1d1d;
   font-weight: 500;
 }
 
 .levelstack-report .rpt-highlight-blue {
-  background: var(--rpt-blue-tint-bg);
-  border: 1px solid var(--rpt-blue-tint-border);
+  background: #eff6ff;
+  border: 1px solid #38bdf8;
   color: #1e40af;
 }
 
 .levelstack-report .rpt-highlight-green {
-  background: var(--rpt-green-tint-bg);
-  border: 1px solid var(--rpt-green-tint-border);
-  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #10b981;
+  color: #065f46;
 }
 
 .levelstack-report .rpt-highlight-green .rpt-highlight-body {
-  color: #15803d;
-  font-weight: 500;
+  color: #065f46;
 }
 
 .levelstack-report .rpt-link {
@@ -214,7 +226,7 @@
 }
 
 .levelstack-report .rpt-phase-blue {
-  color: var(--rpt-blue-link);
+  color: #38bdf8;
 }
 
 .levelstack-report .rpt-phase-orange {
@@ -241,21 +253,33 @@
 }
 
 .levelstack-report .rpt-pill-blue {
-  background: color-mix(in srgb, var(--rpt-blue) 12%, white);
-  border: 1px solid color-mix(in srgb, var(--rpt-blue) 35%, white);
-  color: var(--rpt-blue-link);
+  background: #eff6ff;
+  border: none;
+  border-radius: 6px;
+  color: #38bdf8;
+  display: block;
+  text-align: center;
+  width: 100%;
 }
 
 .levelstack-report .rpt-pill-orange {
-  background: color-mix(in srgb, var(--rpt-orange) 14%, white);
-  border: 1px solid color-mix(in srgb, var(--rpt-orange) 38%, white);
-  color: #c8850a;
+  background: #fffbeb;
+  border: none;
+  border-radius: 6px;
+  color: #f97316;
+  display: block;
+  text-align: center;
+  width: 100%;
 }
 
 .levelstack-report .rpt-pill-green {
-  background: color-mix(in srgb, var(--rpt-green) 14%, white);
-  border: 1px solid color-mix(in srgb, var(--rpt-green) 35%, white);
-  color: var(--rpt-green);
+  background: #f0fdf4;
+  border: none;
+  border-radius: 6px;
+  color: #10b981;
+  display: block;
+  text-align: center;
+  width: 100%;
 }
 
 .levelstack-report .rpt-timeline-rail {
@@ -312,7 +336,8 @@
 
 .levelstack-report .rpt-upsell {
   background: var(--rpt-navy);
-  border-radius: var(--rpt-radius);
+  border-radius: 0;
+  border-top: 1px solid var(--rpt-header-divider);
 }
 
 .levelstack-report .rpt-upsell-btn {

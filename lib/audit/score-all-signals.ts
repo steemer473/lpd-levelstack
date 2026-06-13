@@ -10,6 +10,7 @@ import {
 import { detectInfrastructureLeakage } from "@/lib/audit/insights/infrastructure-leakage"
 import { detectNameCollisions } from "@/lib/audit/insights/name-collision"
 import { detectSnippetStaleness } from "@/lib/audit/insights/snippet-staleness"
+import { SNIPPET_COMPARE_UNAVAILABLE } from "@/lib/report/customer-copy"
 import { detectSubdomainExposure } from "@/lib/audit/insights/subdomain-detector"
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
 import type { ResearchBundle } from "@/lib/pipeline/research-types"
@@ -89,8 +90,7 @@ function scoreSnippetAccuracy(
       id: "search_snippet_accuracy",
       label: "Search Snippet Accuracy",
       status: "warning",
-      finding:
-        "Could not compare your Google snippet — your site did not appear in top results for this query.",
+      finding: SNIPPET_COMPARE_UNAVAILABLE,
       evidence: brandQuery?.results.slice(0, 3).map((r) => r.link) ?? [],
       tier: "free",
     }
@@ -103,7 +103,8 @@ function scoreSnippetAccuracy(
       id: "search_snippet_accuracy",
       label: "Search Snippet Accuracy",
       status: "warning",
-      finding: "Could not compare live meta description to Google snippet.",
+      finding:
+        "We couldn't compare your website description to what Google shows — one or both were missing from our check.",
       evidence: [],
       tier: "free",
     }
@@ -120,10 +121,10 @@ function scoreSnippetAccuracy(
     status,
     finding:
       status === "pass"
-        ? "Google snippet aligns with your live meta description or H1."
+        ? "What Google shows under your link matches your website's short description or main heading."
         : status === "warning"
-          ? "Google snippet partially diverges from your live meta description."
-          : "Google is displaying messaging that differs from your live site — a positioning trust issue.",
+          ? "What Google shows under your link only partly matches your website's short description."
+          : "Google is showing messaging that differs from your live site — a trust issue for prospects.",
     evidence: [snippet.slice(0, 200), website.metaDescription.slice(0, 200)],
     tier: "free",
   }

@@ -8,6 +8,7 @@ import {
   resolveCompetitiveSnapshot,
   resolveExecutiveContent,
 } from "@/lib/report/executive-summary-resolve"
+import { FormattedReportText } from "@/components/report/formatted-report-text"
 
 type ReportPrintViewProps = {
   report: LevelstackReportJson
@@ -42,17 +43,36 @@ export function ReportPrintView({ report }: ReportPrintViewProps) {
       <section className="mb-8">
         <h2 className="text-base font-semibold uppercase mb-3">Executive Summary</h2>
         <h3 className="font-medium mb-1">What Prospects See</h3>
-        <p className="mb-3 text-gray-700">{content.insights.whatProspectsSee}</p>
+        <FormattedReportText
+          text={content.insights.whatProspectsSee}
+          paragraphClassName="mb-3 text-gray-700"
+        />
         <h3 className="font-medium mb-1">Reputation Gap</h3>
-        <p className="mb-3 text-gray-700">{content.insights.reputationGap}</p>
+        <FormattedReportText
+          text={content.insights.reputationGap}
+          paragraphClassName="mb-3 text-gray-700"
+        />
         <h3 className="font-medium mb-1">Revenue Risk</h3>
-        <p className="mb-3 text-gray-700">{content.insights.revenueRisk}</p>
+        <FormattedReportText
+          text={content.insights.revenueRisk}
+          paragraphClassName="mb-3 text-gray-700"
+        />
         <h3 className="font-medium mb-1">Most Critical Issue</h3>
-        <p className="mb-3 font-medium text-red-800">{content.highlights.criticalIssue}</p>
+        <FormattedReportText
+          text={content.highlights.criticalIssue}
+          paragraphClassName="mb-3 font-medium text-red-800"
+          emphasizeLeadIn={false}
+        />
         <h3 className="font-medium mb-1">Business Impact</h3>
-        <p className="mb-3 text-gray-700">{content.highlights.businessImpact}</p>
+        <FormattedReportText
+          text={content.highlights.businessImpact}
+          paragraphClassName="mb-3 text-gray-700"
+        />
         <h3 className="font-medium mb-1">Highest Leverage Opportunity</h3>
-        <p className="mb-3 text-gray-700">{content.highlights.highestLeverageOpportunity}</p>
+        <FormattedReportText
+          text={content.highlights.highestLeverageOpportunity}
+          paragraphClassName="mb-3 text-gray-700"
+        />
       </section>
 
       <section className="mb-8">

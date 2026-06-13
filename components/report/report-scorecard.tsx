@@ -12,27 +12,36 @@ type ReportScorecardProps = {
 
 export function ReportScorecard({ meta, className }: ReportScorecardProps) {
   return (
-    <div className={cn("flex shrink-0 flex-col items-center gap-4 lg:flex-row lg:items-stretch", className)}>
-      <div className="flex flex-col items-center justify-start px-5 py-3 lg:items-start">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-white/55">
+    <div
+      className={cn(
+        "flex shrink-0 items-center gap-10",
+        className,
+      )}
+    >
+      <div className="flex flex-col items-center gap-0.5 text-center">
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-[#94a3b8]">
           Overall Readiness Score
         </span>
-        <div className="mt-1 flex items-baseline gap-1">
-          <span className="text-6xl font-bold leading-none text-white">{meta.overallScore}</span>
-          <span className="text-base font-medium text-white/50">/ 100</span>
+        <div className="flex items-baseline gap-0.5">
+          <span className="text-[48px] font-extrabold leading-none text-white">
+            {meta.overallScore}
+          </span>
+          <span className="text-[22px] font-semibold leading-none text-[#38bdf8]">/100</span>
         </div>
-        <span className="mt-1 text-lg font-semibold text-[#F0AD4E]">
+        <span className="text-sm font-bold text-[#f97316]">
           {readinessLabel(meta.overallScore)}
         </span>
       </div>
 
-      <div className="flex flex-col items-center justify-start px-5 py-3 lg:items-start">
+      <div className="flex flex-col items-center gap-0.5 text-center">
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-[#94a3b8]">
+          Grade
+        </span>
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-white/55">Grade</span>
-          <SectionGuideInfo tabId="executive_summary" tone="on-dark" />
-        </div>
-        <div className="mt-1 flex items-baseline">
-          <span className="text-7xl font-bold leading-none text-[#F0AD4E]">{meta.letterGrade}</span>
+          <span className="text-[56px] font-bold leading-none text-[#f97316]">
+            {meta.letterGrade}
+          </span>
+          <SectionGuideInfo tabId="executive_summary" tone="on-dark" iconClassName="size-[18px]" />
         </div>
       </div>
     </div>

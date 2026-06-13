@@ -109,7 +109,10 @@ describe("resolveExecutiveContent", () => {
   it("uses structured fields when present", () => {
     const content = resolveExecutiveContent(baseReport)
     expect(content.insights.whatProspectsSee).toBe("Structured prospects")
-    expect(content.highlights.criticalIssue).toBe("Weak CTA")
+    expect(content.highlights.criticalIssue).toBe("Not in top 10")
+    expect(content.highlights.highestLeverageOpportunity).not.toBe(
+      content.highlights.criticalIssue,
+    )
     expect(content.strengths).toContain("Strong rank")
   })
 
@@ -134,5 +137,92 @@ describe("resolveCompetitiveSnapshot", () => {
     expect(snap?.positionAlert).toContain("Not on Page 1")
     expect(snap?.rows[0]?.domain).toBeTruthy()
     expect(snap?.rows[0]?.serpPosition).toBe(1)
+  })
+
+  it("uses upgradeTeasers on free tier and exposes one preview competitor row", () => {
+    const freeReport: LevelstackReportJson = {
+      ...baseReport,
+      meta: {
+        ...baseReport.meta,
+        reportTier: "free_snapshot",
+        upgradeTeasers: {
+          competitivePositionAlert: "Your position: Not on Page 1",
+          competitiveSearchQuery: "brokerage Atlanta, GA",
+          competitorCount: 3,
+          previewCompetitor: {
+            rank: 1,
+            domain: "example.com",
+            title: "Example Business",
+          },
+        },
+      },
+      sections: baseReport.sections.filter(
+        (s) => s.id !== "competitive_context" && s.id !== "revenue_funnel",
+      ),
+    }
+    const snap = resolveCompetitiveSnapshot(freeReport)
+    expect(snap?.positionAlert).toContain("Not on Page 1")
+    expect(snap?.rows).toHaveLength(1)
+    expect(snap?.rows[0]?.domain).toBe("example.com")
+    expect(snap?.competitorCount).toBe(3)
+    expect(snap?.previewTitle).toBe("Example Business")
+  })
+
+  it("dedupes executive highlights for free snapshot reports", () => {
+    const freeReport: LevelstackReportJson = {
+      ...baseReport,
+      meta: { ...baseReport.meta, reportTier: "free_snapshot" },
+      executiveSummary: {
+        ...baseReport.executiveSummary,
+        criticalIssue: "Not in top 10",
+        highlights: {
+          businessImpact: "Impact",
+          highestLeverageOpportunity: "Not in top 10",
+        },
+        topOpportunities: ["Not in top 10", "Fix CTA"],
+      },
+      sections: [
+        {
+          id: "search_footprint",
+          label: "Search",
+          status: "attention",
+          score: 52,
+          findings: [
+            {
+              label: "Brand",
+              value: "Not in top 10",
+              detail: "detail",
+              severity: "high",
+            },
+            {
+              label: "Snippet",
+              value: "Snippet comparison unavailable",
+              detail: "detail",
+              severity: "high",
+            },
+          ],
+        },
+        {
+          id: "digital_presence",
+          label: "Presence",
+          status: "attention",
+          score: 60,
+          findings: [
+            {
+              label: "Title",
+              value: "Homepage title lacks local keywords",
+              detail: "detail",
+              severity: "high",
+            },
+          ],
+        },
+      ],
+      actionPlan: baseReport.actionPlan,
+    }
+
+    const content = resolveExecutiveContent(freeReport)
+    expect(content.highlights.criticalIssue).toBe("Not in top 10")
+    expect(content.highlights.highestLeverageOpportunity).not.toBe("Not in top 10")
+    expect(content.topOpportunities[0]).not.toBe("Not in top 10")
   })
 })

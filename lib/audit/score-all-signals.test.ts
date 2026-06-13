@@ -50,7 +50,7 @@ describe("scoreSnippetAccuracy", () => {
     const snippet = audit.signals.find((s) => s.id === "search_snippet_accuracy")
 
     expect(snippet?.status).toBe("warning")
-    expect(snippet?.finding).toContain("did not appear in top results")
+    expect(snippet?.finding).toContain("business name without a city")
   })
 
   it("compares snippet when owner domain ranks in SERP", () => {

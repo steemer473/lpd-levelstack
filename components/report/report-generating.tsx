@@ -11,10 +11,11 @@ import {
   Target,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { Button } from "@/components/ui/button"
-import { PIPELINE_STEPS } from "@/lib/pipeline/constants"
+import type { ReportTier } from "@/lib/levelstack-plans"
+import { pipelineStepsForTier } from "@/lib/pipeline/progress"
 
 const stepIcons = [Search, Shield, Globe, Megaphone, BarChart3, Target] as const
 
@@ -26,6 +27,7 @@ type ReportGeneratingProps = {
 type StatusResponse = {
   success: boolean
   reportStatus: string
+  reportTier?: ReportTier
   completedSteps?: string[]
   currentStep?: string | null
   progress?: number
@@ -34,22 +36,17 @@ type StatusResponse = {
 
 export function ReportGenerating({ reportId, businessLabel }: ReportGeneratingProps) {
   const router = useRouter()
+  const [reportTier, setReportTier] = useState<ReportTier>("full_report")
   const [completedSteps, setCompletedSteps] = useState<string[]>([])
-  const [currentStep, setCurrentStep] = useState<string | null>(PIPELINE_STEPS[0].id)
+  const [currentStep, setCurrentStep] = useState<string | null>(null)
   const [isComplete, setIsComplete] = useState(false)
   const [failed, setFailed] = useState<string | null>(null)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [showSlowNotice, setShowSlowNotice] = useState(false)
 
-  const stepIndexFromApi = useCallback(() => {
-    if (!currentStep) return PIPELINE_STEPS.length - 1
-    const idx = PIPELINE_STEPS.findIndex((s) => s.id === currentStep)
-    return idx >= 0 ? idx : 0
-  }, [currentStep])
-
-  const displayActiveIndex = Math.min(
-    stepIndexFromApi(),
-    PIPELINE_STEPS.length - 1,
+  const displaySteps = useMemo(
+    () => pipelineStepsForTier(reportTier),
+    [reportTier],
   )
 
   useEffect(() => {
@@ -101,6 +98,9 @@ export function ReportGenerating({ reportId, businessLabel }: ReportGeneratingPr
         const data = (await res.json()) as StatusResponse
         if (!data.success) return
 
+        if (data.reportTier) {
+          setReportTier(data.reportTier)
+        }
         if (data.completedSteps) {
           setCompletedSteps(data.completedSteps)
         }
@@ -115,7 +115,8 @@ export function ReportGenerating({ reportId, businessLabel }: ReportGeneratingPr
 
         if (data.reportStatus === "ready") {
           setIsComplete(true)
-          setCompletedSteps(PIPELINE_STEPS.map((s) => s.id))
+          const steps = pipelineStepsForTier(data.reportTier ?? reportTier)
+          setCompletedSteps(steps.map((s) => s.id))
           setTimeout(() => {
             if (mounted) router.refresh()
           }, 1500)
@@ -132,7 +133,7 @@ export function ReportGenerating({ reportId, businessLabel }: ReportGeneratingPr
       mounted = false
       if (intervalId) clearInterval(intervalId)
     }
-  }, [reportId, router])
+  }, [reportId, reportTier, router])
 
   if (failed) {
     return (
@@ -165,14 +166,10 @@ export function ReportGenerating({ reportId, businessLabel }: ReportGeneratingPr
       </div>
       <div>
         <div className="space-y-3">
-          {PIPELINE_STEPS.map((step, index) => {
+          {displaySteps.map((step, index) => {
             const Icon = stepIcons[index] ?? Search
-            const done =
-              completedSteps.includes(step.id) ||
-              index < displayActiveIndex
-            const active =
-              !done &&
-              (step.id === currentStep || index === displayActiveIndex)
+            const done = completedSteps.includes(step.id)
+            const active = !done && step.id === currentStep
 
             return (
               <div

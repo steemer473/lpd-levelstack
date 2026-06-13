@@ -1,5 +1,5 @@
 {
-  "$comment": "Upload with docs/v0/V0-RULES.md + assets/levelstack-report-header-v2.png. V0-RULES overrides project-brief and sample HTML. Do NOT attach levelstack-sample-report.html.",
+  "$comment": "Upload with docs/v0/V0-RULES.md + Figma audit-report frame 4:4. V0-RULES overrides project-brief and sample HTML. Do NOT attach levelstack-sample-report.html or deprecated v2 PNGs.",
   "meta": {
     "name": "Level Play Digital — LevelStack",
     "product": "LevelStack ($497 digital presence audit)",
@@ -26,8 +26,6 @@
       "headerSubtitle": "#5BC0DE",
       "headerTextMeta": "rgba(255, 255, 255, 0.82)",
       "headerDivider": "rgba(255, 255, 255, 0.12)",
-      "headerScoreBoxBg": "rgba(255, 255, 255, 0.06)",
-      "headerScoreBoxBorder": "rgba(255, 255, 255, 0.14)",
       "accentOrange": "#F0AD4E",
       "accentBlue": "#5BC0DE",
       "tabBarBackground": "#FFFFFF",
@@ -37,7 +35,7 @@
       "tabActiveIcon": "#F0AD4E",
       "introPanelBg": "#E8F4FC",
       "introPanelBorder": "#B8D4E8",
-      "comment": "v2 screenshot — flat header, white tab bar. Do NOT use headerBackgroundAlt, heroMesh, or dark-band tabs."
+      "comment": "Figma frame 4:4 — flat header (no glass panels, no grade outline), white tab bar. Do NOT use headerBackgroundAlt, heroMesh, headerScoreBoxBg, or dark-band tabs."
     },
     "severity": {
       "critical": "#E24B4A",
@@ -182,15 +180,18 @@
       "fillGood": "severity.good"
     },
     "reportHeader": {
-      "comment": "Match levelstack-report-header-v2.png — NOT levelstack-sample-report.html",
-      "layout": "row1: title+assessment subtitle left, score+grade boxes right; row2: stacked meta columns with vertical dividers left, stat pills right",
+      "comment": "Match Figma audit-report frame 4:4 — NOT levelstack-sample-report.html",
+      "layout": "row1: title+assessment subtitle left, score+grade right (flat on navy, no grade outline); row2: stacked meta columns with vertical dividers left, stat labels right; upsell at page bottom (free only)",
       "forbidden": [
         "market as second title line instead of assessment subtitle",
-        "no score or grade boxes",
-        "four meta columns only without stat pills",
+        "no score or grade display",
+        "four meta columns only without stat labels",
         "tabs on dark band",
         "hub orange #FF6633 on header accents",
-        "hero mesh on header"
+        "hero mesh on header",
+        "glass or frosted panels on score, grade, or stat pills",
+        "orange border or outline around grade letter",
+        "upsell banner inside header band"
       ]
     }
   }

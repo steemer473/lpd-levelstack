@@ -10,15 +10,14 @@ export const AUDIT_OPERATIONS = [
 
 export type AuditOperationId = (typeof AUDIT_OPERATIONS)[number]["id"]
 
-/** Report UI sections (PRD §5). */
+/** Report UI sections — Figma template taxonomy (6 diagnostic + action plan). */
 export const PIPELINE_STEPS = [
   { id: "search_footprint", label: "Search footprint", order: 0 },
-  { id: "social_offsite", label: "Social & off-site presence", order: 1 },
-  { id: "infrastructure_security", label: "Infrastructure & security", order: 2 },
-  { id: "positioning_consistency", label: "Positioning consistency", order: 3 },
-  { id: "revenue_funnel", label: "Revenue funnel diagnosis", order: 4 },
-  { id: "competitive_context", label: "Competitive context", order: 5 },
-  { id: "action_plan", label: "Prioritized action plan", order: 6 },
+  { id: "online_reputation", label: "Reputation", order: 1 },
+  { id: "digital_presence", label: "Digital presence", order: 2 },
+  { id: "revenue_funnel", label: "Revenue funnel", order: 3 },
+  { id: "competitive_context", label: "Competitive context", order: 4 },
+  { id: "action_plan", label: "Action plan", order: 5 },
 ] as const
 
 export type PipelineStepId = (typeof PIPELINE_STEPS)[number]["id"]
@@ -41,12 +40,11 @@ export const FULL_TIER_OPERATION_IDS: AuditOperationId[] = AUDIT_OPERATIONS.map(
 /** Sections visible on free snapshot (Executive Summary is always shown). */
 export const FREE_TIER_SECTION_IDS = new Set([
   "search_footprint",
-  "social_offsite",
+  "online_reputation",
+  "digital_presence",
 ])
 
 export const PAID_ONLY_SECTION_IDS = new Set([
-  "infrastructure_security",
-  "positioning_consistency",
   "revenue_funnel",
   "competitive_context",
   "action_plan",

@@ -33,12 +33,14 @@ import {
   LPD,
   biggestProblemSections,
   LOCKED_SECTION_LABELS,
+  PAID_TAB_IDS,
   priorityBreakdown,
   scoreBarColor,
   sectionStatusBadge,
   SECTION_TAB_ORDER,
 } from "@/lib/report/display-helpers"
 import { REPORT_INTRO } from "@/lib/report/section-guides"
+import { extractPreviewCompetitor } from "@/lib/report/parse-serp-rows"
 import { getHubPricingUrl, getHubSeoWaitlistUrl, getHubWorkflowWaitlistUrl } from "@/lib/urls"
 import { cn } from "@/lib/utils"
 
@@ -48,16 +50,15 @@ export type ReportViewProps = {
 
 export function useReportTabs(report: LevelstackReportJson) {
   const { meta, executiveSummary, sections, actionPlan } = report
+  const isFree = meta.reportTier === "free_snapshot"
   const tabs = useMemo(() => {
     const byId = new Map(sections.map((s) => [s.id, s]))
     return SECTION_TAB_ORDER.map((t) => ({
       ...t,
       section: byId.get(t.id),
-    })).filter(
-      (t) =>
-        t.id === "executive_summary" || t.id === "action_plan" || Boolean(t.section),
-    )
-  }, [sections])
+      locked: isFree && PAID_TAB_IDS.has(t.id),
+    }))
+  }, [sections, isFree])
 
   const [activeTab, setActiveTab] = useState("executive_summary")
   const [howToReadOpen, setHowToReadOpen] = useState(false)
@@ -206,15 +207,25 @@ export function UpgradeBanner({ report }: { report: LevelstackReportJson }) {
     report.meta.issueCountForUpgrade ??
     report.meta.criticalCount + report.meta.highCount
 
+  const previewCompetitor =
+    report.meta.upgradeTeasers?.previewCompetitor ??
+    (() => {
+      const search = report.sections.find((s) => s.id === "search_footprint")
+      const detail = search?.findings.find((f) => f.detail.includes("http"))?.detail
+      return detail ? extractPreviewCompetitor(detail) : undefined
+    })()
+
   return (
-    <div className="rpt-upsell mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border border-brand-orange/30 bg-brand-orange/5">
+    <div className="rpt-upsell flex flex-col gap-3 px-7 py-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="text-sm leading-relaxed">
-        <p className="font-medium">
-          We found {issueCount} issue{issueCount === 1 ? "" : "s"} in your public presence.
+        <p className="font-medium text-white">
+          We found {issueCount} issue{issueCount === 1 ? "" : "s"} in your public presence —
+          including gaps that may be costing you leads.
         </p>
-        <p className="text-muted-foreground mt-1">
-          Your revenue funnel diagnosis, competitive position, and full prioritized action plan
-          are in your Full Report.
+        <p className="mt-1 text-white/60">
+          {previewCompetitor
+            ? `#1 competitor: ${previewCompetitor.domain} — unlock your Full Report ($97) for full competitive analysis and your prioritized 90-day action plan.`
+            : "Unlock your Full Report ($97) for revenue funnel diagnosis, full competitive analysis, and your prioritized 90-day action plan."}
         </p>
       </div>
       <Button variant="brand" asChild className="shrink-0">
@@ -224,17 +235,26 @@ export function UpgradeBanner({ report }: { report: LevelstackReportJson }) {
   )
 }
 
+const LOCKED_SECTION_DESCRIPTIONS: Record<string, string> = {
+  revenue_funnel:
+    "See how your ad spend, landing pages, and offer clarity affect conversion — and where you're leaking leads.",
+  competitive_context:
+    "See who ranks above you, how you compare on reviews and authority, and where to close the gap.",
+  action_plan:
+    "Get your full prioritized backlog — who owns each task, time estimates, and what to fix this week, month, and quarter.",
+}
+
 export function LockedSectionPanel({ sectionId }: { sectionId: string }) {
   const label = LOCKED_SECTION_LABELS[sectionId] ?? "This section"
+  const description =
+    LOCKED_SECTION_DESCRIPTIONS[sectionId] ??
+    "Included in the Full LevelStack Report ($97)."
   return (
     <div className="px-6 py-8 text-center">
       <p className="text-lg font-semibold mb-2">{label}</p>
-      <p className="text-muted-foreground text-sm max-w-md mx-auto mb-4">
-        Included in the Full LevelStack Report ($97): revenue funnel diagnosis, competitive
-        context, infrastructure findings, and your prioritized action plan.
-      </p>
+      <p className="text-muted-foreground text-sm max-w-md mx-auto mb-4">{description}</p>
       <Button variant="brand" asChild>
-        <Link href={getHubPricingUrl()}>Unlock full report</Link>
+        <Link href={getHubPricingUrl()}>Unlock full report — $97</Link>
       </Button>
     </div>
   )
@@ -875,13 +895,7 @@ export function ReportTabContent({
     )
   }
 
-  const lockedIds = new Set([
-    "infrastructure_security",
-    "positioning_consistency",
-    "revenue_funnel",
-    "competitive_context",
-    "action_plan",
-  ])
+  const lockedIds = new Set(["revenue_funnel", "competitive_context", "action_plan"])
 
   if (
     report.meta.reportTier === "free_snapshot" &&

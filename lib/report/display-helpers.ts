@@ -6,7 +6,6 @@ import {
   Search,
   Shield,
   Star,
-  Target,
   TrendingUp,
 } from "lucide-react"
 
@@ -47,13 +46,10 @@ export function readinessLabel(score: number): string {
 export const TAB_ICONS: Record<string, LucideIcon> = {
   executive_summary: LayoutGrid,
   search_footprint: Search,
-  social_offsite: Globe,
   online_reputation: Star,
   digital_presence: Globe,
-  infrastructure_security: Shield,
-  positioning_consistency: Target,
   revenue_funnel: TrendingUp,
-  competitive_context: Target,
+  competitive_context: Shield,
   action_plan: ClipboardList,
 }
 
@@ -131,20 +127,21 @@ export function priorityBreakdown(meta: LevelstackReportJson["meta"]) {
 export const SECTION_TAB_ORDER: { id: string; label: string }[] = [
   { id: "executive_summary", label: "Executive summary" },
   { id: "search_footprint", label: "Search footprint" },
-  { id: "social_offsite", label: "Social & off-site" },
   { id: "online_reputation", label: "Reputation" },
   { id: "digital_presence", label: "Digital presence" },
-  { id: "infrastructure_security", label: "Infrastructure" },
-  { id: "positioning_consistency", label: "Positioning" },
   { id: "revenue_funnel", label: "Revenue funnel" },
   { id: "competitive_context", label: "Competitive context" },
   { id: "action_plan", label: "Action plan" },
 ]
 
 export const LOCKED_SECTION_LABELS: Record<string, string> = {
-  infrastructure_security: "Infrastructure & security",
-  positioning_consistency: "Positioning consistency",
   revenue_funnel: "Revenue funnel diagnosis",
   competitive_context: "Competitive context snapshot",
   action_plan: "Full prioritized action plan",
 }
+
+export const PAID_TAB_IDS = new Set([
+  "revenue_funnel",
+  "competitive_context",
+  "action_plan",
+])

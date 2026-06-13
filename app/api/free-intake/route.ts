@@ -11,6 +11,7 @@ import { sendFreeSnapshotSignInEmail } from "@/lib/email/report-delivery"
 import { syncFreeSnapshotLead } from "@/lib/ghl/sync-levelstack-lead"
 import { runReportPipeline } from "@/lib/pipeline/run-report-pipeline"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { buildMagicLinkCallbackUrl } from "@/lib/auth/magic-link-callback"
 import { getAppUrl } from "@/lib/urls"
 
 export const maxDuration = 300
@@ -192,38 +193,53 @@ export async function POST(request: Request) {
     `/auth/callback?next=${encodeURIComponent(reportPath)}`,
   )
 
-  const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
-    type: "magiclink",
-    email,
-    options: { redirectTo: callbackUrl },
-  })
+  const { data: instantLink, error: instantLinkError } =
+    await admin.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+      options: { redirectTo: callbackUrl },
+    })
 
-  const magicLink = linkData?.properties?.action_link ?? null
+  const instantHashedToken = instantLink?.properties?.hashed_token ?? null
+  const signInUrl = instantHashedToken
+    ? buildMagicLinkCallbackUrl(instantHashedToken, reportPath)
+    : (instantLink?.properties?.action_link ?? null)
+
   let emailSent = false
 
-  if (magicLink) {
+  if (signInUrl) {
+    const { data: emailLink } = await admin.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+      options: { redirectTo: callbackUrl },
+    })
+    const emailHashedToken = emailLink?.properties?.hashed_token ?? null
+    const emailSignInUrl = emailHashedToken
+      ? buildMagicLinkCallbackUrl(emailHashedToken, reportPath)
+      : (emailLink?.properties?.action_link ?? signInUrl)
+
     emailSent = await sendFreeSnapshotSignInEmail({
       to: email,
       businessName: data.businessName.trim(),
-      signInUrl: magicLink,
+      signInUrl: emailSignInUrl,
     })
-  } else if (linkError) {
-    console.error("[free-intake] generateLink failed:", linkError.message)
+  } else if (instantLinkError) {
+    console.error("[free-intake] generateLink failed:", instantLinkError.message)
   }
 
   const devFallback =
-    process.env.NODE_ENV === "development" && !emailSent && Boolean(magicLink)
+    process.env.NODE_ENV === "development" && !emailSent && Boolean(signInUrl)
 
   return NextResponse.json({
     success: true,
     reportId: report.id,
     intakeId: intake.id,
     emailSent,
-    magicLink: devFallback ? magicLink : undefined,
+    signInUrl: signInUrl ?? undefined,
     message: emailSent
-      ? "Check your email for a sign-in link. Your snapshot is generating now."
+      ? "Taking you to your live progress screen. We also emailed you a backup sign-in link."
       : devFallback
-        ? "Email is not configured — use the dev sign-in link below."
+        ? "Email is not configured — signing you in now."
         : "Your snapshot is generating. Sign in with the same email to view your report.",
     redirectTo: getAppUrl(reportPath),
   })

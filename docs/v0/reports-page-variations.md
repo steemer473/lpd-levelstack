@@ -1,6 +1,6 @@
 # `/reports/[reportId]` — v0 layout variations (3)
 
-Upload **`docs/v0/V0-RULES.md`** + **`assets/levelstack-executive-summary-v2.png`** first. Optional: tokens JSON/CSS. Then paste **one** variation prompt below.
+Upload **`docs/v0/V0-RULES.md`** + **[Figma frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4)** first. Optional: tokens JSON/CSS. Then paste **one** variation prompt below.
 
 Do **not** use `levelstack-sample-report.html` for layout — legacy v1 only.
 
@@ -10,22 +10,24 @@ Generate each variation in a **separate v0 chat** for clean comparison.
 
 ---
 
-## V2 Screenshot fidelity (use this first)
+## Figma fidelity (use this first)
 
-**Best for:** Matching `levelstack-executive-summary-v2.png` exactly.
+**Best for:** Matching the Figma audit-report frame exactly.
 
 ```
-V2 Screenshot Fidelity — LevelStack report header + chrome
+Figma Fidelity — LevelStack report header + chrome
 
-Attached: levelstack-executive-summary-v2.png, levelstack-v0-design-tokens.css
+Attached: Figma audit-report frame 4:4, levelstack-v0-design-tokens.css
 
-Replicate the screenshot exactly. NOT a redesign. NOT levelstack-sample-report.html.
+Replicate the Figma frame exactly. NOT a redesign. NOT levelstack-sample-report.html.
 
 Build in order:
-1. ReportHeader + ReportScorecard — flat #002147, score box + square grade box, stacked meta columns (vertical dividers) + stat pills
+1. ReportHeader + ReportScorecard — flat #002147, score + grade on navy (no glass panels, no grade outline), stacked meta columns (vertical dividers) + stat labels
 2. "How to read this report" light blue panel
 3. White tab bar — 7 tabs, Executive Summary active with orange underline
-4. Executive summary tab — AI Executive Assessment + What To Do First timeline + competitive snapshot (see screenshot)
+4. Executive summary tab — AI Executive Assessment + What To Do First timeline + competitive snapshot (see Figma)
+5. Score breakdown after tab content
+6. Prev/Next nav → $97 UpgradeBanner (free only) → footer
 
 Colors: --rpt-orange #F0AD4E, --rpt-blue #5BC0DE, --lpd-dark #002147. NO hero mesh on header.
 
@@ -33,7 +35,7 @@ Mock: Luther Ragsdale · Platinum Real Estate, Atlanta GA, June 4 2026, D / 68 /
 
 Stack: Next.js 16, React 19, Tailwind 4, shadcn/ui, lucide-react. Props: LevelstackReportJson.
 
-DO NOT: market under title (v1), missing score boxes, dark-band tabs, hub #FF6633 header accents, sample HTML 6-tab layout.
+DO NOT: market under title (v1), missing score/grade display, dark-band tabs, hub #FF6633 header accents, glass header panels, grade outline box, header upsell, sample HTML 6-tab layout.
 ```
 
 ---

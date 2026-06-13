@@ -25,9 +25,9 @@ Aligned with **lpd-redesign** / [levelplaydigital.com](https://levelplaydigital.
 - Primary CTAs: `Button variant="brand"` (orange gradient, hub `.btn-primary`)
 - Report UI: `bg-lpd-dark`, `text-lpd-orange`, etc. via `@theme` + `lib/report/display-helpers.ts`
 
-## Report visual reference (v2)
+## Report visual reference (Figma)
 
-- Screenshot: `assets/levelstack-executive-summary-v2.png`
+- Figma: [audit-report frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4) — canonical layout (deprecated: v2 PNGs)
 - Styles: `styles/report-final-design.css` (report-scoped `--rpt-*`; header uses `--lpd-dark` `#002147`)
 - Implementation: `components/report/report-header.tsx`, `executive-summary-v2.tsx`
 - Legacy `assets/levelstack-sample-report.html` — copy tone only; v1 layout, not for design generation

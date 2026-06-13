@@ -82,7 +82,7 @@ Defined in hub [`data/levelstackPlans.ts`](../../../data/levelstackPlans.ts), re
 
 ### 0.8 Sample report (reference implementation)
 
-**Canonical UI reference:** [`assets/levelstack-executive-summary-v2.png`](../assets/levelstack-executive-summary-v2.png) — v2 report layout. [`assets/levelstack-sample-report.html`](../assets/levelstack-sample-report.html) — copy tone only (legacy v1 layout).
+**Canonical UI reference:** [Figma audit-report frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4) — report layout. [`assets/levelstack-sample-report.html`](../assets/levelstack-sample-report.html) — copy tone only (legacy v1 layout). Deprecated: `assets/levelstack-report-header-v2.png`, `assets/levelstack-executive-summary-v2.png`.
 
 **Layout reference (scores & summary):** [SEO audit results page](https://seo.levelplaydigital.com/results/cmpxhp9uf0000fw1qynk3qz65) on `seo.levelplaydigital.com` — overall score hero, category breakdown, issue priority counts, executive problem framing.
 
@@ -478,7 +478,7 @@ Zero manual intervention for Standard tier. Per-section scope:
 
 ### 10.3 Report delivery — final output specification
 
-The LevelStack report visual reference is **`assets/levelstack-executive-summary-v2.png`** (header: `assets/levelstack-report-header-v2.png`). Implementation: `styles/report-final-design.css`, `components/report/report-header.tsx`, `components/report/executive-summary-v2.tsx`.
+The LevelStack report visual reference is **[Figma audit-report frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4)**. Implementation: `styles/report-final-design.css`, `components/report/report-header.tsx`, `components/report/executive-summary-v2.tsx`. Deprecated PNGs (`levelstack-report-header-v2.png`, `levelstack-executive-summary-v2.png`) must not be used for layout validation.
 
 [`assets/levelstack-sample-report.html`](assets/levelstack-sample-report.html) is **legacy v1** — use for **copy tone / finding depth only**, not layout or header structure.
 
@@ -488,7 +488,7 @@ Both web view and PDF must present the same content. PDF is a permanent download
 
 | Block | Purpose | Reference |
 |-------|---------|-----------|
-| **Report header** | Title + assessment subtitle; score + grade boxes; stacked meta columns + stat pills | `levelstack-report-header-v2.png` |
+| **Report header** | Title + assessment subtitle; flat score + grade on navy; stacked meta columns + stat pills | Figma frame `4:5`–`4:24` |
 | **Executive summary** | 2–4 paragraphs synthesizing cross-section findings, business impact, and top priority — for a non-technical owner | Required addition (see §10.3.2) |
 | **Summary dashboard** | Overall LevelStack score/grade, total issues, priority breakdown, six section score cards, biggest problem areas | SEO audit results page pattern |
 | **Section tabs** | Seven tabs on white bar (Executive summary default); orange active underline | v2 screenshot |
@@ -561,7 +561,7 @@ Horizontal scroll tabs on mobile; grids collapse or scroll; PDF may layout diffe
 
 Internal/marketing samples use `Sample Report` badge (`.sample-badge`). Paid reports use live meta counts only.
 
-Layout reference: [`assets/levelstack-executive-summary-v2.png`](../assets/levelstack-executive-summary-v2.png). Copy tone: [`assets/levelstack-sample-report.html`](../assets/levelstack-sample-report.html).
+Layout reference: [Figma audit-report frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4). Copy tone: [`assets/levelstack-sample-report.html`](../assets/levelstack-sample-report.html).
 
 ### 10.4 Review call add-on (`levelstack-review-call` only)
 
@@ -630,7 +630,7 @@ Framing: LevelStack finds gaps; SEO Automator Pro is designed to keep them close
 
 - Business-specific findings only; no generic boilerplate.
 - Actionable action plan only; realistic time estimates.
-- Validate against [`assets/levelstack-sample-report.html`](assets/levelstack-sample-report.html) and §10.3 before launch.
+- Validate layout against [Figma frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4); validate copy tone against [`assets/levelstack-sample-report.html`](assets/levelstack-sample-report.html) and §10.3 before launch.
 
 ### 12.3 Account and data
 
@@ -710,7 +710,7 @@ Additional rules:
 | Web report + PDF | — | **Build** |
 | Review-call ops | — | **Build** |
 | Report-ready email | — | **Build** |
-| Sample-calibrated synthesis | — | **Validate against** [`assets/levelstack-sample-report.html`](assets/levelstack-sample-report.html) |
+| Sample-calibrated synthesis | — | **Validate copy tone against** [`assets/levelstack-sample-report.html`](assets/levelstack-sample-report.html); **layout against Figma 4:4** |
 | Executive summary + SEO-style dashboard | — | **Build** (§10.3.2–10.3.3) |
 
 ---

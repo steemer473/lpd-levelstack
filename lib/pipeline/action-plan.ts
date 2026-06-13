@@ -70,8 +70,8 @@ export function buildActionPlanFromSections(
   }
 
   thisWeek.push({
-    task: `Private-window search: "${intake?.ownerName ?? "your name"}" and "${intake?.primaryBusinessName ?? "business"}"`,
-    sub: "Screenshot page 1; compare to what this report documents.",
+    task: `Search in a private/incognito browser for "${intake?.ownerName ?? "your name"}" and "${intake?.primaryBusinessName ?? "business"}"`,
+    sub: "See what prospects see on page 1 — without your personal search history.",
     who: "You",
     time: "20 min",
   })
