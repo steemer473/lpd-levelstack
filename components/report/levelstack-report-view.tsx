@@ -40,14 +40,10 @@ export function LevelstackReportView({ report, reportId }: LevelstackReportViewP
       >
         <ReportHeader meta={meta} sectionCount={nav.sectionCount} />
 
-        <UpgradeBanner report={report} />
-
         <ReportHowToRead
           open={nav.howToReadOpen}
           onToggle={() => nav.setHowToReadOpen((o) => !o)}
         />
-
-        <ScoreBreakdown report={report} />
 
         <ReportTabBar
           tabs={nav.tabs}
@@ -64,11 +60,15 @@ export function LevelstackReportView({ report, reportId }: LevelstackReportViewP
           />
         </div>
 
+        <ScoreBreakdown report={report} />
+
         <ReportTabNavigation
           tabs={nav.tabs.map((t) => ({ id: t.id, label: t.label }))}
           activeTab={nav.activeTab}
           onSelectTab={nav.selectTab}
         />
+
+        <UpgradeBanner report={report} />
 
         <ReportFooter meta={meta} />
       </div>

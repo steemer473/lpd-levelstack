@@ -4,7 +4,7 @@ Attach **`docs/v0/V0-RULES.md`** first — it overrides this file and `docs/proj
 
 Optional: `levelstack-v0-design-tokens.json`, `levelstack-v0-design-tokens.css`.
 
-**Visual source of truth:** `assets/levelstack-report-header-v2.png` (header) · `assets/levelstack-executive-summary-v2.png` (full page). **Not** `levelstack-sample-report.html`.
+**Visual source of truth:** [Figma audit-report frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4). **Not** `levelstack-sample-report.html`. **Not** deprecated v2 PNGs (`levelstack-report-header-v2.png`, `levelstack-executive-summary-v2.png`).
 
 ## What this page is
 
@@ -45,13 +45,14 @@ Tab UI (**white bar below header**, per screenshot): icons + labels + (i) each; 
 
 ## UI blocks (ready state)
 
-### 1. Dark header band (see `levelstack-executive-summary-v2.png`)
+### 1. Dark header band (Figma nodes `4:5`–`4:24`)
 - Row 1: `{ownerName} · {businessName}` + subtitle `DIGITAL PRESENCE & REVENUE FUNNEL ASSESSMENT` (cyan, uppercase) + (i)
-- Row 1 right: score box (`{overallScore}/100`, readiness label) + **square** orange-bordered grade box (`{letterGrade}`)
-- Row 2 left: **3 stacked meta columns** (uppercase micro-label + bold value) with **vertical dividers** — Market, Report Date, Assessment Type
-- Row 2 right: stat pills (findings, critical, sections)
-- Background: `--lpd-dark` (`#002147`) — flat navy, no hero mesh
+- Row 1 right: overall score (`{overallScore}/100`, readiness label) + orange grade letter (`{letterGrade}`) — flat on navy, **no glass panels, no grade outline**
+- Row 2 left: **3 stacked meta columns** (uppercase micro-label `#94a3b8` + bold value) with **vertical dividers** — Market, Report Date, Assessment Type
+- Row 2 right: stat labels (findings, critical, sections) — flat on navy, no glass pills; sub-bar `rgba(0,0,0,0.13)`
+- Background: `--lpd-dark` (`#002147`) — flat navy, no hero mesh, no glass effects
 - Tab bar below on **white** (7 tabs) — not on the dark band
+- **No** `$97 upsell` in header — upsell is at page bottom (free tier only)
 
 ### 2. How to read (collapsible)
 - Title: **"How to read this report"**
@@ -147,7 +148,7 @@ Elapsed timer; slow notice after 120s.
 - **Luther Ragsdale · Platinum Real Estate**
 - **Market:** Atlanta, GA · **Date:** June 4, 2026
 - **D · 68/100 · Developing · 17 findings · 0 critical · 5 of 6 sections**
-- Exec tab: real-estate / brokerage competitive snapshot (see `levelstack-executive-summary-v2.png`)
+- Exec tab: real-estate / brokerage competitive snapshot (see Figma frame `4:95`+)
 
 Legacy Marcus Carter / MC Fitness copy is fine for **section tabs** tone only — not for header layout.
 
@@ -161,7 +162,7 @@ PDF, email, auth, intake, reports list, live APIs, fake Lighthouse widgets.
 
 ## Repo reference
 
-- `assets/levelstack-executive-summary-v2.png` — **canonical layout screenshot** (v2 executive summary)
+- [Figma audit-report frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4) — **canonical layout** (deprecated: v2 PNGs)
 - `styles/report-final-design.css` — scoped report styles (`--rpt-*`, header, exec summary)
 - `components/report/report-header.tsx` + `report-scorecard.tsx` — dark header band
 - `components/report/executive-summary-v2.tsx` — AI executive assessment, timeline, competitive snapshot
@@ -174,12 +175,12 @@ PDF, email, auth, intake, reports list, live APIs, fake Lighthouse widgets.
 
 ## v0 checklist
 
-**Header only (start here):** **`docs/v0/V0-RULES.md`** + **`assets/levelstack-report-header-v2.png`** — see `v0-report-header-prompt.md`.
+**Header only (start here):** **`docs/v0/V0-RULES.md`** + **Figma frame 4:4** — see `v0-report-header-prompt.md`.
 
 **Full page:**
 1. `levelstack-v0-design-tokens.json` + `levelstack-v0-design-tokens.css`
 2. This file
-3. **`assets/levelstack-executive-summary-v2.png`** (required)
-4. Prompt from `reports-page-variations.md` — use **V2 Screenshot fidelity**, not Variation A redesign
+3. **Figma audit-report frame 4:4** (required)
+4. Prompt from `reports-page-variations.md` — use **Figma fidelity**, not Variation A redesign
 
-**Instruction for v0:** Screenshot wins over text. Report header uses `--rpt-orange` / `--rpt-blue`, not hub `#FF6633` / `#00D4F5`. Flat `#002147` header — no hero mesh. Tabs on white. Do **not** follow `levelstack-sample-report.html` layout.
+**Instruction for v0:** Figma wins over text. Report header uses `--rpt-orange` / `--rpt-blue`, not hub `#FF6633` / `#00D4F5`. Flat `#002147` header — no hero mesh, no glass, no grade outline. Tabs on white. Do **not** follow `levelstack-sample-report.html` layout.

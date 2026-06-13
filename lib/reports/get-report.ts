@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { isDevReportPreviewEnabled } from "@/lib/dev-report-preview"
+import { planIdToReportTier, type ReportTier } from "@/lib/levelstack-plans"
 
 export type LevelstackReportRow = {
   id: string
@@ -108,6 +109,7 @@ export async function getReportStatusPayload(
 ): Promise<{
   reportId: string
   reportStatus: string
+  reportTier: ReportTier
   jobStatus: string | null
   currentStep: string | null
   completedSteps: string[]
@@ -131,6 +133,11 @@ export async function getReportStatusPayload(
   let completedSteps: string[] = []
   let progress = report.status === "ready" ? 100 : 0
   let businessName: string | null = null
+  let reportTier: ReportTier = planIdToReportTier(report.plan_id)
+
+  if (report.report_tier === "free_snapshot" || report.report_tier === "full_report" || report.report_tier === "strategy_call") {
+    reportTier = report.report_tier
+  }
 
   if (report.report_json && typeof report.report_json === "object") {
     const meta = (report.report_json as { meta?: { businessName?: string } }).meta
@@ -150,9 +157,13 @@ export async function getReportStatusPayload(
         current_step?: string | null
         completed_steps?: string[]
         progress?: number
+        report_tier?: ReportTier
       } | null
       currentStep = meta?.current_step ?? null
       completedSteps = meta?.completed_steps ?? []
+      if (meta?.report_tier) {
+        reportTier = meta.report_tier
+      }
       if (typeof meta?.progress === "number") {
         progress = meta.progress
       }
@@ -160,6 +171,7 @@ export async function getReportStatusPayload(
         return {
           reportId: report.id,
           reportStatus: report.status,
+          reportTier,
           jobStatus,
           currentStep,
           completedSteps,
@@ -174,6 +186,7 @@ export async function getReportStatusPayload(
   return {
     reportId: report.id,
     reportStatus: report.status,
+    reportTier,
     jobStatus,
     currentStep,
     completedSteps,

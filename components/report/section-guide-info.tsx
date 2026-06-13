@@ -15,9 +15,11 @@ import { cn } from "@/lib/utils"
 export function SectionGuideInfo({
   tabId,
   tone = "default",
+  iconClassName = "size-3.5",
 }: {
   tabId: string
   tone?: "default" | "on-dark"
+  iconClassName?: string
 }) {
   const guide = getSectionGuide(tabId)
   if (!guide) return null
@@ -40,7 +42,7 @@ export function SectionGuideInfo({
           )}
           aria-label="About this section"
         >
-          <Info className="size-3.5" aria-hidden />
+          <Info className={iconClassName} aria-hidden />
         </Button>
       </PopoverTrigger>
       <PopoverContent

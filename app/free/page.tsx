@@ -25,7 +25,8 @@ export default function FreeSnapshotPage() {
       <FormPanel className="max-w-md mx-auto">
         <h2 className="text-xl font-semibold text-center mb-1">Start your snapshot</h2>
         <p className="text-muted-foreground text-sm text-center mb-6">
-          We&apos;ll email you a link to view your report when research completes.
+          We&apos;ll take you straight to your live progress screen. A backup
+          sign-in link is emailed too.
         </p>
         <FreeSnapshotForm />
       </FormPanel>

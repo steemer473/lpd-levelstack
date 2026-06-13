@@ -1,4 +1,5 @@
 import type { ReportFinding } from "@/lib/pipeline/report-types"
+import { polishCustomerFindingCopy } from "@/lib/report/customer-copy"
 import {
   DataPanel,
   DataPanelLabel,
@@ -53,8 +54,10 @@ export function FindingCard({
       )}
     >
       <DataPanelLabel>{finding.label}</DataPanelLabel>
-      <FindingValueHeadline value={finding.value} />
-      {finding.detail ? <FindingDetailContent detail={finding.detail} /> : null}
+      <FindingValueHeadline value={polishCustomerFindingCopy(finding.value)} />
+      {finding.detail ? (
+        <FindingDetailContent detail={polishCustomerFindingCopy(finding.detail)} />
+      ) : null}
       <FindingFlag severity={finding.severity} />
     </DataPanel>
   )

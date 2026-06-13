@@ -5,7 +5,7 @@ Delivery app for [LevelStack](https://levelplaydigital.com/platform/levelstack) 
 ## Docs
 
 - [Project brief & PRD](docs/project-brief.md)
-- Report UI visual reference (v2): [assets/levelstack-executive-summary-v2.png](assets/levelstack-executive-summary-v2.png) · header crop: [assets/levelstack-report-header-v2.png](assets/levelstack-report-header-v2.png)
+- Report UI visual reference (Figma): [audit-report frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4) — **not** `assets/levelstack-report-header-v2.png` or `levelstack-executive-summary-v2.png` (deprecated)
 - **v0 rules (attach this in v0):** [docs/v0/V0-RULES.md](docs/v0/V0-RULES.md) — overrides sample HTML / project-brief for layout
 - Legacy copy-tone reference only: [assets/levelstack-sample-report.html](assets/levelstack-sample-report.html) (v1 layout — not for design generation)
 

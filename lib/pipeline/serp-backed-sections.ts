@@ -13,6 +13,12 @@ import {
   ownerSearchSeverity,
 } from "@/lib/pipeline/search-finding-severity"
 import { TERMS } from "@/lib/report/customer-terms"
+import {
+  customerGbpFindingDetail,
+  customerGbpFindingValue,
+} from "@/lib/report/customer-copy"
+import { computeDistinctHighlightsFromSections } from "@/lib/report/executive-dedup"
+import { truncateReportCopy } from "@/lib/report/format-report-copy"
 
 type ScoreRow = NonNullable<ReportSection["scoreRows"]>[number]
 
@@ -248,9 +254,8 @@ export function buildSectionsFromResearch(
       : [
           {
             label: TERMS.gbp,
-            value: gbp.limitation ?? "No confirmed Maps listing",
-            detail:
-              `Claim and complete your ${TERMS.gbp} if prospects search local + service terms.`,
+            value: customerGbpFindingValue(gbp, intake.primaryBusinessName),
+            detail: customerGbpFindingDetail(gbp, TERMS.gbp),
             severity: "high" as const,
           },
         ]),
@@ -380,7 +385,7 @@ export function buildSectionsFromResearch(
   return [
     {
       id: "search_footprint",
-      label: "Search footprint review",
+      label: "Search footprint",
       ...scoreFromFindings(searchFindings),
       findings: searchFindings,
       aiPreview: [
@@ -399,13 +404,13 @@ export function buildSectionsFromResearch(
     },
     {
       id: "online_reputation",
-      label: "Online reputation review",
+      label: "Reputation",
       ...scoreFromFindings(reputationFindings),
       findings: reputationFindings,
     },
     {
       id: "digital_presence",
-      label: "Digital presence gap analysis",
+      label: "Digital presence",
       ...scoreFromFindings(digitalFindings),
       findings: digitalFindings,
       scoreRows: digitalScoreRows,
@@ -441,10 +446,15 @@ export function buildExecutiveSummaryFromResearch(
     : "Limited search data was returned; findings lean on intake answers."
 
   const searchSection = sections.find((s) => s.id === "search_footprint")
-  const topSearchDetail = searchSection?.findings[0]?.detail.slice(0, 220) ?? ""
+  const topSearchFinding = searchSection?.findings[0]
+  const researchExample = topSearchFinding?.value
+    ? truncateReportCopy(topSearchFinding.value, 200)
+    : topSearchFinding?.detail
+      ? truncateReportCopy(topSearchFinding.detail, 220)
+      : ""
 
   const paragraphs: string[] = [
-    `When prospects search for ${intake.ownerName} or ${businessNameForSearch(intake)} in a ${marketLocationLabel(intake) ?? intake.geoMarket} market, the first screen shapes trust before they book ${intake.primaryService} at ${intake.pricePoint}. ${serpNote}${topSearchDetail ? ` Example from research: ${topSearchDetail}` : ""}`,
+    `When prospects search for ${intake.ownerName} or ${businessNameForSearch(intake)} in a ${marketLocationLabel(intake) ?? intake.geoMarket} market, the first screen shapes trust before they book ${intake.primaryService} at ${intake.pricePoint}. ${serpNote}${researchExample ? ` From public research so far: ${researchExample}` : ""}`,
   ]
 
   const highSelfRating = intake.reputationScale >= 8
@@ -483,21 +493,18 @@ export function buildExecutiveSummaryFromResearch(
       : paragraphs.find((p) => /ad spend|paid|convert/i.test(p)) ??
         `Conversion risk remains if trust signals and offer clarity do not match what prospects see in search for ${intake.primaryService}.`
 
-  const goodFindings = allFindings.filter((f) => f.severity === "good" || f.severity === "low")
-  const urgentFindings = allFindings.filter(
-    (f) => f.severity === "critical" || f.severity === "high",
+  const distinct = computeDistinctHighlightsFromSections(
+    sections,
+    intake.primaryBusinessName,
+    {
+      primaryService: intake.primaryService,
+      criticalIssue: critical?.value,
+    },
   )
-
-  const strengths = goodFindings.slice(0, 3).map((f) => f.value)
-  const topOpportunities = urgentFindings.slice(0, 3).map((f) => f.value)
-
-  const lowestSection = [...sections]
-    .filter((s) => s.id !== "action_plan")
-    .sort((a, b) => a.score - b.score)[0]
 
   return {
     paragraphs,
-    criticalIssue: critical?.value ?? "Review search footprint and homepage clarity first.",
+    criticalIssue: distinct.criticalIssue,
     firstSteps: [],
     insights: {
       whatProspectsSee,
@@ -505,16 +512,12 @@ export function buildExecutiveSummaryFromResearch(
       revenueRisk,
     },
     highlights: {
-      businessImpact: critical
-        ? `Unresolved ${critical.label.toLowerCase()} issues can waste marketing spend and slow trust before prospects book ${intake.primaryService}.`
-        : `Gaps in ${lowestSection?.label.toLowerCase() ?? "search and presence"} can reduce marketing efficiency for ${intake.primaryBusinessName}.`,
-      highestLeverageOpportunity:
-        urgentFindings[0]?.value ??
-        goodFindings[0]?.value ??
-        `Improve ${lowestSection?.label.toLowerCase() ?? "search footprint"} to strengthen how prospects evaluate ${intake.primaryBusinessName}.`,
+      businessImpact: distinct.businessImpact,
+      highestLeverageOpportunity: distinct.highestLeverageOpportunity,
     },
-    strengths: strengths.length > 0 ? strengths : undefined,
-    topOpportunities: topOpportunities.length > 0 ? topOpportunities : undefined,
+    strengths: distinct.strengths.length > 0 ? distinct.strengths : undefined,
+    topOpportunities:
+      distinct.topOpportunities.length > 0 ? distinct.topOpportunities : undefined,
   }
 }
 

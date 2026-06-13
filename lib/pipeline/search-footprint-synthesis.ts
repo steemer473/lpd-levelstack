@@ -16,6 +16,7 @@ import {
   ownerSearchSeverity,
 } from "@/lib/pipeline/search-finding-severity"
 import { TERMS } from "@/lib/report/customer-terms"
+import { SNIPPET_COMPARE_SUCCESS, SNIPPET_COMPARE_UNAVAILABLE } from "@/lib/report/customer-copy"
 import type { SerpOrganicResult } from "@/lib/research/serp"
 import { hostnameFromUrl, resultsMentionDomain } from "@/lib/research/serp"
 
@@ -217,25 +218,24 @@ export function buildDeterministicSearchFootprintSection(
     if (domainSnippetHit?.snippet && site.metaDescription) {
       findings.push({
         label: "What your site says vs what Google shows",
-        value: "We compared your live meta description to Google's snippet for your domain.",
+        value: SNIPPET_COMPARE_SUCCESS,
         detail: [
-          `Meta description: "${site.metaDescription.slice(0, 200)}"`,
-          `Google snippet for ${buyerHost}: "${domainSnippetHit.snippet.slice(0, 200)}"`,
-          "If these diverge significantly, prospects may see outdated messaging in search — worth aligning your title tag and meta description.",
+          `Your website description: "${site.metaDescription.slice(0, 200)}"`,
+          `What Google shows under your link: "${domainSnippetHit.snippet.slice(0, 200)}"`,
+          "If these differ a lot, prospects may see outdated messaging in search — worth updating your page title and short description.",
         ].join(" "),
         severity: "medium",
       })
     } else {
       findings.push({
         label: "What your site says vs what Google shows",
-        value:
-          "Could not compare snippets for the unqualified brand search — your site did not rank in top results.",
+        value: SNIPPET_COMPARE_UNAVAILABLE,
         detail: [
           site.metaDescription
-            ? `Your live meta description says: "${site.metaDescription.slice(0, 200)}"`
-            : "Your site has no meta description detected.",
+            ? `Your website's short description says: "${site.metaDescription.slice(0, 200)}"`
+            : "Your site has no short description detected.",
           bareSearch?.results.length
-            ? `Because ${buyerHost ?? "your domain"} did not appear in the top results for "${bareBrand}", we cannot assess whether Google is showing stale messaging for your URL on that query.`
+            ? `Because ${buyerHost ?? "your website"} didn't appear on page 1 for "${bareBrand}" (searching your name without a city), we can't tell what description Google would show for you on that search.`
             : "Search data was limited for this comparison.",
         ].join(" "),
         severity: "high",

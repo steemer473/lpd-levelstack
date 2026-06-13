@@ -13,7 +13,7 @@
   --lpd-severity-attention: #ef9f27;
   --lpd-severity-good: #639922;
 
-  /* Report v2 (levelstack-executive-summary-v2.png) — use --rpt-* on report UI, not hub --lpd-orange/--lpd-blue */
+  /* Report UI (Figma frame 4:4) — use --rpt-* on report UI, not hub --lpd-orange/--lpd-blue */
   --rpt-orange: #f0ad4e;
   --rpt-blue: #5bc0de;
   --rpt-intro-bg: #e8f4fc;

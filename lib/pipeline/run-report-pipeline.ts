@@ -1,5 +1,5 @@
 import { scoreAllSignals } from "@/lib/audit/score-all-signals"
-import { assembleReportFromSignals } from "@/lib/pipeline/assemble-from-signals"
+import { assembleFreeReportFromResearch } from "@/lib/pipeline/assemble-free-report"
 import { synthesizeFreeSearchFootprint } from "@/lib/pipeline/search-footprint-synthesis"
 import { levelstackIntakeSchema } from "@/lib/intake/schema"
 import {
@@ -7,11 +7,14 @@ import {
   runAuditOperations,
 } from "@/lib/pipeline/collect-research"
 import {
-  AUDIT_OPERATIONS,
   FREE_TIER_OPERATION_IDS,
   FULL_TIER_OPERATION_IDS,
-  PIPELINE_STEPS,
 } from "@/lib/pipeline/constants"
+import {
+  auditProgressPercent,
+  pipelineStepsForTier,
+  sectionProgressFromOps,
+} from "@/lib/pipeline/progress"
 import { levelstackReportJsonSchema } from "@/lib/pipeline/report-types"
 import {
   appendActionPlanSection,
@@ -36,15 +39,6 @@ export type RunReportPipelineParams = {
   intakeId: string
 }
 
-function pipelineStepsForTier(reportTier: ReportTier) {
-  if (reportTier === "free_snapshot") {
-    return PIPELINE_STEPS.filter((s) =>
-      ["search_footprint", "social_offsite", "action_plan"].includes(s.id),
-    )
-  }
-  return PIPELINE_STEPS
-}
-
 export async function runReportPipeline({
   jobId,
   reportId,
@@ -62,7 +56,7 @@ export async function runReportPipeline({
       status: "running",
       started_at: new Date().toISOString(),
       metadata: {
-        current_step: AUDIT_OPERATIONS[0].id,
+        current_step: "search_footprint",
         completed_steps: [],
         progress: 0,
         research_mode: "prd-v2",
@@ -151,7 +145,6 @@ export async function runReportPipeline({
       : [...FULL_TIER_OPERATION_IDS]
 
   const uiSteps = pipelineStepsForTier(reportTier)
-  const completedSteps: string[] = []
   const bundle = emptyResearchBundle()
   bundle.digitalPresence.website.url = parsed.data.websiteUrl
   bundle.revenueFunnel.website.url = parsed.data.websiteUrl
@@ -161,15 +154,20 @@ export async function runReportPipeline({
   try {
     for (const [i, op] of operationIds.entries()) {
       await runAuditOperations(parsed.data, bundle, [op])
-      completedSteps.push(op)
 
-      const progress = Math.round(((i + 1) / operationIds.length) * 85)
+      const completedOpCount = i + 1
+      const { currentStep, completedSteps } = sectionProgressFromOps(
+        completedOpCount,
+        reportTier,
+      )
+      const progress = auditProgressPercent(completedOpCount, reportTier)
+
       await admin
         .from("levelstack_research_jobs")
         .update({
           metadata: {
-            current_step: operationIds[i + 1] ?? null,
-            completed_steps: [...completedSteps],
+            current_step: currentStep,
+            completed_steps: completedSteps,
             progress,
             research_mode: "prd-v2",
             report_tier: reportTier,
@@ -179,6 +177,20 @@ export async function runReportPipeline({
 
       await sleep(STEP_DELAY_MS)
     }
+
+    const lastSectionId = uiSteps[uiSteps.length - 1]?.id ?? null
+    await admin
+      .from("levelstack_research_jobs")
+      .update({
+        metadata: {
+          current_step: lastSectionId,
+          completed_steps: uiSteps.slice(0, -1).map((s) => s.id),
+          progress: 90,
+          research_mode: "prd-v2",
+          report_tier: reportTier,
+        },
+      })
+      .eq("id", jobId)
 
     if (reportTier !== "free_snapshot") {
       await collectPaidEnrichment(parsed.data, bundle)
@@ -193,12 +205,12 @@ export async function runReportPipeline({
         bundle,
         audit,
       )
-      reportJson = assembleReportFromSignals(
+      reportJson = assembleFreeReportFromResearch(
         parsed.data,
+        bundle,
         audit,
         planId,
-        reportTier,
-        { searchFootprintOverride: searchFootprint },
+        searchFootprint,
       )
     } else {
       const synthesis = await synthesizeReportSections(parsed.data, bundle)

@@ -81,7 +81,7 @@ describe("buildDeterministicSearchFootprintSection", () => {
     const snippetFinding = section.findings.find((f) =>
       f.label.includes("What your site says"),
     )
-    expect(snippetFinding?.value).toMatch(/Could not compare|meta description/i)
+    expect(snippetFinding?.value).toMatch(/website's short description|business name without a city/i)
 
     expect(section.scoreRows?.length).toBeGreaterThan(0)
 

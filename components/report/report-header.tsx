@@ -6,8 +6,8 @@ import {
   AlertTriangle,
   BarChart3,
   Calendar,
+  ClipboardList,
   Clock,
-  FileText,
   MapPin,
 } from "lucide-react"
 
@@ -32,18 +32,18 @@ function MetaColumn({
 }) {
   return (
     <div className="flex shrink-0 items-center gap-2">
-      <span className="hidden text-[#5BC0DE] lg:inline" aria-hidden="true">
+      <span className="text-[#94a3b8]" aria-hidden="true">
         {icon}
       </span>
-      <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-white/45">{label}</span>
-        <span className="whitespace-nowrap text-sm font-bold text-white">{value}</span>
+      <div className="flex flex-col items-start leading-normal">
+        <span className="text-[10px] font-semibold uppercase text-[#94a3b8]">{label}</span>
+        <span className="whitespace-nowrap text-[13px] font-medium text-white">{value}</span>
       </div>
     </div>
   )
 }
 
-function StatPill({
+function StatItem({
   icon,
   value,
   label,
@@ -53,13 +53,13 @@ function StatPill({
   label: string
 }) {
   return (
-    <div className="flex shrink-0 items-center gap-2 px-3 py-1.5">
-      <span className="hidden text-white/55 lg:inline" aria-hidden="true">
+    <div className="flex shrink-0 items-center gap-2">
+      <span className="text-white/80" aria-hidden="true">
         {icon}
       </span>
-      <div className="flex flex-col items-center leading-tight lg:items-start">
-        <span className="text-xl font-bold text-white">{value}</span>
-        <span className="whitespace-nowrap text-sm text-white/55">{label}</span>
+      <div className="flex items-baseline gap-1 whitespace-nowrap leading-normal">
+        <span className="text-lg font-bold text-white">{value}</span>
+        <span className="text-[13px] font-normal text-[#94a3b8]">{label}</span>
       </div>
     </div>
   )
@@ -68,13 +68,13 @@ function StatPill({
 export function ReportHeader({ meta, sectionCount }: ReportHeaderProps) {
   return (
     <header className="rpt-header w-full overflow-hidden text-white">
-      <div className="flex flex-col items-center gap-6 px-7 py-6 text-center lg:flex-row lg:items-start lg:justify-between lg:text-left">
-        <div className="flex flex-col items-center gap-2 lg:shrink-0 lg:items-start">
-          <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-3xl lg:whitespace-nowrap lg:text-4xl">
+      <div className="flex flex-col items-center gap-6 px-6 py-6 sm:px-10 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col items-center gap-1.5 text-center md:items-start md:text-left">
+          <h1 className="text-[26px] font-bold leading-[1.2] tracking-tight md:whitespace-nowrap">
             {meta.ownerName} <span className="text-white/45">·</span> {meta.businessName}
           </h1>
-          <div className="flex items-center justify-center gap-1 lg:justify-start">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#5BC0DE] sm:text-sm lg:whitespace-nowrap lg:text-base">
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] font-bold uppercase tracking-wide text-[#38bdf8] md:whitespace-nowrap">
               {REPORT_ASSESSMENT_TITLE}
             </span>
             <SectionGuideInfo tabId="executive_summary" tone="on-dark" />
@@ -84,38 +84,34 @@ export function ReportHeader({ meta, sectionCount }: ReportHeaderProps) {
         <ReportScorecard meta={meta} />
       </div>
 
-      <div className="flex flex-col items-center gap-4 border-t border-white/12 px-7 py-4 lg:flex-row lg:justify-between">
-        <div className="flex flex-col items-center gap-4 lg:flex-row lg:flex-nowrap lg:items-center lg:gap-x-4">
-          <MetaColumn icon={<MapPin className="h-7 w-7" />} label="Market" value={meta.marketLabel} />
-          <div className="h-px w-9 shrink-0 bg-white/12 lg:h-9 lg:w-px" aria-hidden="true" />
-          <MetaColumn icon={<Calendar className="h-7 w-7" />} label="Report Date" value={meta.reportDate} />
-          <div className="h-px w-9 shrink-0 bg-white/12 lg:h-9 lg:w-px" aria-hidden="true" />
+      <div className="rpt-header-subbar flex flex-col items-stretch gap-5 px-6 py-3.5 sm:px-10 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-wrap items-center justify-center gap-7 md:justify-start">
+          <MetaColumn icon={<MapPin className="h-4 w-4" />} label="Market" value={meta.marketLabel} />
+          <MetaColumn icon={<Calendar className="h-4 w-4" />} label="Report Date" value={meta.reportDate} />
           <MetaColumn
-            icon={<BarChart3 className="h-7 w-7" />}
+            icon={<BarChart3 className="h-4 w-4" />}
             label="Assessment Type"
             value={planDisplayName(meta.planId)}
           />
         </div>
 
-        <div className="flex flex-col items-center gap-4 lg:flex-row lg:flex-nowrap lg:items-center lg:gap-x-1">
-          <div className="h-px w-9 shrink-0 bg-white/12 lg:h-9 lg:w-px" aria-hidden="true" />
-          <StatPill
-            icon={<FileText className="h-7 w-7" />}
+        <div className="flex flex-wrap items-center justify-center gap-6 md:justify-end">
+          <StatItem
+            icon={<ClipboardList className="h-[18px] w-[18px]" />}
             value={String(meta.totalFindings)}
             label="Findings Identified"
           />
-          <div className="h-px w-9 shrink-0 bg-white/12 lg:h-9 lg:w-px" aria-hidden="true" />
-          <StatPill
-            icon={<AlertTriangle className="h-7 w-7" />}
+          <StatItem
+            icon={<AlertTriangle className="h-[18px] w-[18px]" />}
             value={String(meta.criticalCount)}
             label="Critical Issues"
           />
-          <div className="h-px w-9 shrink-0 bg-white/12 lg:h-9 lg:w-px" aria-hidden="true" />
-          <StatPill
-            icon={<Clock className="h-7 w-7" />}
+          <StatItem
+            icon={<Clock className="h-[18px] w-[18px]" />}
             value={
               <>
-                <span className="text-2xl">{sectionCount}</span> of 6
+                <span>{sectionCount}</span>
+                <span className="text-sm font-semibold"> of 6</span>
               </>
             }
             label="Sections Complete"

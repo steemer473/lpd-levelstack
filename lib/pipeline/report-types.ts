@@ -51,6 +51,7 @@ export const actionItemSchema = z.object({
   time: z.string(),
   findingRef: z.string().optional(),
   automatorFlag: z.boolean().optional(),
+  automatorProduct: z.enum(["seo", "workflow"]).optional(),
 })
 
 export const insightBlockSchema = z.object({
@@ -114,6 +115,20 @@ export const levelstackReportJsonSchema = z.object({
     lowCount: z.number(),
     issueCountForUpgrade: z.number().optional(),
     lockedSectionCount: z.number().optional(),
+    upgradeTeasers: z
+      .object({
+        competitivePositionAlert: z.string().optional(),
+        competitiveSearchQuery: z.string().optional(),
+        competitorCount: z.number().int().min(0).optional(),
+        previewCompetitor: z
+          .object({
+            rank: z.number().int().min(1),
+            domain: z.string(),
+            title: z.string().optional(),
+          })
+          .optional(),
+      })
+      .optional(),
     partnerBranding: z
       .object({
         companyName: z.string(),
