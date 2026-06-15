@@ -243,17 +243,9 @@ export function ExecutiveSummaryV2({ report, onSelectTab }: ExecutiveSummaryV2Pr
   const lockedPhases = TIMELINE_PHASES.filter((p) => p.key !== "thisWeek")
 
   const previewCompetitor = competitive?.rows[0]
-  const lockedCompetitorCount = Math.max(
+  const hiddenCompetitorCount = Math.max(
     0,
-    (competitive?.competitorCount ?? 3) - (previewCompetitor ? 1 : 0),
-  )
-  const competitorPlaceholderRows = Array.from(
-    { length: lockedCompetitorCount },
-    (_, i) => ({
-      rank: (previewCompetitor?.rank ?? 1) + i + 1,
-      domain: `competitor-${i + 2}.com`,
-      serpPosition: (previewCompetitor?.serpPosition ?? 1) + i + 1,
-    }),
+    (competitive?.competitorCount ?? 0) - (previewCompetitor ? 1 : 0),
   )
 
   return (
@@ -376,22 +368,24 @@ export function ExecutiveSummaryV2({ report, onSelectTab }: ExecutiveSummaryV2Pr
             {isFree ? (
               <>
                 {previewCompetitor && (
-                  <p className="rpt-muted-text text-sm mb-3">
-                    <span className="font-medium text-inherit">{previewCompetitor.domain}</span>{" "}
-                    ranks #{previewCompetitor.serpPosition} for &apos;{competitive.searchQuery}&apos;
-                  </p>
+                  <>
+                    <p className="rpt-muted-text text-sm mb-3">
+                      <span className="font-medium text-inherit">{previewCompetitor.domain}</span>{" "}
+                      ranks #{previewCompetitor.serpPosition} for &apos;{competitive.searchQuery}&apos;
+                    </p>
+                    <CompetitiveTable rows={[previewCompetitor]} />
+                  </>
                 )}
-                {previewCompetitor && <CompetitiveTable rows={[previewCompetitor]} />}
-                {lockedCompetitorCount > 0 ? (
-                  <UpsellBlurOverlay
-                    message={
-                      previewCompetitor
-                        ? `#1 is ${previewCompetitor.domain} — unlock to see all ${competitive.competitorCount ?? lockedCompetitorCount + 1} competitors and how you compare`
-                        : `${competitive.competitorCount ?? 3} competitors analyzed — unlock to see who ranks above you`
-                    }
-                  >
-                    <CompetitiveTable rows={competitorPlaceholderRows} />
-                  </UpsellBlurOverlay>
+                {hiddenCompetitorCount > 0 ? (
+                  <p className="rpt-muted-text text-sm mt-3">
+                    {previewCompetitor
+                      ? `#1 is ${previewCompetitor.domain} — unlock to see all ${competitive.competitorCount ?? hiddenCompetitorCount + 1} competitors and how you compare`
+                      : `${competitive.competitorCount ?? hiddenCompetitorCount} competitors analyzed — unlock to see who ranks above you`}
+                  </p>
+                ) : !previewCompetitor ? (
+                  <p className="rpt-muted-text text-xs">
+                    Unlock the full report for competitive rankings from live search data.
+                  </p>
                 ) : null}
               </>
             ) : competitive.rows.length > 0 ? (

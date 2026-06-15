@@ -5,6 +5,7 @@ import {
   freeSnapshotSchema,
   freeSnapshotToIntake,
 } from "@/lib/intake/free-snapshot-schema"
+import { deletePriorFreeSnapshotForUser } from "@/lib/intake/replace-free-snapshot"
 import { isWebsiteReachable } from "@/lib/intake/validate-website"
 import { planIdToReportTier } from "@/lib/levelstack-plans"
 import { sendFreeSnapshotSignInEmail } from "@/lib/email/report-delivery"
@@ -82,12 +83,34 @@ export async function POST(request: Request) {
 
   const { data: priorIntake } = await admin
     .from("levelstack_intakes")
-    .select("id")
+    .select("id, form_data")
     .eq("user_id", userId)
     .eq("status", "submitted")
     .maybeSingle()
 
-  if (priorIntake) {
+  const requestUrl = new URL(request.url)
+  const devReplaceSnapshot =
+    process.env.NODE_ENV === "development" &&
+    (requestUrl.searchParams.get("replace") === "1" ||
+      env.LEVELSTACK_DEV_REPLACE_SNAPSHOT)
+
+  if (devReplaceSnapshot && priorIntake) {
+    try {
+      await deletePriorFreeSnapshotForUser(admin, userId)
+    } catch (err) {
+      console.error("[free-intake] dev replace failed:", err)
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Could not replace your prior snapshot. Try a different email in dev.",
+        },
+        { status: 500, headers: securityHeaders },
+      )
+    }
+  } else if (priorIntake) {
+    const priorForm = priorIntake.form_data as { primaryBusinessName?: string } | null
+    const existingBusinessName = priorForm?.primaryBusinessName?.trim()
+
     const { data: existingReport } = await admin
       .from("levelstack_reports")
       .select("id")
@@ -97,8 +120,11 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: false,
-        message: "You have already submitted a LevelStack snapshot.",
+        message: existingBusinessName
+          ? `You already have a snapshot for ${existingBusinessName}. Opening your existing report.`
+          : "You already have a LevelStack snapshot. Opening your existing report.",
         reportId: existingReport?.id ?? null,
+        existingBusinessName: existingBusinessName ?? null,
       },
       { status: 409, headers: securityHeaders },
     )
