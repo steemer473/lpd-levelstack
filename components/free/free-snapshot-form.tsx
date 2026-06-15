@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -28,17 +29,22 @@ export function FreeSnapshotForm() {
     defaultValues: freeSnapshotDefaults,
   })
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitNotice, setSubmitNotice] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  const devReplace =
+    process.env.NODE_ENV === "development" ? "?replace=1" : ""
 
   async function onSubmit(values: FreeSnapshotFormValues) {
     setSubmitError(null)
+    setSubmitNotice(null)
 
     const parsed = freeSnapshotSchema.safeParse(values)
     if (!parsed.success) return
 
     setSubmitting(true)
     try {
-      const res = await fetch("/api/free-intake", {
+      const res = await fetch(`/api/free-intake${devReplace}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsed.data),
@@ -48,9 +54,14 @@ export function FreeSnapshotForm() {
         message?: string
         reportId?: string
         signInUrl?: string
+        existingBusinessName?: string | null
       }
 
       if (res.status === 409 && json.reportId) {
+        setSubmitNotice(
+          json.message ??
+            "You already have a snapshot — opening your existing report.",
+        )
         router.push(`/reports/${json.reportId}`)
         return
       }
@@ -87,6 +98,10 @@ export function FreeSnapshotForm() {
               <FormControl>
                 <Input type="email" placeholder="you@business.com" {...field} />
               </FormControl>
+              <FormDescription>
+                We&apos;ll use this to send your report and to log you in later. No spam.
+                Unsubscribe anytime.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -109,10 +124,13 @@ export function FreeSnapshotForm() {
           name="websiteUrl"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Website URL</FormLabel>
+              <FormLabel>Domain</FormLabel>
               <FormControl>
-                <Input placeholder="https://example.com" {...field} />
+                <Input placeholder="yourbusiness.com" {...field} />
               </FormControl>
+              <FormDescription>
+                No https:// or trailing slash — we handle that
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -131,6 +149,12 @@ export function FreeSnapshotForm() {
           )}
         />
 
+        {submitNotice && (
+          <p className="text-sm rounded-md bg-muted border border-border p-3 text-muted-foreground">
+            {submitNotice}
+          </p>
+        )}
+
         {submitError && (
           <p className="text-destructive text-sm rounded-md bg-destructive/10 border border-destructive/20 p-3">
             {submitError}
@@ -138,7 +162,7 @@ export function FreeSnapshotForm() {
         )}
 
         <Button type="submit" variant="brand" className="w-full" disabled={submitting}>
-          {submitting ? "Starting your snapshot…" : "Get my free snapshot"}
+          {submitting ? "Running your snapshot…" : "Run my snapshot"}
         </Button>
 
         <p className="text-muted-foreground text-xs text-center">

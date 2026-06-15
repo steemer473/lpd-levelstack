@@ -29,11 +29,15 @@
 
 ## Free snapshot flow
 
+See [free-snapshot-workflow.md](./free-snapshot-workflow.md) for the full reference.
+
 1. **Open** `/free` on the product app.
-2. **Submit** business name, website, and email.
+2. **Submit** business name, domain, and email.
 3. **Instant redirect** — Browser follows the magic sign-in link to `/reports/[reportId]` (live progress screen).
-4. **Progress** — Three steps animate for free tier; page auto-refreshes when the snapshot is ready.
+4. **Progress** — Step headline shows "Checking your … N of 6"; page auto-refreshes when the snapshot is ready.
 5. **Email** — Backup sign-in link on submit; report-ready email when generation completes.
+
+**Dev:** same email re-submit replaces the prior snapshot automatically (`?replace=1`). **Production:** one snapshot per email — use a new email to test another business.
 
 ## Intake redirects to hub pricing?
 

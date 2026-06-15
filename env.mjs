@@ -40,6 +40,11 @@ export const env = createEnv({
       .enum(["true", "false"])
       .optional()
       .transform((v) => v === "true"),
+    /** Development only — replace prior free snapshot on re-submit (same email) */
+    LEVELSTACK_DEV_REPLACE_SNAPSHOT: z
+      .enum(["true", "false"])
+      .optional()
+      .transform((v) => v === "true"),
   },
   client: {
     NEXT_PUBLIC_APP_URL: requiredUrlInVercelProduction(z.string().url()),
@@ -62,6 +67,7 @@ export const env = createEnv({
     GHL_LOCATION_ID: process.env.GHL_LOCATION_ID,
     LEVELSTACK_DEV_BYPASS_ENTITLEMENT: process.env.LEVELSTACK_DEV_BYPASS_ENTITLEMENT,
     LEVELSTACK_DEV_SKIP_WEBSITE_CHECK: process.env.LEVELSTACK_DEV_SKIP_WEBSITE_CHECK,
+    LEVELSTACK_DEV_REPLACE_SNAPSHOT: process.env.LEVELSTACK_DEV_REPLACE_SNAPSHOT,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_HUB_URL: process.env.NEXT_PUBLIC_HUB_URL,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -78,5 +84,11 @@ if (isVercel && env.LEVELSTACK_DEV_BYPASS_ENTITLEMENT) {
 if (isVercel && env.LEVELSTACK_DEV_SKIP_WEBSITE_CHECK) {
   throw new Error(
     "LEVELSTACK_DEV_SKIP_WEBSITE_CHECK must not be enabled on Vercel (production or preview).",
+  )
+}
+
+if (isVercel && env.LEVELSTACK_DEV_REPLACE_SNAPSHOT) {
+  throw new Error(
+    "LEVELSTACK_DEV_REPLACE_SNAPSHOT must not be enabled on Vercel (production or preview).",
   )
 }

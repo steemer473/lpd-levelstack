@@ -3,6 +3,9 @@ import type { GbpSignals } from "@/lib/research/gbp"
 const INTERNAL_LIMITATION_PATTERNS = [
   /^not fetched yet\.?$/i,
   /^serpapi is not configured/i,
+  /^serpapi http/i,
+  /^search data unavailable/i,
+  /^live google search results were not available/i,
 ]
 
 export const GBP_NOT_FOUND_VALUE =

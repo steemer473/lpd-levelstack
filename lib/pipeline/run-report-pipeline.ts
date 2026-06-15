@@ -22,9 +22,11 @@ import {
 } from "@/lib/pipeline/synthesis"
 import { assembleReportJson } from "@/lib/pipeline/build-sections"
 import { emptyResearchBundle } from "@/lib/pipeline/research-types"
-import { sendReportReadyEmail, scheduleNurtureEmails } from "@/lib/email/report-delivery"
+import { sendReportReadyEmail } from "@/lib/email/report-delivery"
 import { planIdToReportTier, type ReportTier } from "@/lib/levelstack-plans"
 import { resolveReportPlanId } from "@/lib/pipeline/resolve-report-plan-id"
+import { validateResearchQuality } from "@/lib/pipeline/research-quality"
+import { sanitizeReportJson } from "@/lib/pipeline/sanitize-report-sections"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 const STEP_DELAY_MS = 50
@@ -241,6 +243,15 @@ export async function runReportPipeline({
       }))
     }
 
+    const researchQuality = validateResearchQuality(bundle, reportTier)
+    if (!researchQuality.ok) {
+      console.error(researchQuality.logReason)
+      await failPipeline(admin, jobId, reportId, researchQuality.userMessage)
+      return
+    }
+
+    reportJson = sanitizeReportJson(reportJson)
+
     const validated = levelstackReportJsonSchema.safeParse(reportJson)
     if (!validated.success) {
       await failPipeline(admin, jobId, reportId, "Report JSON validation failed")
@@ -303,15 +314,6 @@ export async function runReportPipeline({
         topFinding:
           audit.signals.find((s) => s.status === "fail")?.finding ??
           audit.signals.find((s) => s.status === "warning")?.finding,
-      })
-      await scheduleNurtureEmails({
-        to: email,
-        businessName: parsed.data.primaryBusinessName,
-        reportId,
-        reportTier,
-        topFinding:
-          audit.signals.find((s) => s.status === "fail")?.finding ??
-          audit.signals[0]?.finding,
       })
     }
   } catch (err) {

@@ -65,10 +65,10 @@ export function extractUpgradeTeasers(
     competitivePositionAlert = "Your position: Not on Page 1"
   }
 
-  const competitorCount =
-    bundle.competitiveContext.competitorDomains.length ||
-    (serviceFinding?.detail.match(/#\d+/g)?.length ?? 0) ||
-    3
+  const serpDomainCount = bundle.competitiveContext.competitorDomains.length
+  const hashCount = serviceFinding?.detail.match(/#\d+/g)?.length ?? 0
+  const rawCount = Math.max(serpDomainCount, hashCount)
+  const competitorCount = rawCount > 0 ? Math.min(rawCount, 10) : undefined
 
   const competitiveDetail = serviceFinding?.detail?.trim()
   const detailSource =
@@ -83,7 +83,7 @@ export function extractUpgradeTeasers(
   return {
     competitivePositionAlert,
     competitiveSearchQuery: searchQuery,
-    competitorCount: Math.min(competitorCount, 10),
+    competitorCount: competitorCount ?? 0,
     previewCompetitor,
   }
 }

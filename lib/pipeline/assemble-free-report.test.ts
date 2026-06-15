@@ -59,7 +59,8 @@ describe("assembleFreeReportFromResearch", () => {
       searchFootprint,
     )
 
-    expect(report.meta.reportTier).toBe("free_snapshot")
+    expect(report.meta.businessName).toBe(intake.primaryBusinessName)
+    expect(report.meta.ownerName).toBe(intake.ownerName)
     expect(report.sections.map((s) => s.id)).toEqual([
       "search_footprint",
       "online_reputation",
@@ -88,7 +89,7 @@ describe("extractUpgradeTeasers", () => {
     const sections = buildSectionsFromResearch(intake, bundle)
     const teasers = extractUpgradeTeasers(sections, bundle)
     expect(teasers.competitiveSearchQuery).toBeTruthy()
-    expect(teasers.competitorCount).toBeGreaterThan(0)
+    expect(teasers.competitorCount).toBe(0)
   })
 
   it("populates previewCompetitor when SERP detail includes URLs", () => {

@@ -15,9 +15,11 @@ import { useEffect, useMemo, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import type { ReportTier } from "@/lib/levelstack-plans"
+import { PIPELINE_STEPS } from "@/lib/pipeline/constants"
 import { pipelineStepsForTier } from "@/lib/pipeline/progress"
 
 const stepIcons = [Search, Shield, Globe, Megaphone, BarChart3, Target] as const
+const TOTAL_SECTIONS = PIPELINE_STEPS.length
 
 type ReportGeneratingProps = {
   reportId: string
@@ -48,6 +50,17 @@ export function ReportGenerating({ reportId, businessLabel }: ReportGeneratingPr
     () => pipelineStepsForTier(reportTier),
     [reportTier],
   )
+
+  const progressHeadline = useMemo(() => {
+    if (currentStep) {
+      const stepIndex = PIPELINE_STEPS.findIndex((s) => s.id === currentStep)
+      const resolvedIndex = stepIndex >= 0 ? stepIndex : 0
+      const step = PIPELINE_STEPS[resolvedIndex]!
+      const stepNumber = resolvedIndex + 1
+      return `Checking your ${step.label.toLowerCase()}… ${stepNumber} of ${TOTAL_SECTIONS}`
+    }
+    return "Checking your search footprint…"
+  }, [currentStep])
 
   useEffect(() => {
     const start = Date.now()
@@ -161,9 +174,10 @@ export function ReportGenerating({ reportId, businessLabel }: ReportGeneratingPr
 
   return (
     <div>
-      <div className="flex justify-center mb-6">
+      <div className="flex justify-center mb-4">
         <Loader2 className="h-10 w-10 animate-spin text-brand-orange" />
       </div>
+      <p className="text-center text-lg font-semibold mb-6">{progressHeadline}</p>
       <div>
         <div className="space-y-3">
           {displaySteps.map((step, index) => {
