@@ -30,6 +30,53 @@ export default function UpdatePasswordPage() {
 }
 
 function UpdatePasswordForm() {
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get("redirect") || "/intake"
+  const supabase = createClient()
+
+  if (!supabase) {
+    return <UpdatePasswordNoSession redirect={redirect} />
+  }
+
+  return <UpdatePasswordFormInner redirect={redirect} supabase={supabase} />
+}
+
+function UpdatePasswordNoSession({ redirect }: { redirect: string }) {
+  return (
+    <ProductShell
+      maxWidth="md"
+      overlapHero
+      hero={{
+        tagline: "LevelStack",
+        heading: "Set your password",
+        headingHighlight: "password",
+        description: "Your reset link may have expired.",
+        badges: [{ icon: Shield, label: "Secure sign-in" }],
+      }}
+    >
+      <FormPanel className="max-w-md mx-auto">
+        <p className="text-sm text-muted-foreground mb-4" role="alert">
+          Authentication is not configured. Request a new password link to continue.
+        </p>
+        <Link
+          href={`/auth/forgot-password?redirect=${encodeURIComponent(redirect)}`}
+          className="text-primary font-medium hover:underline"
+        >
+          Request a new password link
+        </Link>
+        <AuthFooterLinks />
+      </FormPanel>
+    </ProductShell>
+  )
+}
+
+function UpdatePasswordFormInner({
+  redirect,
+  supabase,
+}: {
+  redirect: string
+  supabase: NonNullable<ReturnType<typeof createClient>>
+}) {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -38,20 +85,13 @@ function UpdatePasswordForm() {
   const [sessionChecked, setSessionChecked] = useState(false)
   const [hasSession, setHasSession] = useState(false)
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const redirect = searchParams.get("redirect") || "/intake"
 
   useEffect(() => {
-    const supabase = createClient()
-    if (!supabase) {
-      setSessionChecked(true)
-      return
-    }
     supabase.auth.getUser().then(({ data }) => {
       setHasSession(Boolean(data.user))
       setSessionChecked(true)
     })
-  }, [])
+  }, [supabase])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -68,12 +108,6 @@ function UpdatePasswordForm() {
     }
 
     setLoading(true)
-    const supabase = createClient()
-    if (!supabase) {
-      setError("Authentication is not configured.")
-      setLoading(false)
-      return
-    }
 
     const { error: updateError } = await supabase.auth.updateUser({ password })
 

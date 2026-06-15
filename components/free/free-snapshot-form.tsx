@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useForm, type Resolver } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
@@ -41,6 +41,11 @@ export function FreeSnapshotForm() {
   const [submitting, setSubmitting] = useState(false)
   const noticeRef = useRef<HTMLDivElement>(null)
 
+  useEffect(() => {
+    if (!submitNotice) return
+    noticeRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+  }, [submitNotice])
+
   async function onSubmit(values: FreeSnapshotFormValues) {
     setSubmitError(null)
     setSubmitNotice(null)
@@ -74,9 +79,6 @@ export function FreeSnapshotForm() {
         if (json.signInUrl) {
           setExistingUserSignInUrl(json.signInUrl)
         }
-        requestAnimationFrame(() => {
-          noticeRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
-        })
         return
       }
 
