@@ -4,6 +4,7 @@ import { env } from "@/env.mjs"
 import {
   freeSnapshotSchema,
   freeSnapshotToIntake,
+  parseFreeSnapshotInput,
 } from "@/lib/intake/free-snapshot-schema"
 import { deletePriorFreeSnapshotForUser } from "@/lib/intake/replace-free-snapshot"
 import { isWebsiteReachable } from "@/lib/intake/validate-website"
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
     )
   }
 
-  const data = parsed.data
+  const data = parseFreeSnapshotInput(parsed.data)
 
   const skipWebsiteCheck =
     process.env.NODE_ENV === "development" && env.LEVELSTACK_DEV_SKIP_WEBSITE_CHECK
@@ -63,6 +64,7 @@ export async function POST(request: Request) {
     email,
     email_confirm: true,
   })
+  const isNewAccount = Boolean(created?.user)
 
   if (created?.user) {
     userId = created.user.id
@@ -86,6 +88,8 @@ export async function POST(request: Request) {
     .select("id, form_data")
     .eq("user_id", userId)
     .eq("status", "submitted")
+    .order("submitted_at", { ascending: false })
+    .limit(1)
     .maybeSingle()
 
   const requestUrl = new URL(request.url)
@@ -94,9 +98,12 @@ export async function POST(request: Request) {
     (requestUrl.searchParams.get("replace") === "1" ||
       env.LEVELSTACK_DEV_REPLACE_SNAPSHOT)
 
+  let shouldReuseIntake = Boolean(priorIntake)
+
   if (devReplaceSnapshot && priorIntake) {
     try {
       await deletePriorFreeSnapshotForUser(admin, userId)
+      shouldReuseIntake = false
     } catch (err) {
       console.error("[free-intake] dev replace failed:", err)
       return NextResponse.json(
@@ -107,27 +114,6 @@ export async function POST(request: Request) {
         { status: 500, headers: securityHeaders },
       )
     }
-  } else if (priorIntake) {
-    const priorForm = priorIntake.form_data as { primaryBusinessName?: string } | null
-    const existingBusinessName = priorForm?.primaryBusinessName?.trim()
-
-    const { data: existingReport } = await admin
-      .from("levelstack_reports")
-      .select("id")
-      .eq("intake_id", priorIntake.id)
-      .maybeSingle()
-
-    return NextResponse.json(
-      {
-        success: false,
-        message: existingBusinessName
-          ? `You already have a snapshot for ${existingBusinessName}. Opening your existing report.`
-          : "You already have a LevelStack snapshot. Opening your existing report.",
-        reportId: existingReport?.id ?? null,
-        existingBusinessName: existingBusinessName ?? null,
-      },
-      { status: 409, headers: securityHeaders },
-    )
   }
 
   await admin.from("levelstack_free_entitlements").upsert({
@@ -139,29 +125,53 @@ export async function POST(request: Request) {
   const intakeData = freeSnapshotToIntake(data)
   const planId = "levelstack-free-snapshot"
   const reportTier = planIdToReportTier(planId)
+  const existingUser = !isNewAccount
 
-  const { data: intake, error: intakeError } = await admin
-    .from("levelstack_intakes")
-    .insert({
-      user_id: userId,
-      status: "submitted",
-      form_data: intakeData,
-      submitted_at: new Date().toISOString(),
-    })
-    .select("id")
-    .single()
+  let intakeId: string
 
-  if (intakeError || !intake) {
-    return NextResponse.json(
-      { success: false, message: intakeError?.message ?? "Failed to save intake." },
-      { status: 500, headers: securityHeaders },
-    )
+  if (shouldReuseIntake && priorIntake) {
+    const { error: updateError } = await admin
+      .from("levelstack_intakes")
+      .update({
+        form_data: intakeData,
+        submitted_at: new Date().toISOString(),
+      })
+      .eq("id", priorIntake.id)
+
+    if (updateError) {
+      return NextResponse.json(
+        { success: false, message: updateError.message ?? "Failed to update intake." },
+        { status: 500, headers: securityHeaders },
+      )
+    }
+
+    intakeId = priorIntake.id
+  } else {
+    const { data: intake, error: intakeError } = await admin
+      .from("levelstack_intakes")
+      .insert({
+        user_id: userId,
+        status: "submitted",
+        form_data: intakeData,
+        submitted_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single()
+
+    if (intakeError || !intake) {
+      return NextResponse.json(
+        { success: false, message: intakeError?.message ?? "Failed to save intake." },
+        { status: 500, headers: securityHeaders },
+      )
+    }
+
+    intakeId = intake.id
   }
 
   const { data: job, error: jobError } = await admin
     .from("levelstack_research_jobs")
     .insert({
-      intake_id: intake.id,
+      intake_id: intakeId,
       user_id: userId,
       status: "pending",
       metadata: { plan_id: planId, report_tier: reportTier },
@@ -179,7 +189,7 @@ export async function POST(request: Request) {
   const { data: report, error: reportError } = await admin
     .from("levelstack_reports")
     .insert({
-      intake_id: intake.id,
+      intake_id: intakeId,
       user_id: userId,
       job_id: job.id,
       status: "pending",
@@ -200,7 +210,7 @@ export async function POST(request: Request) {
     runReportPipeline({
       jobId: job.id,
       reportId: report.id,
-      intakeId: intake.id,
+      intakeId,
     }).catch((err) => console.error("[pipeline]", err)),
   )
 
@@ -256,17 +266,23 @@ export async function POST(request: Request) {
   const devFallback =
     process.env.NODE_ENV === "development" && !emailSent && Boolean(signInUrl)
 
+  const returningUserMessage =
+    "Welcome back! You already have a LevelStack snapshot — we're refreshing it with the latest data. Sign in to watch progress."
+
+  const newUserMessage = emailSent
+    ? "Taking you to your live progress screen. We also emailed you a backup sign-in link."
+    : devFallback
+      ? "Email is not configured — signing you in now."
+      : "Your snapshot is generating. Sign in with the same email to view your report."
+
   return NextResponse.json({
     success: true,
+    existingUser,
     reportId: report.id,
-    intakeId: intake.id,
+    intakeId,
     emailSent,
     signInUrl: signInUrl ?? undefined,
-    message: emailSent
-      ? "Taking you to your live progress screen. We also emailed you a backup sign-in link."
-      : devFallback
-        ? "Email is not configured — signing you in now."
-        : "Your snapshot is generating. Sign in with the same email to view your report.",
+    message: existingUser ? returningUserMessage : newUserMessage,
     redirectTo: getAppUrl(reportPath),
   })
 }
