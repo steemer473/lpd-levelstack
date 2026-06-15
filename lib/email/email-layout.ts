@@ -1,5 +1,4 @@
-import { readFileSync } from "node:fs"
-import { join } from "node:path"
+import { getAppUrl } from "@/lib/urls"
 
 const COMPANY = {
   name: "Level Play Digital",
@@ -20,13 +19,15 @@ const BRAND = {
   muted: "#64748b",
 } as const
 
+const EMAIL_LOGO_PATH = "/images/level-play-digital-logo-email.png"
+const EMAIL_LOGO_WIDTH = 200
+const EMAIL_LOGO_HEIGHT = 52
+
 export type EmailLayoutParams = {
   title: string
   preheader?: string
   body: string
 }
-
-let cachedLogoSvg: string | null = null
 
 function escapeHtml(value: string): string {
   return value
@@ -37,25 +38,37 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;")
 }
 
-function loadLogoSvg(): string {
-  if (cachedLogoSvg) return cachedLogoSvg
+function buildHeader(): string {
+  const logoUrl = getAppUrl(EMAIL_LOGO_PATH)
 
-  try {
-    const svgPath = join(
-      process.cwd(),
-      "public/images/level-play-digital-logo-gradient-full.svg",
-    )
-    const raw = readFileSync(svgPath, "utf8")
-    cachedLogoSvg = raw
-      .replace(/<!--[\s\S]*?-->/g, "")
-      .replace(
-        /<svg[^>]*>/,
-        '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="63" viewBox="0 0 3144.125562608647 821.2274557440728" role="img" aria-label="Level Play Digital">',
-      )
-    return cachedLogoSvg
-  } catch {
-    return `<span style="color:#ffffff;font-size:20px;font-weight:700;">Level Play Digital</span>`
-  }
+  return `
+    <tr>
+      <td align="center" style="background-color:${BRAND.navy};padding:28px 32px 24px;">
+        <img
+          src="${logoUrl}"
+          alt="Level Play Digital"
+          width="${EMAIL_LOGO_WIDTH}"
+          height="${EMAIL_LOGO_HEIGHT}"
+          style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;max-width:${EMAIL_LOGO_WIDTH}px;height:auto;"
+        />
+        <p style="margin:16px 0 0;font-family:Inter,Arial,sans-serif;font-size:22px;font-weight:700;line-height:1.2;color:#ffffff;letter-spacing:-0.02em;">
+          LevelStack
+        </p>
+        <p style="margin:4px 0 0;font-family:Inter,Arial,sans-serif;font-size:12px;line-height:1.4;color:#94a3b8;">
+          by Level Play Digital
+        </p>
+      </td>
+    </tr>
+  `
+}
+
+function buildSignature(): string {
+  return `
+    <p style="margin:28px 0 0;font-family:Inter,Arial,sans-serif;font-size:16px;line-height:1.6;color:${BRAND.text};">
+      Sincerely,<br />
+      <strong style="color:${BRAND.navy};">Level Play Digital Customer Success Team</strong>
+    </p>
+  `
 }
 
 function buildFooter(): string {
@@ -98,7 +111,6 @@ function buildFooter(): string {
 export function emailLayout({ title, preheader, body }: EmailLayoutParams): string {
   const safeTitle = escapeHtml(title)
   const safePreheader = preheader ? escapeHtml(preheader) : safeTitle
-  const logoSvg = loadLogoSvg()
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -121,19 +133,11 @@ export function emailLayout({ title, preheader, body }: EmailLayoutParams): stri
     <tr>
       <td align="center" style="padding:24px 16px;">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
-          <tr>
-            <td align="center" style="background-color:${BRAND.navy};padding:28px 32px 20px;">
-              <div style="max-width:240px;margin:0 auto;">
-                ${logoSvg}
-              </div>
-              <p style="margin:12px 0 0;font-size:11px;font-weight:600;letter-spacing:0.12em;color:#94a3b8;text-transform:uppercase;">
-                LEVELSTACK
-              </p>
-            </td>
-          </tr>
+          ${buildHeader()}
           <tr>
             <td style="padding:32px;font-size:16px;line-height:1.6;color:${BRAND.text};">
               ${body}
+              ${buildSignature()}
             </td>
           </tr>
           ${buildFooter()}

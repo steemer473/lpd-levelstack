@@ -31,3 +31,23 @@ export function getHubSignInUrl(redirectPath: string): string {
   url.searchParams.set("redirect", getAppUrl(redirectPath))
   return url.toString()
 }
+
+export type AuthOtpCallbackType = "magiclink" | "recovery" | "email"
+
+/** Supabase email OTP / magic link / recovery redirect target (allow-list: /auth/callback). */
+export function getAuthCallbackUrl(
+  nextPath: string,
+  otpType: AuthOtpCallbackType = "magiclink",
+): string {
+  const params = new URLSearchParams({
+    next: nextPath,
+    type: otpType,
+  })
+  return getAppUrl(`/auth/callback?${params.toString()}`)
+}
+
+/** Recovery email redirect — lands on update-password, then continues to finalRedirect. */
+export function getPasswordRecoveryCallbackUrl(finalRedirect = "/intake"): string {
+  const updatePasswordNext = `/auth/update-password?redirect=${encodeURIComponent(finalRedirect)}`
+  return getAuthCallbackUrl(updatePasswordNext, "recovery")
+}

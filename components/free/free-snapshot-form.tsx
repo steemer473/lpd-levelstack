@@ -1,9 +1,10 @@
 "use client"
 
+import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { useEffect, useRef, useState } from "react"
+import { useForm, type Resolver } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +20,7 @@ import { Input } from "@/components/ui/input"
 import {
   freeSnapshotDefaults,
   freeSnapshotSchema,
+  parseFreeSnapshotInput,
   type FreeSnapshotFormValues,
 } from "@/lib/intake/free-snapshot-schema"
 import { getHubPricingUrl } from "@/lib/urls"
@@ -26,48 +28,57 @@ import { getHubPricingUrl } from "@/lib/urls"
 export function FreeSnapshotForm() {
   const router = useRouter()
   const form = useForm<FreeSnapshotFormValues>({
+    // @hookform/resolvers supports Zod 4 at runtime; typings still target Zod 3 shapes.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(freeSnapshotSchema as any) as Resolver<FreeSnapshotFormValues>,
     defaultValues: freeSnapshotDefaults,
   })
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitNotice, setSubmitNotice] = useState<string | null>(null)
+  const [existingUserSignInUrl, setExistingUserSignInUrl] = useState<string | null>(
+    null,
+  )
   const [submitting, setSubmitting] = useState(false)
+  const noticeRef = useRef<HTMLDivElement>(null)
 
-  const devReplace =
-    process.env.NODE_ENV === "development" ? "?replace=1" : ""
+  useEffect(() => {
+    if (!submitNotice) return
+    noticeRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+  }, [submitNotice])
 
   async function onSubmit(values: FreeSnapshotFormValues) {
     setSubmitError(null)
     setSubmitNotice(null)
-
-    const parsed = freeSnapshotSchema.safeParse(values)
-    if (!parsed.success) return
+    setExistingUserSignInUrl(null)
 
     setSubmitting(true)
     try {
-      const res = await fetch(`/api/free-intake${devReplace}`, {
+      const res = await fetch("/api/free-intake", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsed.data),
+        body: JSON.stringify(parseFreeSnapshotInput(values)),
       })
       const json = (await res.json()) as {
         success?: boolean
         message?: string
         reportId?: string
         signInUrl?: string
-        existingBusinessName?: string | null
-      }
-
-      if (res.status === 409 && json.reportId) {
-        setSubmitNotice(
-          json.message ??
-            "You already have a snapshot — opening your existing report.",
-        )
-        router.push(`/reports/${json.reportId}`)
-        return
+        existingUser?: boolean
       }
 
       if (!res.ok) {
         setSubmitError(json.message ?? "Submission failed.")
+        return
+      }
+
+      if (json.existingUser) {
+        setSubmitNotice(
+          json.message ??
+            "Welcome back! We're refreshing your snapshot with the latest data.",
+        )
+        if (json.signInUrl) {
+          setExistingUserSignInUrl(json.signInUrl)
+        }
         return
       }
 
@@ -150,9 +161,21 @@ export function FreeSnapshotForm() {
         />
 
         {submitNotice && (
-          <p className="text-sm rounded-md bg-muted border border-border p-3 text-muted-foreground">
-            {submitNotice}
-          </p>
+          <div
+            ref={noticeRef}
+            className="rounded-md bg-muted border border-border p-3 space-y-2"
+            role="status"
+          >
+            <p className="text-sm text-muted-foreground">{submitNotice}</p>
+            {existingUserSignInUrl && (
+              <a
+                href={existingUserSignInUrl}
+                className="inline-flex text-sm font-medium text-primary underline underline-offset-4 hover:no-underline"
+              >
+                Sign in to view your snapshot →
+              </a>
+            )}
+          </div>
         )}
 
         {submitError && (

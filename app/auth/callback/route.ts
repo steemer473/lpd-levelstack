@@ -26,7 +26,11 @@ export async function GET(request: NextRequest) {
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      return NextResponse.redirect(new URL(next, origin))
+      const destination =
+        type === "recovery" && !next.startsWith("/auth/update-password")
+          ? `/auth/update-password?redirect=${encodeURIComponent(next)}`
+          : next
+      return NextResponse.redirect(new URL(destination, origin))
     }
     console.error("[auth/callback] exchangeCodeForSession:", error.message)
   }
@@ -34,7 +38,11 @@ export async function GET(request: NextRequest) {
   if (token_hash) {
     const { error } = await verifyMagicLinkToken(supabase, token_hash, type)
     if (!error) {
-      return NextResponse.redirect(new URL(next, origin))
+      const destination =
+        type === "recovery" && !next.startsWith("/auth/update-password")
+          ? `/auth/update-password?redirect=${encodeURIComponent(next)}`
+          : next
+      return NextResponse.redirect(new URL(destination, origin))
     }
 
     if (type !== "email") {
