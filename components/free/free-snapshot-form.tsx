@@ -74,7 +74,7 @@ export function FreeSnapshotForm() {
       if (json.existingUser) {
         setSubmitNotice(
           json.message ??
-            "Welcome back! We're refreshing your snapshot with the latest data.",
+            "Welcome back! We're refreshing your snapshot. Sign in below to watch progress — we'll email you when it's ready.",
         )
         if (json.signInUrl) {
           setExistingUserSignInUrl(json.signInUrl)

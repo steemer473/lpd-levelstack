@@ -22,6 +22,13 @@ import {
 } from "@/lib/pipeline/synthesis"
 import { assembleReportJson } from "@/lib/pipeline/build-sections"
 import { emptyResearchBundle } from "@/lib/pipeline/research-types"
+import {
+  generateReportMagicLink,
+} from "@/lib/auth/generate-report-magic-link"
+import {
+  buildReportResendSignInUrl,
+  MAGIC_LINK_EXPIRY_LABEL,
+} from "@/lib/auth/magic-link-callback"
 import { sendReportReadyEmail } from "@/lib/email/report-delivery"
 import { planIdToReportTier, type ReportTier } from "@/lib/levelstack-plans"
 import { resolveReportPlanId } from "@/lib/pipeline/resolve-report-plan-id"
@@ -306,15 +313,31 @@ export async function runReportPipeline({
       const { recordPdfDeliveryPath } = await import("@/lib/pdf/record-pdf-path")
       await recordPdfDeliveryPath(reportId, admin).catch(() => undefined)
 
-      await sendReportReadyEmail({
-        to: email,
-        businessName: parsed.data.primaryBusinessName,
-        reportId,
-        reportTier,
-        topFinding:
-          audit.signals.find((s) => s.status === "fail")?.finding ??
-          audit.signals.find((s) => s.status === "warning")?.finding,
-      })
+      const topFinding =
+        audit.signals.find((s) => s.status === "fail")?.finding ??
+        audit.signals.find((s) => s.status === "warning")?.finding
+
+      if (reportTier === "free_snapshot") {
+        const signInUrl = await generateReportMagicLink(admin, email, reportId)
+        await sendReportReadyEmail({
+          to: email,
+          businessName: parsed.data.primaryBusinessName,
+          reportId,
+          reportTier,
+          topFinding,
+          signInUrl: signInUrl ?? undefined,
+          resendUrl: buildReportResendSignInUrl(reportId),
+          expirationLabel: MAGIC_LINK_EXPIRY_LABEL,
+        })
+      } else {
+        await sendReportReadyEmail({
+          to: email,
+          businessName: parsed.data.primaryBusinessName,
+          reportId,
+          reportTier,
+          topFinding,
+        })
+      }
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : "Pipeline failed"
