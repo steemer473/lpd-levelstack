@@ -1,6 +1,10 @@
 import { after, NextResponse } from "next/server"
 
 import { env } from "@/env.mjs"
+import { generateReportMagicLink } from "@/lib/auth/generate-report-magic-link"
+import {
+  sendFreeSnapshotAdminNotificationEmail,
+} from "@/lib/email/report-delivery"
 import {
   freeSnapshotSchema,
   freeSnapshotToIntake,
@@ -9,11 +13,9 @@ import {
 import { deletePriorFreeSnapshotForUser } from "@/lib/intake/replace-free-snapshot"
 import { isWebsiteReachable } from "@/lib/intake/validate-website"
 import { planIdToReportTier } from "@/lib/levelstack-plans"
-import { sendFreeSnapshotSignInEmail } from "@/lib/email/report-delivery"
 import { syncFreeSnapshotLead } from "@/lib/ghl/sync-levelstack-lead"
 import { runReportPipeline } from "@/lib/pipeline/run-report-pipeline"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { buildMagicLinkCallbackUrl } from "@/lib/auth/magic-link-callback"
 import { getAppUrl } from "@/lib/urls"
 
 export const maxDuration = 300
@@ -23,6 +25,12 @@ const securityHeaders = {
   "X-Frame-Options": "DENY",
   "Referrer-Policy": "strict-origin-when-cross-origin",
 }
+
+const NEW_USER_MESSAGE =
+  "Taking you to your live progress screen. We'll email you when your snapshot is ready."
+
+const RETURNING_USER_MESSAGE =
+  "Welcome back! We're refreshing your snapshot. Sign in below to watch progress — we'll email you when it's ready."
 
 export async function POST(request: Request) {
   const body: unknown = await request.json().catch(() => null)
@@ -224,65 +232,31 @@ export async function POST(request: Request) {
     }).catch((err) => console.error("[ghl]", err)),
   )
 
-  const reportPath = `/reports/${report.id}`
-  const callbackUrl = getAppUrl(
-    `/auth/callback?next=${encodeURIComponent(reportPath)}`,
+  after(() =>
+    sendFreeSnapshotAdminNotificationEmail({
+      email,
+      businessName: data.businessName.trim(),
+      websiteUrl: data.websiteUrl,
+      marketCity: data.marketCity,
+      reportId: report.id,
+      isNewAccount,
+    }).catch((err) => console.error("[email/admin]", err)),
   )
 
-  const { data: instantLink, error: instantLinkError } =
-    await admin.auth.admin.generateLink({
-      type: "magiclink",
-      email,
-      options: { redirectTo: callbackUrl },
-    })
+  const signInUrl = await generateReportMagicLink(admin, email, report.id)
+  const reportPath = `/reports/${report.id}`
 
-  const instantHashedToken = instantLink?.properties?.hashed_token ?? null
-  const signInUrl = instantHashedToken
-    ? buildMagicLinkCallbackUrl(instantHashedToken, reportPath)
-    : (instantLink?.properties?.action_link ?? null)
-
-  let emailSent = false
-
-  if (signInUrl) {
-    const { data: emailLink } = await admin.auth.admin.generateLink({
-      type: "magiclink",
-      email,
-      options: { redirectTo: callbackUrl },
-    })
-    const emailHashedToken = emailLink?.properties?.hashed_token ?? null
-    const emailSignInUrl = emailHashedToken
-      ? buildMagicLinkCallbackUrl(emailHashedToken, reportPath)
-      : (emailLink?.properties?.action_link ?? signInUrl)
-
-    emailSent = await sendFreeSnapshotSignInEmail({
-      to: email,
-      businessName: data.businessName.trim(),
-      signInUrl: emailSignInUrl,
-    })
-  } else if (instantLinkError) {
-    console.error("[free-intake] generateLink failed:", instantLinkError.message)
-  }
-
-  const devFallback =
-    process.env.NODE_ENV === "development" && !emailSent && Boolean(signInUrl)
-
-  const returningUserMessage =
-    "Welcome back! You already have a LevelStack snapshot — we're refreshing it with the latest data. Sign in to watch progress."
-
-  const newUserMessage = emailSent
-    ? "Taking you to your live progress screen. We also emailed you a backup sign-in link."
-    : devFallback
-      ? "Email is not configured — signing you in now."
-      : "Your snapshot is generating. Sign in with the same email to view your report."
+  const newUserMessage = signInUrl
+    ? NEW_USER_MESSAGE
+    : "Your snapshot is generating. Sign in with the same email to view your report."
 
   return NextResponse.json({
     success: true,
     existingUser,
     reportId: report.id,
     intakeId,
-    emailSent,
     signInUrl: signInUrl ?? undefined,
-    message: existingUser ? returningUserMessage : newUserMessage,
+    message: existingUser ? RETURNING_USER_MESSAGE : newUserMessage,
     redirectTo: getAppUrl(reportPath),
   })
 }

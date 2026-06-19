@@ -42,8 +42,9 @@ node scripts/sync-vercel-production-env.mjs   # Production only (from .env.local
 |----------|--------|
 | `FIRECRAWL_API_KEY` | Website scrape in pipeline |
 | `GOOGLE_PAGESPEED_API_KEY` | Higher PageSpeed API quota |
-| `RESEND_API_KEY` | Transactional email (magic link, report ready) |
+| `RESEND_API_KEY` | Transactional email (report ready, admin notify) |
 | `FROM_EMAIL` / `FROM_NAME` | With Resend; domain must be verified |
+| `LEVELSTACK_ADMIN_NOTIFY_EMAIL` | Admin alert on free snapshot submit (defaults to `admin@levelplaydigital.com`) |
 | `GHL_API_KEY` / `GHL_LOCATION_ID` | GoHighLevel lead sync — copy from hub Vercel project |
 | `ANTHROPIC_API_KEY` | Alternate LLM (optional) |
 
@@ -81,6 +82,15 @@ https://lpd-levelstack.vercel.app/**
 ```
 
 `NEXT_PUBLIC_APP_URL` must match the primary redirect entry or magic-link and email URLs will point at the wrong host.
+
+### Magic-link OTP expiry (7 days)
+
+Free snapshot report-ready emails state links are valid for **7 days**. In Supabase (hosted project `lppmbgqsovtfbpbvjvxi`), set Auth OTP expiry to **604800 seconds**:
+
+- Dashboard → **Authentication** → **Providers** → **Email** (OTP expiry), or
+- Project Auth env: `GOTRUE_MAILER_OTP_EXP=604800`
+
+Without this, Supabase defaults (~1 hour) will expire links before the email copy promises.
 
 ## Pre-deploy verification
 

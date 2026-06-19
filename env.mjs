@@ -22,6 +22,11 @@ export const env = createEnv({
     RESEND_API_KEY: optionalString,
     FROM_EMAIL: z.preprocess(emptyToUndefined, z.string().email().optional()),
     FROM_NAME: optionalString,
+    /** Internal alert on free snapshot submit — defaults to admin@levelplaydigital.com in code */
+    LEVELSTACK_ADMIN_NOTIFY_EMAIL: z.preprocess(
+      emptyToUndefined,
+      z.string().email().optional(),
+    ),
     OPENAI_API_KEY: requiredInVercelProduction(z.string().min(1)),
     ANTHROPIC_API_KEY: optionalString,
     SERPAPI_KEY: requiredInVercelProduction(z.string().min(1)),
@@ -58,6 +63,7 @@ export const env = createEnv({
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     FROM_EMAIL: process.env.FROM_EMAIL,
     FROM_NAME: process.env.FROM_NAME,
+    LEVELSTACK_ADMIN_NOTIFY_EMAIL: process.env.LEVELSTACK_ADMIN_NOTIFY_EMAIL,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     SERPAPI_KEY: process.env.SERPAPI_KEY,

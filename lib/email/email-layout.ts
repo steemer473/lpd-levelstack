@@ -151,5 +151,21 @@ export function emailLayout({ title, preheader, body }: EmailLayoutParams): stri
 
 /** Inline styles for primary CTA links in email body content. */
 export function emailCtaLink(href: string, label: string): string {
-  return `<a href="${href}" style="color:${BRAND.orange};font-weight:600;text-decoration:underline;">${label}</a>`
+  return `<a href="${href}" style="color:${BRAND.orange};font-weight:600;text-decoration:underline;">${escapeHtml(label)}</a>`
+}
+
+/** Primary button-styled CTA for transactional emails. */
+export function emailCtaButton(href: string, label: string): string {
+  const safeLabel = escapeHtml(label)
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;">
+    <tr>
+      <td align="center" style="border-radius:6px;background-color:${BRAND.orange};">
+        <a href="${href}" style="display:inline-block;padding:14px 28px;font-family:Inter,Arial,sans-serif;font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:6px;">${safeLabel}</a>
+      </td>
+    </tr>
+  </table>`
+}
+
+export function getDefaultAdminNotifyEmail(): string {
+  return COMPANY.email
 }
