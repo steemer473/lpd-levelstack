@@ -48,6 +48,17 @@ Cached queries within TTL cost **0** additional API calls.
 
 **Pipeline mode:** `research_mode: "prd-v2"` on completed jobs.
 
+### Operational edge cases
+
+| Case | Behavior |
+|------|----------|
+| All providers fail for a query | Empty results + combined limitation; research quality gate may fail the report |
+| Failed report rerun | Fresh bundle each run; no stale `report_json` from prior failure |
+| SERP cache | Writes only on **successful** provider response; failed/quota runs do not cache empties |
+| Backup keys on Vercel only | Requires **deployed** multi-provider code + **redeploy** after env change |
+| DataForSEO 401 | Usually wrong credential type — use raw API password from API Access, not Base64 blob |
+| Production failed report | No UI retry; SQL reset or new submission (see `docs/phase-2-1-research.md`) |
+
 ## Consequences
 
 - Free snapshot Serp cost drops ~60% on first run; repeat runs within 24h reuse cache.

@@ -7,21 +7,21 @@
 - **Readiness dashboard** — grade, overall score, priority counts, per-section score bars, biggest problem areas
 - **Section panels** — finding cards with critical/attention/good flags
 - **AI preview row** — search footprint (when `aiPreview` present in JSON)
-- **Score rows** — digital presence website signals (when `scoreRows` present)
-- **Competitive table** — You vs competitor domains from Serp (when `competitiveGrid` present)
+- **Score rows** — digital presence website signals, PageSpeed, GBP (when `scoreRows` present)
+- **Competitive table** — You vs competitor domains from SERP chain (when `competitiveGrid` present)
 - **Action plan** — numbered table (This week / month / quarter)
 - **Upsell strips** — SEO Automator Pro → hub `/platform/seo`
 - **Footer** — LevelStack attribution + report date
+- **Free snapshot email** — report-ready + magic link (24h); admin notify on submit
 
 ## Regenerate for new UI modules
 
-Older `report_json` rows may lack `competitiveGrid` / `scoreRows`. Use **Rebuild report (dev)** to refresh data and optional grid fields.
+Older `report_json` rows may lack `competitiveGrid` / `scoreRows`. Use **Rebuild report (dev)** to refresh data and optional grid fields. Dev only — see [phase-2-1-research.md](./phase-2-1-research.md#failed-report-recovery).
 
 ## Not in Phase 3 (brief follow-ups)
 
 - PDF export
-- Report-ready email (Resend)
-- GBP / Lighthouse / social API research (sample depth for those metrics)
+- Nurture email sequences (D3/D7/D14 — GHL)
 - Full SEO-audit results page clone as separate route
 
 **Next priority:** analysis quality and $497 launch bar — see [`phase-2.2-analysis-quality.md`](./phase-2.2-analysis-quality.md).

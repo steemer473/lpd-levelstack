@@ -172,7 +172,7 @@ export async function synthesizeReportSections(
       planSource,
       {
         paragraphs: [
-          `When prospects search for ${intake.ownerName} or ${intake.primaryBusinessName}, results depend on live Google data. Add OPENAI_API_KEY and SERPAPI_KEY to .env.local, restart the dev server, then regenerate this report.`,
+          `When prospects search for ${intake.ownerName} or ${intake.primaryBusinessName}, results depend on live Google data. Add OPENAI_API_KEY and at least one SERP provider to .env.local, restart the dev server, then regenerate this report.`,
           `You rated reputation ${intake.reputationScale}/10. Intake note: ${intake.complaintsAwareness.slice(0, 180)}`,
           "This report is diagnostic only — you execute the fixes listed in the action plan.",
         ],
@@ -180,7 +180,7 @@ export async function synthesizeReportSections(
           fallbackSections
             .flatMap((s) => s.findings)
             .find((f) => f.severity === "critical" || f.severity === "high")?.value ??
-          "Configure SerpAPI + OpenAI for research-backed findings.",
+          "Configure SERP provider(s) + OpenAI for research-backed findings.",
         firstSteps: actionPlan.thisWeek.map((a) => a.task),
       },
       actionPlan,
@@ -223,7 +223,7 @@ Produce sections, executiveSummary, and actionPlan per schema.`
           "Diagnostic only — you execute fixes; LevelStack does not implement them for you.",
         ],
         criticalIssue:
-          "Re-run generation with SERPAPI_KEY and OPENAI_API_KEY for live search-based findings.",
+          "Re-run generation with a configured SERP provider and OPENAI_API_KEY for live search-based findings.",
         firstSteps: actionPlan.thisWeek.map((a) => a.task),
       },
       actionPlan,

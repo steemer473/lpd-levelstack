@@ -405,7 +405,7 @@ Suggested tables: `levelstack_intakes`, `levelstack_research_jobs`, `levelstack_
 | `NEXT_PUBLIC_HUB_URL` | Upsell + “purchase required” → `/platform/levelstack#pricing` |
 | `RESEND_API_KEY`, `FROM_EMAIL`, `FROM_NAME` | Free-snapshot magic link + report-ready email |
 | `OPENAI_API_KEY` and/or `ANTHROPIC_API_KEY` | Synthesis |
-| `SERPAPI_KEY`, `FIRECRAWL_API_KEY`, etc. | Research pipeline |
+| **≥1 SERP provider** (`SERPAPI_KEY`, `SEARCHAPI_KEY`, and/or DataForSEO), `FIRECRAWL_API_KEY`, etc. | Research pipeline — see ADR 003 |
 
 **No `STRIPE_*` in product v1.** Hub env adds `NEXT_PUBLIC_LEVELSTACK_APP_URL` (`https://levelstack.levelplaydigital.com` in production) for account and checkout CTAs.
 
@@ -724,7 +724,7 @@ Stack detail: §9. Product implementation order: §21.
 | Stripe one-time checkout | Hub | Shipped for LevelStack SKUs |
 | Supabase auth + `orders` | Hub writes; product reads | Shipped / contract §8 |
 | Supabase product tables | Product | **Build** |
-| Research APIs (SerpAPI, etc.) | Product | **Build** |
+| Research APIs (multi-provider SERP) | Product | **Shipped** — ADR 003 |
 | AI synthesis (e.g. Claude API) | Product | **Build** |
 | PDF rendering | Product | **Build** (verify; not confirmed in hub for LevelStack) |
 | Review call booking | Ops / product link | Partial (GHL on hub elsewhere) |
@@ -736,7 +736,7 @@ Stack detail: §9. Product implementation order: §21.
 
 ## 18. Open questions
 
-1. Research stack: Apify vs SerpAPI vs DataForSEO vs custom — cost at 25+ reports/month.  
+1. ~~Research stack: Apify vs SerpAPI vs DataForSEO~~ — **Resolved:** multi-provider chain (SerpAPI + SearchAPI + DataForSEO) with failover and 24h cache (ADR 003).  
 2. AI search preview without ChatGPT/Google AIO APIs — v1 approach.  
 3. p95 generation time at 10 concurrent intakes — sets in-product status copy.  
 4. Review call staffing and capacity cap.  

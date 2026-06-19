@@ -10,6 +10,7 @@ export function isPlaceholderReport(report: LevelstackReportJson): boolean {
   return (
     text.includes("Add OPENAI_API_KEY") ||
     text.includes("Configure SerpAPI") ||
+    text.includes("Configure SERP provider") ||
     text.includes("Configure research keys") ||
     text.includes("Research APIs were unavailable")
   )

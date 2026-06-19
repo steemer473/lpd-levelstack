@@ -159,7 +159,7 @@ export function buildDeterministicSearchFootprintSection(
       label: "Search data",
       value: "Live Google search results were not available for this snapshot.",
       detail:
-        "We could not retrieve search engine results page (SERP) data. Check that SERPAPI_KEY is configured and regenerate the report.",
+        "We could not retrieve search engine results page (SERP) data. Configure at least one SERP provider and regenerate the report.",
       severity: "high",
     })
   } else {

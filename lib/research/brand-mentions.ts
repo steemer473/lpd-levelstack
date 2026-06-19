@@ -56,6 +56,6 @@ export async function fetchBrandMentions(
 
   return {
     mentions: mentions.slice(0, 15),
-    limitation: searches.every((s) => s.limitation) ? "SerpAPI unavailable." : null,
+    limitation: searches.every((s) => s.limitation) ? "SERP providers unavailable." : null,
   }
 }

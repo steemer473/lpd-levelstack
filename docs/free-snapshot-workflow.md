@@ -69,6 +69,26 @@ pnpm verify:research
 vercel env ls production
 ```
 
+## Failed report recovery
+
+If research fails, the report stays on a **failed** screen — there is no production “Regenerate” button and **no auto-retry** when the user reopens the link.
+
+| Situation | What to do |
+|-----------|------------|
+| SerpAPI quota exhausted, backup keys added | Merge/deploy SERP failover code, redeploy Vercel, then SQL reset or new submission |
+| Same failed report after keys fixed | SQL reset (see [phase-2-1-research.md](./phase-2-1-research.md#failed-report-recovery)) — rerun uses fresh research, not old missing data |
+| Dev testing | **Regenerate report** on failed page, or `LEVELSTACK_DEV_REPLACE_SNAPSHOT` + re-submit |
+| One email, new business in production | Use a **new email** (one snapshot per email) |
+
+Failed runs do **not** write to `levelstack_serp_cache`. Cache only stores successful provider responses (24h TTL).
+
+## Deploy checklist (SERP updates)
+
+1. Apply `supabase/migrations/20250619100000_levelstack_serp_cache.sql`
+2. Set Vercel env: backup provider keys + `SERP_PROVIDER_CHAIN=searchapi,dataforseo,serpapi`
+3. **Redeploy** production (env vars alone are not enough)
+4. `pnpm verify:research` locally after pulling env into `.env.local`
+
 ## Transactional email
 
 | When | Recipient | Email |
