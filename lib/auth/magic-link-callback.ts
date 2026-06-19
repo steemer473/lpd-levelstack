@@ -1,9 +1,9 @@
 import { getAppUrl } from "@/lib/urls"
 
-/** Must match Supabase Auth `GOTRUE_MAILER_OTP_EXP` (604800 = 7 days). */
-export const MAGIC_LINK_EXPIRY_SECONDS = 604800
+/** Must match Supabase Auth email OTP expiry (hosted max: 86400 = 24 hours). */
+export const MAGIC_LINK_EXPIRY_SECONDS = 86400
 
-export const MAGIC_LINK_EXPIRY_LABEL = "7 days"
+export const MAGIC_LINK_EXPIRY_LABEL = "24 hours"
 
 /** Sign-in page for requesting a fresh magic link to a report. */
 export function buildReportResendSignInUrl(reportId: string): string {

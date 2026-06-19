@@ -9,7 +9,7 @@ End-to-end flow for the LevelStack free snapshot on `levelstack.levelplaydigital
 3. **Auth** — magic-link redirect to `/reports/{id}` progress screen
 4. **Pipeline** — live SerpAPI research + website fetch → report JSON saved
 5. **Report** — progress UI refreshes to full report (~1.5s ready state)
-6. **Email** — one user email when generation completes (magic link, valid 7 days); admin notified on submit
+6. **Email** — one user email when generation completes (magic link, valid 24 hours); admin notified on submit
 
 ## One snapshot per email (production)
 
@@ -51,7 +51,7 @@ If research fails, the report status is **failed** with: *"We couldn't complete 
 
 Recommended: `RESEND_API_KEY`, `FROM_EMAIL`, `LEVELSTACK_ADMIN_NOTIFY_EMAIL`, `GHL_API_KEY`, `GHL_LOCATION_ID`
 
-**Supabase Auth:** Set magic-link / OTP expiry to **604800 seconds (7 days)** via `GOTRUE_MAILER_OTP_EXP` or Authentication settings in the Supabase dashboard. Email copy assumes a 7-day link lifetime.
+**Supabase Auth:** Set **Email OTP expiration** to **86400 seconds (24 hours)** — the maximum allowed on hosted Supabase (Authentication → Providers → Email). Email copy matches this limit.
 
 Verify locally:
 
@@ -66,7 +66,7 @@ vercel env ls production
 | When | Recipient | Email |
 |---|---|---|
 | Form submit | Admin (`LEVELSTACK_ADMIN_NOTIFY_EMAIL`, default `admin@levelplaydigital.com`) | New submission + contact info |
-| Pipeline complete | User (submitter) | Report ready + magic link (7 days) |
+| Pipeline complete | User (submitter) | Report ready + magic link (24 hours) |
 
 Nurture / upgrade sequences (D1, D3, D7, D14) are **not** sent from the app — wire in GHL using tag `levelstack_free_snapshot`.
 

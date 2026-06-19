@@ -83,14 +83,13 @@ https://lpd-levelstack.vercel.app/**
 
 `NEXT_PUBLIC_APP_URL` must match the primary redirect entry or magic-link and email URLs will point at the wrong host.
 
-### Magic-link OTP expiry (7 days)
+### Magic-link OTP expiry (24 hours — Supabase max)
 
-Free snapshot report-ready emails state links are valid for **7 days**. In Supabase (hosted project `lppmbgqsovtfbpbvjvxi`), set Auth OTP expiry to **604800 seconds**:
+Free snapshot report-ready emails state links are valid for **24 hours**. In Supabase (hosted project `lppmbgqsovtfbpbvjvxi`):
 
-- Dashboard → **Authentication** → **Providers** → **Email** (OTP expiry), or
-- Project Auth env: `GOTRUE_MAILER_OTP_EXP=604800`
+**Authentication → Providers → Email → Email OTP expiration** → set **`86400`** (seconds)
 
-Without this, Supabase defaults (~1 hour) will expire links before the email copy promises.
+The dashboard enforces a **maximum of 86400** (24 hours); longer values are rejected.
 
 ## Pre-deploy verification
 

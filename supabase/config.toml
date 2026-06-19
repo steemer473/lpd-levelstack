@@ -12,4 +12,4 @@ enabled = true
 
 # Magic-link / OTP lifetime for free snapshot emails (must match MAGIC_LINK_EXPIRY_SECONDS in app).
 [auth.email]
-otp_expiry = 604800
+otp_expiry = 86400
