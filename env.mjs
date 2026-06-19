@@ -29,7 +29,21 @@ export const env = createEnv({
     ),
     OPENAI_API_KEY: requiredInVercelProduction(z.string().min(1)),
     ANTHROPIC_API_KEY: optionalString,
-    SERPAPI_KEY: requiredInVercelProduction(z.string().min(1)),
+    SERPAPI_KEY: optionalString,
+    SEARCHAPI_KEY: optionalString,
+    DATAFORSEO_LOGIN: optionalString,
+    DATAFORSEO_PASSWORD: optionalString,
+    /** Comma-separated provider order — default serpapi,searchapi,dataforseo */
+    SERP_PROVIDER_CHAIN: optionalString,
+    SERP_CACHE_TTL_HOURS: z.preprocess(
+      emptyToUndefined,
+      z.coerce.number().int().positive().optional(),
+    ),
+    /** Development only — return fixture SERP data without API calls */
+    LEVELSTACK_DEV_MOCK_SERP: z
+      .enum(["true", "false"])
+      .optional()
+      .transform((v) => v === "true"),
     FIRECRAWL_API_KEY: optionalString,
     /** Optional — raises PageSpeed Insights API quota (works without key at low volume) */
     GOOGLE_PAGESPEED_API_KEY: optionalString,
@@ -67,6 +81,12 @@ export const env = createEnv({
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     SERPAPI_KEY: process.env.SERPAPI_KEY,
+    SEARCHAPI_KEY: process.env.SEARCHAPI_KEY,
+    DATAFORSEO_LOGIN: process.env.DATAFORSEO_LOGIN,
+    DATAFORSEO_PASSWORD: process.env.DATAFORSEO_PASSWORD,
+    SERP_PROVIDER_CHAIN: process.env.SERP_PROVIDER_CHAIN,
+    SERP_CACHE_TTL_HOURS: process.env.SERP_CACHE_TTL_HOURS,
+    LEVELSTACK_DEV_MOCK_SERP: process.env.LEVELSTACK_DEV_MOCK_SERP,
     FIRECRAWL_API_KEY: process.env.FIRECRAWL_API_KEY,
     GOOGLE_PAGESPEED_API_KEY: process.env.GOOGLE_PAGESPEED_API_KEY,
     GHL_API_KEY: process.env.GHL_API_KEY,
@@ -97,4 +117,23 @@ if (isVercel && env.LEVELSTACK_DEV_REPLACE_SNAPSHOT) {
   throw new Error(
     "LEVELSTACK_DEV_REPLACE_SNAPSHOT must not be enabled on Vercel (production or preview).",
   )
+}
+
+if (isVercel && env.LEVELSTACK_DEV_MOCK_SERP) {
+  throw new Error(
+    "LEVELSTACK_DEV_MOCK_SERP must not be enabled on Vercel (production or preview).",
+  )
+}
+
+if (isVercelProduction) {
+  const hasSerpProvider =
+    Boolean(env.SERPAPI_KEY) ||
+    Boolean(env.SEARCHAPI_KEY) ||
+    (Boolean(env.DATAFORSEO_LOGIN) && Boolean(env.DATAFORSEO_PASSWORD))
+
+  if (!hasSerpProvider) {
+    throw new Error(
+      "At least one SERP provider must be configured in production (SERPAPI_KEY, SEARCHAPI_KEY, or DATAFORSEO_LOGIN + DATAFORSEO_PASSWORD).",
+    )
+  }
 }

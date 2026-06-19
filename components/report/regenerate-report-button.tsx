@@ -55,7 +55,7 @@ export function RegenerateReportButton({
     >
       <p className="text-sm text-muted-foreground">
         {isStalePlaceholder
-          ? "This report was generated before research API keys were active (or OpenAI billing failed). Regenerate to run live SerpAPI research and refresh findings."
+          ? "This report was generated before research API keys were active (or OpenAI billing failed). Regenerate to run live SERP research and refresh findings."
           : "Development only: rebuild from your latest intake. You'll see the progress screen; total time is usually 1–3 minutes."}
       </p>
       <Button onClick={handleRegenerate} disabled={loading} type="button">

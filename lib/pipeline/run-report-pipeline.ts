@@ -162,7 +162,7 @@ export async function runReportPipeline({
 
   try {
     for (const [i, op] of operationIds.entries()) {
-      await runAuditOperations(parsed.data, bundle, [op])
+      await runAuditOperations(parsed.data, bundle, [op], { reportTier })
 
       const completedOpCount = i + 1
       const { currentStep, completedSteps } = sectionProgressFromOps(

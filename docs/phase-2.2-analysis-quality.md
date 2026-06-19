@@ -2,7 +2,7 @@
 
 **Goal:** Reports justify **standalone** value at $497 (brief §3.3, §12.2, §10.3.2–10.3.5) — not just UI parity with the sample HTML.
 
-**Prerequisite:** Phase 2.1 keys working (`SERPAPI_KEY`, `OPENAI_API_KEY`). Phase 3 UI shipped.
+**Prerequisite:** Phase 2.1 keys working (≥1 SERP provider + `OPENAI_API_KEY`). Phase 3 UI shipped.
 
 **Do not scale paid acquisition** until this phase + PDF/email (Phase 3.1) pass the launch checklist at the bottom.
 
@@ -44,8 +44,8 @@ Score each generated report (internal QA). **Ship when median ≥4/5** across 5 
 | **Synthesis prompt** | Single `gpt-4o-mini` pass (`lib/pipeline/synthesis.ts`) | No rubric for perceived vs actual, funnel stakes, or anti-boilerplate QA |
 | **Action plan** | `buildActionPlan()` in `build-sections.ts` — **template tasks**, not LLM | Tasks often generic; not 1:1 with synthesized findings |
 | **Action plan section** | `appendActionPlanSection()` stub when LLM omits section | Tab shows placeholder finding, not real plan depth |
-| **Research** | Serp + website fetch only (ADR 003) | No GBP completeness, PageSpeed, structured reviews, social recency |
-| **Competitive grid** | Domains + positions from Serp | Sample uses named competitors, review counts, activity |
+| **Research** | Multi-provider SERP chain + website fetch (ADR 003) | PageSpeed, GBP, competitor snapshots shipped in Sprint 2 |
+| **Competitive grid** | Domains + positions from SERP chain | Sample uses named competitors, review counts, activity |
 | **Readiness score** | Average of section scores | Brief wants explainable composite + optional funnel readiness % |
 | **PDF / email** | Not built | $497 SKU promises PDF (brief §0.4, §10.3.7) |
 
@@ -76,7 +76,7 @@ Score each generated report (internal QA). **Ship when median ≥4/5** across 5 
 | Task | Status | Files |
 |------|--------|-------|
 | 2.2.6 PageSpeed Insights | ✅ | `lib/research/pagespeed.ts` |
-| 2.2.7 GBP via SerpAPI Maps | ✅ | `lib/research/gbp.ts` |
+| 2.2.7 GBP via SERP Maps chain | ✅ | `lib/research/gbp.ts` → `lib/research/serp/router.ts` |
 | 2.2.8 Reputation enrichment | ✅ | `research-queries.ts`, `reputation-parse.ts` |
 | 2.2.9 Competitor snapshots + grid rows | ✅ | `lib/research/competitor.ts`, `serp-backed-sections.ts` |
 | 2.2.10 Social recency | ✅ | `lib/research/social.ts` |

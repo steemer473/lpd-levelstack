@@ -35,7 +35,7 @@ See [free-snapshot-workflow.md](./free-snapshot-workflow.md) for the full refere
 2. **Submit** business name, domain, and email.
 3. **Instant redirect** — Browser follows the magic sign-in link to `/reports/[reportId]` (live progress screen).
 4. **Progress** — Step headline shows "Checking your … N of 6"; page auto-refreshes when the snapshot is ready.
-5. **Email** — Backup sign-in link on submit; report-ready email when generation completes.
+5. **Email** — Report-ready email when generation completes (includes magic link backup, valid 24 hours).
 
 **Dev:** same email re-submit replaces the prior snapshot automatically (`?replace=1`). **Production:** one snapshot per email — use a new email to test another business.
 
@@ -67,7 +67,9 @@ If `user_id` is null after checkout, link the order to your auth user or re-run 
 
 ## Phase 2.1 — live research
 
-Add `SERPAPI_KEY` and `OPENAI_API_KEY` to product `.env.local` (see `docs/phase-2-1-research.md`). Re-run a report via SQL reset + open `/reports/[id]`.
+Configure **at least one SERP provider** plus `OPENAI_API_KEY` in product `.env.local` (see [phase-2-1-research.md](./phase-2-1-research.md)). Verify with `pnpm verify:research`.
+
+To re-run a failed or stale report locally: SQL reset (same doc) or **Rebuild report (dev)** on the report page. Production failed reports require SQL reset or a new submission — see [free-snapshot-workflow.md](./free-snapshot-workflow.md#failed-report-recovery).
 
 ## Cross-domain auth note (v1)
 

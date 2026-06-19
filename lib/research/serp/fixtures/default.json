@@ -1,0 +1,16 @@
+{
+  "description": "Default mock SERP fixture — organic results template for dev mock mode",
+  "organicResultTemplate": {
+    "position": 1,
+    "title": "{{business}} — Official Website",
+    "link": "https://www.{{slug}}.example.com/",
+    "snippet": "{{business}} provides professional services."
+  },
+  "mapsResultTemplate": {
+    "title": "{{business}}",
+    "rating": 4.6,
+    "reviewCount": 42,
+    "address": "123 Main St, Example City, ST 12345",
+    "category": "Professional services"
+  }
+}

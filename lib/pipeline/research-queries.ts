@@ -1,4 +1,5 @@
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
+import type { ReportTier } from "@/lib/levelstack-plans"
 import {
   businessNameForSearch,
   hasMarketLocation,
@@ -31,7 +32,14 @@ export function serviceMarketQuery(intake: LevelstackIntakeFormValues): string {
   return service
 }
 
-export function brandNameSearchQueries(intake: LevelstackIntakeFormValues): string[] {
+export function brandNameSearchQueries(
+  intake: LevelstackIntakeFormValues,
+  reportTier: ReportTier = "full_report",
+): string[] {
+  if (reportTier === "free_snapshot") {
+    return [businessNameForSearch(intake)].filter(Boolean)
+  }
+
   const bareBrand = intake.primaryBusinessName.trim()
   return [
     bareBrand,
@@ -40,8 +48,21 @@ export function brandNameSearchQueries(intake: LevelstackIntakeFormValues): stri
   ].filter(Boolean)
 }
 
-export function directoryReviewQueries(intake: LevelstackIntakeFormValues): string[] {
+export function directoryReviewQueries(
+  intake: LevelstackIntakeFormValues,
+  reportTier: ReportTier = "full_report",
+): string[] {
   const business = businessNameForSearch(intake)
+
+  if (reportTier === "free_snapshot") {
+    return [
+      `${business} reviews`,
+      `site:yelp.com ${business}`,
+      `site:bbb.org ${business}`,
+      scopedSearchPhrase(`${intake.primaryBusinessName.trim()} complaints`, intake),
+    ].filter(Boolean)
+  }
+
   const domain = intake.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")
   return [
     `${business} reviews`,

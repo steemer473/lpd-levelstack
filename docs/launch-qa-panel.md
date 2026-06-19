@@ -24,7 +24,7 @@ Run before paid acquisition. Target: **median ≥ 4/5** across five diverse inta
 ## Process
 
 1. Complete intake for each vertical (use distinct business names and markets).  
-2. Regenerate reports with `SERPAPI_KEY` + `OPENAI_API_KEY` configured.  
+2. Regenerate reports with **≥1 SERP provider** (`SEARCHAPI_KEY`, `DATAFORSEO_*`, and/or `SERPAPI_KEY`) plus `OPENAI_API_KEY` configured. Run `pnpm verify:research` before the panel.  
 3. Review web report + `/reports/{id}/print`.  
 4. Check `levelstack_research_jobs.metadata.quality_warnings` — aim for zero on ship candidates.  
 5. Record scores in the table below; ship when median ≥ 4 per row.

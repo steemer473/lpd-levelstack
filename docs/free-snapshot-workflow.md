@@ -7,7 +7,7 @@ End-to-end flow for the LevelStack free snapshot on `levelstack.levelplaydigital
 1. **Hub bridge** — `levelplaydigital.com/free` redirects to product `/free`
 2. **Form** — business name, domain, email, optional city → submit **Run my snapshot**
 3. **Auth** — magic-link redirect to `/reports/{id}` progress screen
-4. **Pipeline** — live SerpAPI research + website fetch → report JSON saved
+4. **Pipeline** — live SERP research (~7 queries for free tier) + website fetch → report JSON saved
 5. **Report** — progress UI refreshes to full report (~1.5s ready state)
 6. **Email** — one user email when generation completes (magic link, valid 24 hours); admin notified on submit
 
@@ -44,10 +44,18 @@ If research fails, the report status is **failed** with: *"We couldn't complete 
 
 | Variable | Purpose |
 |---|---|
-| `SERPAPI_KEY` | Google search research |
+| **≥1 SERP provider** | `SERPAPI_KEY`, and/or `SEARCHAPI_KEY`, and/or `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` |
 | `OPENAI_API_KEY` | Search footprint synthesis (free tier) |
 | `SUPABASE_*` | Auth + report storage |
 | `NEXT_PUBLIC_APP_URL` | Magic-link redirects |
+
+Free tier uses ~7 SERP queries per run (brand 1, social 2, directory 4). Results are cached in Supabase for 24 hours — re-runs for the same business within that window reuse cached data at zero API cost.
+
+Local dev with zero API cost:
+
+```bash
+LEVELSTACK_DEV_MOCK_SERP=true
+```
 
 Recommended: `RESEND_API_KEY`, `FROM_EMAIL`, `LEVELSTACK_ADMIN_NOTIFY_EMAIL`, `GHL_API_KEY`, `GHL_LOCATION_ID`
 
@@ -60,6 +68,26 @@ pnpm verify:env
 pnpm verify:research
 vercel env ls production
 ```
+
+## Failed report recovery
+
+If research fails, the report stays on a **failed** screen — there is no production “Regenerate” button and **no auto-retry** when the user reopens the link.
+
+| Situation | What to do |
+|-----------|------------|
+| SerpAPI quota exhausted, backup keys added | Merge/deploy SERP failover code, redeploy Vercel, then SQL reset or new submission |
+| Same failed report after keys fixed | SQL reset (see [phase-2-1-research.md](./phase-2-1-research.md#failed-report-recovery)) — rerun uses fresh research, not old missing data |
+| Dev testing | **Regenerate report** on failed page, or `LEVELSTACK_DEV_REPLACE_SNAPSHOT` + re-submit |
+| One email, new business in production | Use a **new email** (one snapshot per email) |
+
+Failed runs do **not** write to `levelstack_serp_cache`. Cache only stores successful provider responses (24h TTL).
+
+## Deploy checklist (SERP updates)
+
+1. Apply `supabase/migrations/20250619100000_levelstack_serp_cache.sql`
+2. Set Vercel env: backup provider keys + `SERP_PROVIDER_CHAIN=searchapi,dataforseo,serpapi`
+3. **Redeploy** production (env vars alone are not enough)
+4. `pnpm verify:research` locally after pulling env into `.env.local`
 
 ## Transactional email
 

@@ -55,7 +55,7 @@ Project: **lpd-levelstack** on Vercel — production: [levelstack.levelplaydigit
 ```bash
 pnpm dlx vercel link --yes --project lpd-levelstack --scope steemer473s-projects
 pnpm verify:env          # checklist from .env.local
-pnpm verify:research     # SerpAPI + OpenAI smoke test
+pnpm verify:research     # SERP providers (≥1) + OpenAI smoke test
 ```
 
-Set Production env vars in Vercel (`NEXT_PUBLIC_APP_URL=https://levelstack.levelplaydigital.com`, Supabase, `SERPAPI_KEY`, `OPENAI_API_KEY`, Resend). Hub (`lpd-redesign`) needs matching `NEXT_PUBLIC_LEVELSTACK_APP_URL`. See [docs/vercel.md](docs/vercel.md) for Supabase auth redirect URLs.
+Set Production env vars in Vercel (`NEXT_PUBLIC_APP_URL=https://levelstack.levelplaydigital.com`, Supabase, **≥1 SERP provider**, `OPENAI_API_KEY`, Resend). Hub (`lpd-redesign`) needs matching `NEXT_PUBLIC_LEVELSTACK_APP_URL`. See [docs/vercel.md](docs/vercel.md) for Supabase auth redirect URLs and SERP failover setup.

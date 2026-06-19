@@ -1,3 +1,4 @@
+import type { ReportTier } from "@/lib/levelstack-plans"
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
 import { businessNameForSearch } from "@/lib/intake/location"
 import {
@@ -35,15 +36,21 @@ import type { ResearchBundle } from "@/lib/pipeline/research-types"
 export type OperationCollector = (
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
+  options: CollectResearchOptions,
 ) => Promise<void>
+
+export type CollectResearchOptions = {
+  reportTier: ReportTier
+}
 
 /** Op 1 — bare brand name search */
 export async function collectBrandNameSearch(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
+  { reportTier }: CollectResearchOptions,
 ): Promise<void> {
   bundle.searchFootprint.searches = await runSerpQueries(
-    brandNameSearchQueries(intake),
+    brandNameSearchQueries(intake, reportTier),
   )
 
   const allResults = bundle.searchFootprint.searches.flatMap((s) => s.results)
@@ -60,6 +67,7 @@ export async function collectBrandNameSearch(
 export async function collectPrimaryDomainFetch(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
+  _options: CollectResearchOptions,
 ): Promise<void> {
   const [website, extended] = await Promise.all([
     fetchWebsiteSignals(intake.websiteUrl),
@@ -84,11 +92,13 @@ export async function collectPrimaryDomainFetch(
 export async function collectSocialMediaSearch(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
+  { reportTier }: CollectResearchOptions,
 ): Promise<void> {
   const host = hostnameFromUrl(intake.websiteUrl) ?? intake.websiteUrl
   bundle.socialSearch.platforms = await searchSocialPlatforms(
     businessNameForSearch(intake),
     host,
+    reportTier,
   )
 }
 
@@ -96,6 +106,7 @@ export async function collectSocialMediaSearch(
 export async function collectAboutFooterFetch(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
+  _options: CollectResearchOptions,
 ): Promise<void> {
   bundle.aboutFooter = await fetchAboutAndFooterSignals(intake.websiteUrl)
 }
@@ -104,9 +115,10 @@ export async function collectAboutFooterFetch(
 export async function collectDirectoryReviewSearch(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
+  { reportTier }: CollectResearchOptions,
 ): Promise<void> {
   bundle.reputation.searches = await runSerpQueries(
-    directoryReviewQueries(intake),
+    directoryReviewQueries(intake, reportTier),
   )
 }
 
@@ -114,6 +126,7 @@ export async function collectDirectoryReviewSearch(
 export async function collectBrandMentionSearch(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
+  _options: CollectResearchOptions,
 ): Promise<void> {
   const host = hostnameFromUrl(intake.websiteUrl)
   bundle.brandMentions = await fetchBrandMentions(
@@ -127,6 +140,7 @@ export async function collectBrandMentionSearch(
 export async function collectPaidEnrichment(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
+  _options: CollectResearchOptions = { reportTier: "full_report" },
 ): Promise<void> {
   const [pageSpeed, gbp, social] = await Promise.all([
     fetchPageSpeedSignals(intake.websiteUrl),
@@ -178,9 +192,10 @@ export async function runAuditOperations(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
   operationIds: AuditOperationId[],
+  options: CollectResearchOptions,
 ): Promise<void> {
   for (const opId of operationIds) {
-    await OPERATION_COLLECTORS[opId](intake, bundle)
+    await OPERATION_COLLECTORS[opId](intake, bundle, options)
   }
 }
 
@@ -196,7 +211,9 @@ export async function collectAllResearch(
   bundle.digitalPresence.website.url = intake.websiteUrl
   bundle.revenueFunnel.website.url = intake.websiteUrl
 
-  await runAuditOperations(intake, bundle, [...FULL_TIER_OPERATION_IDS])
+  await runAuditOperations(intake, bundle, [...FULL_TIER_OPERATION_IDS], {
+    reportTier: "full_report",
+  })
   await collectPaidEnrichment(intake, bundle)
   return bundle
 }

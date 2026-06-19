@@ -1,6 +1,6 @@
 # Phase 2 — Instant report generation with on-screen progress
 
-**Status:** 2.0 done; **2.1 implemented** (SerpAPI + OpenAI synthesis). See `docs/phase-2-1-research.md`.  
+**Status:** 2.0 done; **2.1 implemented** (multi-provider SERP + OpenAI synthesis). See `docs/phase-2-1-research.md`.  
 **Reference UX:** [`seo-foundation-audit`](../../../seo-foundation-audit) — `ProcessingState` + `/results/[auditId]` polling  
 **Product brief:** §10.2 (pipeline), §10.3 (report UI), §21 Phase 2–3, §0.5 (public copy)
 
@@ -142,7 +142,7 @@ Six steps aligned with §10.2 / §20 (not SEO’s eight modules):
 | ADR | Decision |
 |-----|----------|
 | **002 — Job orchestration** | **Recommended v1:** `after()` / `waitUntil` from intake API + same process runner; **later:** Vercel Workflow or edge cron for retries |
-| **003 — Research APIs** | SerpAPI + Firecrawl (or DataForSEO) — pick one stack for v1 |
+| **003 — Research APIs** | Multi-provider SERP chain + cache (ADR 003) — SerpAPI, SearchAPI, DataForSEO |
 | **004 — PDF** | Defer to Phase 3; web report first |
 
 ### Runner modules (`lib/pipeline/`)
@@ -174,7 +174,7 @@ Ship **progress UX + stub pipeline** before all APIs:
 2. User sees full flow end-to-end in &lt;30s dev  
 3. Swap stub for real research in 2.1 without changing UI contract  
 
-Validates UX before SerpAPI/LLM cost and complexity.
+Validates UX before live SERP/LLM cost and complexity.
 
 ---
 
@@ -197,7 +197,7 @@ Validates UX before SerpAPI/LLM cost and complexity.
 - [ ] Implement research steps per §10.2  
 - [ ] Structured `report_json` matching §10.2–10.3.5  
 - [ ] Validate output against `assets/levelstack-sample-report.html` structure  
-- [ ] Env: `SERPAPI_KEY`, `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`  
+- [ ] Env: ≥1 SERP provider (`SERPAPI_KEY`, `SEARCHAPI_KEY`, and/or DataForSEO), `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`  
 
 **Exit criteria:** One real intake produces non-mock `report_json` stored in Supabase.
 
@@ -230,7 +230,7 @@ Validates UX before SerpAPI/LLM cost and complexity.
 | Variable | Purpose |
 |----------|---------|
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Synthesis |
-| `SERPAPI_KEY` / `FIRECRAWL_API_KEY` | Research (per ADR 003) |
+| `SERPAPI_KEY` / `SEARCHAPI_KEY` / DataForSEO / `FIRECRAWL_API_KEY` | Research (per ADR 003) |
 | `LEVELSTACK_PIPELINE_MAX_DURATION_MS` | Optional safety cap |
 
 ---

@@ -11,8 +11,10 @@ Separate Vercel project from `lpd-redesign` — **lpd-levelstack** on team `stee
 
 ```bash
 pnpm dlx vercel link --yes --project lpd-levelstack --scope steemer473s-projects
-vercel env pull .env.local   # optional — refresh local from Vercel
+vercel env pull .env.vercel.production --environment=production   # safer — does not overwrite .env.local
 ```
+
+To merge into `.env.local`, copy keys manually or backup first: `cp .env.local .env.local.bak` then `vercel env pull .env.local --environment=production -y`.
 
 `.vercel/` is gitignored; each developer links locally.
 
@@ -33,13 +35,18 @@ node scripts/sync-vercel-production-env.mjs   # Production only (from .env.local
 | `NEXT_PUBLIC_SUPABASE_URL` | Same Supabase project as hub |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Same as hub |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server only; same project |
-| `SERPAPI_KEY` | Live report research |
 | `OPENAI_API_KEY` | Report synthesis |
+| **≥1 SERP provider** | See optional SERP vars below — at least one required |
 
 ### Optional (recommended)
 
 | Variable | Notes |
 |----------|--------|
+| `SERPAPI_KEY` | SerpAPI — default first in provider chain |
+| `SEARCHAPI_KEY` | SearchAPI.io — failover provider |
+| `DATAFORSEO_LOGIN` / `DATAFORSEO_PASSWORD` | DataForSEO — failover provider |
+| `SERP_PROVIDER_CHAIN` | Default `serpapi,searchapi,dataforseo`; set `searchapi,dataforseo,serpapi` when SerpAPI quota is low |
+| `SERP_CACHE_TTL_HOURS` | Default `24` — Supabase SERP cache TTL (requires migration `20250619100000_levelstack_serp_cache.sql`) |
 | `FIRECRAWL_API_KEY` | Website scrape in pipeline |
 | `GOOGLE_PAGESPEED_API_KEY` | Higher PageSpeed API quota |
 | `RESEND_API_KEY` | Transactional email (report ready, admin notify) |
@@ -48,12 +55,17 @@ node scripts/sync-vercel-production-env.mjs   # Production only (from .env.local
 | `GHL_API_KEY` / `GHL_LOCATION_ID` | GoHighLevel lead sync — copy from hub Vercel project |
 | `ANTHROPIC_API_KEY` | Alternate LLM (optional) |
 
+**DataForSEO credentials:** `DATAFORSEO_LOGIN` = account email; `DATAFORSEO_PASSWORD` = auto-generated **API password** from [API Access](https://app.dataforseo.com/api-access) (not dashboard login password, not the Base64 blob).
+
+**After changing env vars:** redeploy Production (or push a commit) — running functions do not pick up new values until the next deployment.
+
 ### Never set on Vercel
 
 | Variable | Why |
 |----------|-----|
 | `LEVELSTACK_DEV_BYPASS_ENTITLEMENT` | Skips purchase check — **local only** |
 | `LEVELSTACK_DEV_SKIP_WEBSITE_CHECK` | Skips URL validation — **local only** |
+| `LEVELSTACK_DEV_MOCK_SERP` | Returns fixture SERP data — **local only** |
 | `STRIPE_*` | Commerce stays on hub |
 
 ## Hub integration
@@ -94,11 +106,12 @@ The dashboard enforces a **maximum of 86400** (24 hours); longer values are reje
 ## Pre-deploy verification
 
 ```bash
-# Local keys + API smoke test
-node scripts/verify-research-keys.mjs
+# Local keys + API smoke test (reads .env.local)
+pnpm verify:research
 
 # Production env checklist (no secrets printed)
-node scripts/verify-vercel-env.mjs
+pnpm verify:env
+# or: node scripts/verify-vercel-env.mjs
 ```
 
 ## Report pipeline timeout
