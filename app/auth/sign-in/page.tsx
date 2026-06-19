@@ -190,7 +190,7 @@ function SignInForm() {
             <p className="text-sm font-medium">Check your email</p>
             <p className="text-sm text-muted-foreground">
               We sent a sign-in link to <strong>{email.trim()}</strong>. It expires
-              in 7 days — open it on this device to continue.
+              in 24 hours — open it on this device to continue.
             </p>
             <button
               type="button"

@@ -7,9 +7,9 @@ import {
 import { buildReportResendSignInUrl } from "@/lib/auth/magic-link-callback"
 
 describe("magic link expiry constants", () => {
-  it("uses 7 days for OTP TTL label and seconds", () => {
-    expect(MAGIC_LINK_EXPIRY_SECONDS).toBe(604800)
-    expect(MAGIC_LINK_EXPIRY_LABEL).toBe("7 days")
+  it("uses 24 hours for OTP TTL label and seconds", () => {
+    expect(MAGIC_LINK_EXPIRY_SECONDS).toBe(86400)
+    expect(MAGIC_LINK_EXPIRY_LABEL).toBe("24 hours")
   })
 })
 

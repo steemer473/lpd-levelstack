@@ -26,7 +26,7 @@ export default function FreeSnapshotPage() {
         <h2 className="text-xl font-semibold text-center mb-1">Let&apos;s pull your snapshot</h2>
         <p className="text-muted-foreground text-sm text-center mb-6">
           We&apos;ll take you straight to your live progress screen. We&apos;ll email
-          you when your snapshot is ready — link valid 7 days.
+          you when your snapshot is ready — link valid 24 hours.
         </p>
         <FreeSnapshotForm />
       </FormPanel>
