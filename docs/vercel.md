@@ -33,13 +33,18 @@ node scripts/sync-vercel-production-env.mjs   # Production only (from .env.local
 | `NEXT_PUBLIC_SUPABASE_URL` | Same Supabase project as hub |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Same as hub |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server only; same project |
-| `SERPAPI_KEY` | Live report research |
 | `OPENAI_API_KEY` | Report synthesis |
+| **≥1 SERP provider** | See optional SERP vars below — at least one required |
 
 ### Optional (recommended)
 
 | Variable | Notes |
 |----------|--------|
+| `SERPAPI_KEY` | SerpAPI — default first in provider chain |
+| `SEARCHAPI_KEY` | SearchAPI.io — failover provider |
+| `DATAFORSEO_LOGIN` / `DATAFORSEO_PASSWORD` | DataForSEO — failover provider |
+| `SERP_PROVIDER_CHAIN` | Default `serpapi,searchapi,dataforseo` |
+| `SERP_CACHE_TTL_HOURS` | Default `24` — Supabase SERP cache TTL |
 | `FIRECRAWL_API_KEY` | Website scrape in pipeline |
 | `GOOGLE_PAGESPEED_API_KEY` | Higher PageSpeed API quota |
 | `RESEND_API_KEY` | Transactional email (report ready, admin notify) |
@@ -54,6 +59,7 @@ node scripts/sync-vercel-production-env.mjs   # Production only (from .env.local
 |----------|-----|
 | `LEVELSTACK_DEV_BYPASS_ENTITLEMENT` | Skips purchase check — **local only** |
 | `LEVELSTACK_DEV_SKIP_WEBSITE_CHECK` | Skips URL validation — **local only** |
+| `LEVELSTACK_DEV_MOCK_SERP` | Returns fixture SERP data — **local only** |
 | `STRIPE_*` | Commerce stays on hub |
 
 ## Hub integration

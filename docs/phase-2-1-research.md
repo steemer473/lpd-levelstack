@@ -3,10 +3,21 @@
 ## Required env (product `.env.local`)
 
 ```bash
+# At least one SERP provider:
 SERPAPI_KEY=your_serpapi_key
+# SEARCHAPI_KEY=
+# DATAFORSEO_LOGIN=
+# DATAFORSEO_PASSWORD=
+
 OPENAI_API_KEY=your_openai_key
+
 # Optional:
 FIRECRAWL_API_KEY=
+SERP_PROVIDER_CHAIN=serpapi,searchapi,dataforseo
+SERP_CACHE_TTL_HOURS=24
+
+# Local dev — zero-cost SERP (never set on Vercel):
+# LEVELSTACK_DEV_MOCK_SERP=true
 ```
 
 Restart `pnpm dev` after adding keys.
@@ -15,8 +26,9 @@ Restart `pnpm dev` after adding keys.
 
 | Step | Research |
 |------|----------|
-| Search footprint | SerpAPI: business, owner, service+market, prior names |
-| Reputation | SerpAPI: reviews + complaints queries |
+| Search footprint | SERP chain: business name (free: 1 query; paid: 2–4) |
+| Reputation | SERP chain: reviews + directory queries (free: 4; paid: 9) |
+| Social search | SERP chain: platform site queries (free: LinkedIn + Facebook; paid: 6) |
 | Digital presence | Website fetch (Firecrawl if configured) + intake socials |
 | Revenue funnel | Website CTA signals + intake offer/ad/list data |
 | Competitive context | SerpAPI service query → top 3 competitor domains |

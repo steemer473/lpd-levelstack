@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest"
 import { levelstackIntakeDefaults } from "@/lib/intake/schema"
 import {
   priorNamesForSearch,
+  brandNameSearchQueries,
+  directoryReviewQueries,
   reputationQueries,
   searchFootprintQueries,
   serviceMarketQuery,
@@ -58,5 +60,22 @@ describe("research-queries", () => {
     const footprint = searchFootprintQueries(intake)
     expect(footprint[0]).toContain("Atlanta")
     expect(serviceMarketQuery(intake)).toBe("Real estate agent Atlanta, GA")
+  })
+
+  it("trims brand and directory queries for free snapshot tier", () => {
+    const intake = {
+      ...levelstackIntakeDefaults,
+      primaryBusinessName: "Acme Co",
+      websiteUrl: "https://acme.example.com",
+      marketCity: "Atlanta",
+      marketState: "GA",
+      geoMarket: "local" as const,
+      priorBusinessNames: ["Old Acme"],
+    }
+
+    expect(brandNameSearchQueries(intake, "free_snapshot")).toHaveLength(1)
+    expect(directoryReviewQueries(intake, "free_snapshot")).toHaveLength(4)
+    expect(brandNameSearchQueries(intake, "full_report").length).toBeGreaterThan(1)
+    expect(directoryReviewQueries(intake, "full_report")).toHaveLength(9)
   })
 })

@@ -1,5 +1,5 @@
 /**
- * Loads .env.local and smoke-tests SerpAPI + OpenAI (no secrets printed).
+ * Loads .env.local and smoke-tests configured SERP providers + OpenAI (no secrets printed).
  * Usage: node scripts/verify-research-keys.mjs
  */
 import { readFileSync } from "node:fs"
@@ -22,9 +22,23 @@ for (const line of readFileSync(envPath, "utf8").split("\n")) {
   process.env[key] = value
 }
 
+const DEFAULT_CHAIN = ["serpapi", "searchapi", "dataforseo"]
+const chainRaw = process.env.SERP_PROVIDER_CHAIN?.trim()
+const chainOrder = chainRaw
+  ? chainRaw.split(",").map((entry) => entry.trim().toLowerCase())
+  : DEFAULT_CHAIN
+
+const providerConfigured = {
+  serpapi: Boolean(process.env.SERPAPI_KEY),
+  searchapi: Boolean(process.env.SEARCHAPI_KEY),
+  dataforseo: Boolean(process.env.DATAFORSEO_LOGIN && process.env.DATAFORSEO_PASSWORD),
+}
+
 const checks = {
   OPENAI_API_KEY: Boolean(process.env.OPENAI_API_KEY),
-  SERPAPI_KEY: Boolean(process.env.SERPAPI_KEY),
+  SERPAPI_KEY: providerConfigured.serpapi,
+  SEARCHAPI_KEY: providerConfigured.searchapi,
+  DATAFORSEO: providerConfigured.dataforseo,
   FIRECRAWL_API_KEY: Boolean(process.env.FIRECRAWL_API_KEY),
   GOOGLE_PAGESPEED_API_KEY: Boolean(process.env.GOOGLE_PAGESPEED_API_KEY),
   SUPABASE_SERVICE_ROLE_KEY: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
@@ -35,10 +49,15 @@ for (const [k, ok] of Object.entries(checks)) {
   console.log(`  ${k}: ${ok ? "ok" : "MISSING"}`)
 }
 
-let serpOk = false
-let openaiOk = false
+const activeChain = chainOrder.filter((id) => providerConfigured[id])
+console.log(`\nSERP provider chain: ${chainOrder.join(" → ")}`)
+console.log(`Active (with keys): ${activeChain.length ? activeChain.join(" → ") : "none"}`)
 
-if (process.env.SERPAPI_KEY) {
+let serpOk = false
+const providerResults = {}
+
+async function testSerpApi() {
+  if (!process.env.SERPAPI_KEY) return false
   const params = new URLSearchParams({
     engine: "google",
     q: "level play digital",
@@ -47,9 +66,76 @@ if (process.env.SERPAPI_KEY) {
   })
   const res = await fetch(`https://serpapi.com/search.json?${params}`)
   const data = await res.json()
-  serpOk = res.ok && !data.error && (data.organic_results?.length ?? 0) > 0
-  console.log(`SerpAPI: ${serpOk ? "ok" : `failed — ${data.error ?? res.status}`}`)
+  return res.ok && !data.error && (data.organic_results?.length ?? 0) > 0
 }
+
+async function testSearchApi() {
+  if (!process.env.SEARCHAPI_KEY) return false
+  const params = new URLSearchParams({
+    engine: "google",
+    q: "level play digital",
+    api_key: process.env.SEARCHAPI_KEY,
+    num: "3",
+  })
+  const res = await fetch(`https://www.searchapi.io/api/v1/search?${params}`)
+  const data = await res.json()
+  return res.ok && !data.error && (data.organic_results?.length ?? 0) > 0
+}
+
+async function testDataForSeo() {
+  if (!process.env.DATAFORSEO_LOGIN || !process.env.DATAFORSEO_PASSWORD) return false
+  const credentials = Buffer.from(
+    `${process.env.DATAFORSEO_LOGIN}:${process.env.DATAFORSEO_PASSWORD}`,
+  ).toString("base64")
+  const res = await fetch("https://api.dataforseo.com/v3/serp/google/organic/live/advanced", {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${credentials}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify([
+      {
+        keyword: "level play digital",
+        location_code: 2840,
+        language_code: "en",
+        depth: 3,
+      },
+    ]),
+  })
+  const data = await res.json()
+  const items = data.tasks?.[0]?.result?.[0]?.items ?? []
+  return res.ok && items.length > 0
+}
+
+if (providerConfigured.serpapi) {
+  providerResults.serpapi = await testSerpApi()
+  console.log(
+    `SerpAPI: ${providerResults.serpapi ? "ok" : "failed — check key or quota"}`,
+  )
+  serpOk ||= providerResults.serpapi
+}
+
+if (providerConfigured.searchapi) {
+  providerResults.searchapi = await testSearchApi()
+  console.log(
+    `SearchAPI: ${providerResults.searchapi ? "ok" : "failed — check key or quota"}`,
+  )
+  serpOk ||= providerResults.searchapi
+}
+
+if (providerConfigured.dataforseo) {
+  providerResults.dataforseo = await testDataForSeo()
+  console.log(
+    `DataForSEO: ${providerResults.dataforseo ? "ok" : "failed — check credentials or quota"}`,
+  )
+  serpOk ||= providerResults.dataforseo
+}
+
+if (!Object.values(providerConfigured).some(Boolean)) {
+  console.log("SERP: no provider keys configured")
+}
+
+let openaiOk = false
 
 if (process.env.OPENAI_API_KEY) {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -100,7 +186,9 @@ let psiOk = null
   }
 }
 
-if (!checks.OPENAI_API_KEY || !checks.SERPAPI_KEY) {
+const hasAnySerpProvider = Object.values(providerConfigured).some(Boolean)
+
+if (!checks.OPENAI_API_KEY || !hasAnySerpProvider) {
   process.exit(1)
 }
 if (!serpOk || !openaiOk) {

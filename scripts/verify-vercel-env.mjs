@@ -35,16 +35,20 @@ const requiredProduction = [
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
-  "SERPAPI_KEY",
   "OPENAI_API_KEY",
 ]
 
 const forbiddenOnVercel = [
   "LEVELSTACK_DEV_BYPASS_ENTITLEMENT",
   "LEVELSTACK_DEV_SKIP_WEBSITE_CHECK",
+  "LEVELSTACK_DEV_MOCK_SERP",
 ]
 
 const recommended = [
+  "SERPAPI_KEY",
+  "SEARCHAPI_KEY",
+  "DATAFORSEO_LOGIN",
+  "DATAFORSEO_PASSWORD",
   "FIRECRAWL_API_KEY",
   "GOOGLE_PAGESPEED_API_KEY",
   "RESEND_API_KEY",
@@ -61,6 +65,17 @@ for (const key of requiredProduction) {
   console.log(`  ${ok ? "✓" : "✗"} ${key}${ok ? "" : " — MISSING"}`)
   if (!ok) failed = true
 }
+
+const hasSerpProvider =
+  Boolean(process.env.SERPAPI_KEY?.trim()) ||
+  Boolean(process.env.SEARCHAPI_KEY?.trim()) ||
+  (Boolean(process.env.DATAFORSEO_LOGIN?.trim()) &&
+    Boolean(process.env.DATAFORSEO_PASSWORD?.trim()))
+
+console.log(
+  `  ${hasSerpProvider ? "✓" : "✗"} SERP provider (≥1 of SERPAPI_KEY, SEARCHAPI_KEY, DATAFORSEO_LOGIN+PASSWORD)${hasSerpProvider ? "" : " — MISSING"}`,
+)
+if (!hasSerpProvider) failed = true
 
 console.log("")
 for (const key of recommended) {

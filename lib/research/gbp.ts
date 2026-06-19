@@ -1,4 +1,4 @@
-import { env } from "@/env.mjs"
+import { googleMapsSearch } from "@/lib/research/serp/router"
 
 export type GbpSignals = {
   found: boolean
@@ -8,15 +8,6 @@ export type GbpSignals = {
   address: string | null
   category: string | null
   limitation: string | null
-}
-
-type MapsPlace = {
-  title?: string
-  rating?: number
-  reviews?: number
-  reviews_original?: string
-  address?: string
-  type?: string
 }
 
 export async function fetchGbpSignals(
@@ -33,71 +24,29 @@ export async function fetchGbpSignals(
     limitation: null,
   }
 
-  if (!env.SERPAPI_KEY) {
-    return { ...empty, limitation: "SerpAPI not configured (SERPAPI_KEY missing)." }
+  const q = `${businessName.trim()} ${geoHint}`.trim()
+  const place = await googleMapsSearch(q)
+
+  if (place.limitation && !place.title) {
+    return { ...empty, limitation: place.limitation }
   }
 
-  const q = `${businessName.trim()} ${geoHint}`.trim()
-  const params = new URLSearchParams({
-    engine: "google_maps",
-    q,
-    api_key: env.SERPAPI_KEY,
-    hl: "en",
-  })
-
-  try {
-    const res = await fetch(`https://serpapi.com/search.json?${params}`, {
-      signal: AbortSignal.timeout(20_000),
-    })
-
-    if (!res.ok) {
-      return { ...empty, limitation: `Google Maps search HTTP ${res.status}.` }
-    }
-
-    const data = (await res.json()) as {
-      local_results?: MapsPlace[]
-      place_results?: MapsPlace
-      error?: string
-    }
-
-    if (data.error) {
-      return { ...empty, limitation: data.error }
-    }
-
-    const place = data.place_results ?? data.local_results?.[0]
-    if (!place?.title) {
-      return {
-        ...empty,
-        limitation: `No Google Maps listing found for "${q}".`,
-      }
-    }
-
-    const reviewCount =
-      typeof place.reviews === "number"
-        ? place.reviews
-        : parseReviewCountFromText(place.reviews_original)
-
-    return {
-      found: true,
-      title: place.title,
-      rating: typeof place.rating === "number" ? place.rating : null,
-      reviewCount,
-      address: place.address ?? null,
-      category: place.type ?? null,
-      limitation: null,
-    }
-  } catch (err) {
+  if (!place.title) {
     return {
       ...empty,
-      limitation: err instanceof Error ? err.message : "Google Maps lookup failed.",
+      limitation: place.limitation ?? `No Google Maps listing found for "${q}".`,
     }
   }
-}
 
-function parseReviewCountFromText(text: string | undefined): number | null {
-  if (!text) return null
-  const m = text.replace(/,/g, "").match(/(\d+)\s*review/i)
-  return m?.[1] ? Number.parseInt(m[1], 10) : null
+  return {
+    found: true,
+    title: place.title,
+    rating: place.rating,
+    reviewCount: place.reviewCount,
+    address: place.address,
+    category: place.category,
+    limitation: place.limitation,
+  }
 }
 
 export function gbpGeoHint(geoMarket: "local" | "regional" | "national"): string {

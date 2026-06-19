@@ -7,7 +7,7 @@ End-to-end flow for the LevelStack free snapshot on `levelstack.levelplaydigital
 1. **Hub bridge** — `levelplaydigital.com/free` redirects to product `/free`
 2. **Form** — business name, domain, email, optional city → submit **Run my snapshot**
 3. **Auth** — magic-link redirect to `/reports/{id}` progress screen
-4. **Pipeline** — live SerpAPI research + website fetch → report JSON saved
+4. **Pipeline** — live SERP research (~7 queries for free tier) + website fetch → report JSON saved
 5. **Report** — progress UI refreshes to full report (~1.5s ready state)
 6. **Email** — one user email when generation completes (magic link, valid 24 hours); admin notified on submit
 
@@ -44,10 +44,18 @@ If research fails, the report status is **failed** with: *"We couldn't complete 
 
 | Variable | Purpose |
 |---|---|
-| `SERPAPI_KEY` | Google search research |
+| **≥1 SERP provider** | `SERPAPI_KEY`, and/or `SEARCHAPI_KEY`, and/or `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` |
 | `OPENAI_API_KEY` | Search footprint synthesis (free tier) |
 | `SUPABASE_*` | Auth + report storage |
 | `NEXT_PUBLIC_APP_URL` | Magic-link redirects |
+
+Free tier uses ~7 SERP queries per run (brand 1, social 2, directory 4). Results are cached in Supabase for 24 hours — re-runs for the same business within that window reuse cached data at zero API cost.
+
+Local dev with zero API cost:
+
+```bash
+LEVELSTACK_DEV_MOCK_SERP=true
+```
 
 Recommended: `RESEND_API_KEY`, `FROM_EMAIL`, `LEVELSTACK_ADMIN_NOTIFY_EMAIL`, `GHL_API_KEY`, `GHL_LOCATION_ID`
 
