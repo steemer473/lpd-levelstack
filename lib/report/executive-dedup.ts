@@ -223,6 +223,76 @@ export function computeDistinctHighlightsFromSections(
       return true
     })
 
+  if (strengths.length === 0) {
+    const mediumWins = allFindings.filter(
+      (f) =>
+        f.severity === "medium" &&
+        isCustomerFacingFinding(f.value) &&
+        /position #?\d|listing found|indexed|verified|complete|rating|ranks|appears on page/i.test(
+          f.value,
+        ),
+    )
+    for (const text of pickDistinctFindings(mediumWins, usedKeys, 2)) {
+      strengths.push(polishCustomerFindingCopy(text))
+    }
+  }
+
+  if (strengths.length === 0) {
+    const bestSection = [...sections]
+      .filter((s) => s.id !== "action_plan")
+      .sort((a, b) => b.score - a.score)[0]
+    if (bestSection && bestSection.score >= 50) {
+      const fallback = `${bestSection.label} scored ${bestSection.score}/100 — your strongest area in this snapshot.`
+      const key = normalizeFindingKey(fallback)
+      if (!usedKeys.has(key)) {
+        usedKeys.add(key)
+        strengths.push(fallback)
+      }
+    }
+  }
+
+  if (topOpportunities.length === 0) {
+    const mediumPool = allFindings.filter(
+      (f) => f.severity === "medium" && isCustomerFacingFinding(f.value),
+    )
+    for (const text of pickDistinctFindings(mediumPool, usedKeys, 3)) {
+      topOpportunities.push(polishCustomerFindingCopy(text))
+    }
+  }
+
+  if (topOpportunities.length === 0) {
+    const weakerSections = [...sections]
+      .filter((s) => s.id !== "action_plan")
+      .sort((a, b) => a.score - b.score)
+    for (const section of weakerSections) {
+      const finding = section.findings.find((f) => isCustomerFacingFinding(f.value))
+      if (!finding) continue
+      const picked = pickDistinctFindings(
+        [{ ...finding, sectionId: section.id, sectionScore: section.score }],
+        usedKeys,
+        1,
+      )
+      if (picked[0]) {
+        topOpportunities.push(polishCustomerFindingCopy(picked[0]))
+      }
+      if (topOpportunities.length >= 2) break
+    }
+  }
+
+  if (topOpportunities.length === 0) {
+    const weakest = [...sections]
+      .filter((s) => s.id !== "action_plan")
+      .sort((a, b) => a.score - b.score)[0]
+    if (weakest) {
+      const fallback = `Focus next on ${sectionLabel(weakest.id)} (${weakest.score}/100) — your lowest-scoring area in this snapshot.`
+      const key = normalizeFindingKey(fallback)
+      if (!usedKeys.has(key)) {
+        usedKeys.add(key)
+        topOpportunities.push(fallback)
+      }
+    }
+  }
+
   return {
     criticalIssue,
     businessImpact,

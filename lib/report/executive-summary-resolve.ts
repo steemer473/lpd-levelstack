@@ -1,6 +1,10 @@
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
 import { resolveDistinctHighlights } from "@/lib/report/executive-dedup"
-import { applyFreeTierExecutiveInsights } from "@/lib/report/free-tier-insights"
+import type { StructuredExecutiveInsights } from "@/lib/report/executive-insight-parts"
+import {
+  applyFreeTierExecutiveInsights,
+  buildFreeTierStructuredExecutiveInsights,
+} from "@/lib/report/free-tier-insights"
 import {
   parseSerpRowsFromDetail,
 } from "@/lib/report/parse-serp-rows"
@@ -11,6 +15,7 @@ export type ResolvedExecutiveContent = {
     reputationGap: string
     revenueRisk: string
   }
+  structuredInsights?: StructuredExecutiveInsights
   highlights: {
     criticalIssue: string
     businessImpact: string
@@ -71,6 +76,7 @@ export function resolveExecutiveContent(
 
   return {
     insights,
+    structuredInsights: buildFreeTierStructuredExecutiveInsights(report) ?? undefined,
     highlights: {
       criticalIssue: distinct.criticalIssue,
       businessImpact: distinct.businessImpact,

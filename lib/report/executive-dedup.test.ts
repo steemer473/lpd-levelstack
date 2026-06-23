@@ -119,6 +119,53 @@ describe("executive-dedup", () => {
     expect(distinct.highestLeverageOpportunity).toContain("Title tag")
   })
 
+  it("fills strengths and opportunities when only high-severity findings exist", () => {
+    const sections: LevelstackReportJson["sections"] = [
+      {
+        id: "search_footprint",
+        label: "Search footprint",
+        status: "attention",
+        score: 48,
+        findings: [
+          {
+            label: "Brand",
+            value: "Your website was not in the top 10 organic results for this query.",
+            detail: "detail",
+            severity: "high",
+          },
+        ],
+      },
+      {
+        id: "digital_presence",
+        label: "Digital presence",
+        status: "attention",
+        score: 62,
+        findings: [
+          {
+            label: "Title",
+            value: "Homepage title lacks local service keywords prospects expect.",
+            detail: "detail",
+            severity: "high",
+          },
+        ],
+      },
+      {
+        id: "online_reputation",
+        label: "Reputation",
+        status: "attention",
+        score: 58,
+        findings: [],
+      },
+    ]
+
+    const distinct = computeDistinctHighlightsFromSections(sections, "Test Co")
+
+    expect(distinct.strengths.length).toBeGreaterThan(0)
+    expect(distinct.topOpportunities.length).toBeGreaterThan(0)
+    expect(distinct.strengths[0]).toContain("62/100")
+    expect(distinct.topOpportunities[0]).toContain("search footprint")
+  })
+
   it("filters duplicate action tasks", () => {
     const tasks = filterDistinctActionTasks(
       [

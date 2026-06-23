@@ -539,7 +539,10 @@ function buildReputationFindings(
   for (const search of bundle.reputation.searches) {
     if (!search.results.length && !search.limitation) continue
     const platform = platformFromQuery(search.query)
-    const hit = bestReputationHit(search.results, search.query)
+    const hit = bestReputationHit(search.results, search.query, {
+      businessName: intake.primaryBusinessName,
+      ownerName: intake.ownerName,
+    })
 
     if (hit) {
       const { rating, reviewCount } = hit.parsed

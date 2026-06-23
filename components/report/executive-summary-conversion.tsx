@@ -8,6 +8,7 @@ import {
   Target,
 } from "lucide-react"
 
+import { ExecutiveInsightBody } from "@/components/report/executive-insight-body"
 import { FormattedReportText } from "@/components/report/formatted-report-text"
 import { UpsellBlurOverlay } from "@/components/report/upsell-blur-overlay"
 import type { LevelstackReportJson, ReportSection } from "@/lib/pipeline/report-types"
@@ -291,9 +292,21 @@ export function ExecutiveSummaryConversion({
   const actionItems = actionPlan.thisWeek.slice(0, 3)
 
   const insightRows = [
-    { label: "What prospects see", body: content.insights.whatProspectsSee },
-    { label: "Reputation gap", body: content.insights.reputationGap },
-    { label: "Revenue risk", body: content.insights.revenueRisk },
+    {
+      label: "What prospects see",
+      parts: content.structuredInsights?.whatProspectsSee,
+      body: content.insights.whatProspectsSee,
+    },
+    {
+      label: "Reputation gap",
+      parts: content.structuredInsights?.reputationGap,
+      body: content.insights.reputationGap,
+    },
+    {
+      label: "Revenue risk",
+      parts: content.structuredInsights?.revenueRisk,
+      body: content.insights.revenueRisk,
+    },
   ]
 
   const visibleStrengths = content.strengths.slice(0, 1)
@@ -327,11 +340,19 @@ export function ExecutiveSummaryConversion({
         {insightRows.map((row) => (
           <div key={row.label} className="rpt-conv-insight-row">
             <p className="rpt-conv-insight-label">{row.label}</p>
-            <FormattedReportText
-              text={row.body}
-              paragraphClassName="text-sm text-[var(--rpt-body)]"
-              emphasizeLeadIn={false}
-            />
+            {row.parts ? (
+              <ExecutiveInsightBody
+                parts={row.parts}
+                paragraphClassName="text-sm text-[var(--rpt-body)]"
+                mutedClassName="text-sm text-[var(--rpt-muted)]"
+              />
+            ) : (
+              <FormattedReportText
+                text={row.body}
+                paragraphClassName="text-sm text-[var(--rpt-body)]"
+                emphasizeLeadIn={false}
+              />
+            )}
           </div>
         ))}
       </div>
@@ -463,6 +484,11 @@ export function ExecutiveSummaryConversion({
                 </div>
               </UpsellBlurOverlay>
             </div>
+          ) : null}
+          {visibleStrengths.length === 0 && visibleOpps.length === 0 ? (
+            <p className="rpt-muted-text text-sm">
+              See section tabs above for detailed findings from your free snapshot.
+            </p>
           ) : null}
         </div>
       </div>
