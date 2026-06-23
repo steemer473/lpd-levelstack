@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LevelStack Report — Design Gap Comparison</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1400px; margin: 0 auto; padding: 24px 20px 64px; }
+    h1 { font-size: 1.5rem; margin: 0 0 8px; }
+    .lede { color: #475569; max-width: 72ch; margin-bottom: 28px; }
+    h2 { font-size: 1.125rem; margin: 36px 0 12px; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; }
+    h3 { font-size: 0.9375rem; margin: 0 0 8px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    @media (max-width: 1100px) { .grid-2, .grid-4 { grid-template-columns: 1fr; } }
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .card-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #f8fafc;
+    }
+    .card-head .tag {
+      display: inline-block;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-right: 6px;
+    }
+    .tag-current { background: #dbeafe; color: #1d4ed8; }
+    .tag-hybrid { background: #dcfce7; color: #166534; }
+    .tag-a { background: #ffedd5; color: #c2410c; }
+    .tag-b { background: #f3e8ff; color: #7e22ce; }
+    .card-body { padding: 0; }
+    .card-body img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: none;
+    }
+    .card-body .note { padding: 12px 14px; font-size: 0.8125rem; color: #475569; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    th { background: #f8fafc; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; }
+    tr:last-child td { border-bottom: none; }
+    .status { font-weight: 600; white-space: nowrap; }
+    .match { color: #166534; }
+    .partial { color: #b45309; }
+    .gap { color: #b91c1c; }
+    .hybrid-wireframe {
+      padding: 16px;
+      background: #fff;
+      font-size: 0.75rem;
+    }
+    .wf-header {
+      background: #001e46;
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .wf-body { display: flex; gap: 10px; min-height: 280px; }
+    .wf-sidebar {
+      width: 120px;
+      background: #001e46;
+      border-radius: 6px;
+      padding: 8px;
+      color: rgba(255,255,255,0.8);
+    }
+    .wf-sidebar .active { background: #2563eb; color: #fff; border-radius: 4px; padding: 4px; margin: 4px 0; }
+    .wf-main { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .wf-kpi { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .wf-kpi div { background: #eff6ff; border: 1px solid #93c5fd; border-radius: 4px; padding: 8px; text-align: center; }
+    .wf-editorial { background: #fafafa; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; flex: 1; }
+    .wf-editorial .headline { font-weight: 700; font-size: 0.875rem; margin-bottom: 8px; }
+    .wf-editorial .pull { border-left: 3px solid #ef4444; padding-left: 8px; color: #7f1d1d; margin: 8px 0; }
+    .wf-editorial .label { color: #2563eb; font-size: 0.625rem; text-transform: uppercase; font-weight: 600; }
+    .wf-snippet { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .legend span { font-size: 0.6875rem; padding: 2px 8px; border-radius: 999px; border: 1px solid #cbd5e1; }
+    .from-a { border-color: #fdba74; background: #fff7ed; }
+    .from-b { border-color: #c4b5fd; background: #f5f3ff; }
+    .caption { font-size: 0.75rem; color: #64748b; margin-top: 6px; }
+    .open-hint {
+      margin-top: 24px;
+      padding: 12px 14px;
+      background: #eff6ff;
+      border: 1px solid #93c5fd;
+      border-radius: 8px;
+      font-size: 0.8125rem;
+    }
+    code { font-size: 0.75rem; background: #e2e8f0; padding: 1px 4px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>LevelStack free report — design gap comparison</h1>
+    <p class="lede">
+      Side-by-side previews of the <strong>current build</strong>, the <strong>approved hybrid spec</strong>
+      (A KPI cards + B editorial + A search snippet + vertical nav + navy header), and the original
+      <strong>Option A</strong> / <strong>Option B</strong> exploration mockups from 2026-06-22.
+    </p>
+
+    <h2>Gap summary (Hybrid spec vs current build)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Area</th>
+          <th>Approved hybrid</th>
+          <th>Current build</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Header</strong></td>
+          <td>Navy band: LevelStack + icon, company name, “Digital Presence Assessment”, score + grade on right (Header Variant 1)</td>
+          <td>Company/score live in navy <em>sidebar</em> brand block; no full-width report header band</td>
+          <td class="status gap">Gap</td>
+        </tr>
+        <tr>
+          <td><strong>Navigation</strong></td>
+          <td>Vertical tabs, left sidebar</td>
+          <td>Vertical navy sidebar with blue active tab, row dividers</td>
+          <td class="status match">Match</td>
+        </tr>
+        <tr>
+          <td><strong>Exec KPI row</strong></td>
+          <td><strong>4 cards:</strong> Score, Grade, Critical Issues, Findings count</td>
+          <td>Overall score card + <strong>6 section metric cards</strong> (Search footprint, Reputation, …)</td>
+          <td class="status gap">Gap</td>
+        </tr>
+        <tr>
+          <td><strong>Exec body</strong></td>
+          <td><strong>Design B editorial:</strong> large headline, red pull-quote, uppercase labels + prose (no card boxes)</td>
+          <td>Intro paragraph + <strong>Top strengths / Top opportunities</strong> bordered panels</td>
+          <td class="status gap">Gap</td>
+        </tr>
+        <tr>
+          <td><strong>Actions block</strong></td>
+          <td>“What to do first” as prose paragraphs</td>
+          <td><strong>Priority actions</strong> table with Impact / Effort / Priority badges</td>
+          <td class="status gap">Gap</td>
+        </tr>
+        <tr>
+          <td><strong>Search footprint on exec</strong></td>
+          <td>Design A finding snippet card (e.g. rank #14 + Critical badge)</td>
+          <td>Not on exec tab — only via Search footprint section tab</td>
+          <td class="status gap">Gap</td>
+        </tr>
+        <tr>
+          <td><strong>“What it means” highlights</strong></td>
+          <td>3 tinted cards: Critical / Business impact / Leverage (+ blur upsell on green)</td>
+          <td>Not present on exec tab</td>
+          <td class="status gap">Gap</td>
+        </tr>
+        <tr>
+          <td><strong>Free-tier upsell</strong></td>
+          <td>Visible Upgrade CTA on blurred sections</td>
+          <td>Blur overlay on hidden strengths/opps; locked metric cards; upgrade banner on non-exec tabs</td>
+          <td class="status partial">Partial</td>
+        </tr>
+        <tr>
+          <td><strong>Overall direction</strong></td>
+          <td>Hybrid = scannable KPIs + consultant brief prose</td>
+          <td>Closer to <strong>full Option A dashboard</strong> (6 cards, strengths/opps, priority table)</td>
+          <td class="status partial">Drifted to A</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Approved hybrid (wireframe — no PNG was generated)</h2>
+    <div class="card">
+      <div class="card-head">
+        <span class="tag tag-hybrid">Hybrid spec</span>
+        From <code>approved.json</code> + <code>brief-header-1.txt</code>
+      </div>
+      <div class="hybrid-wireframe">
+        <div class="wf-header">
+          LevelStack · Apex Plumbing Atlanta · Digital Presence Assessment · 68/100 · Grade C
+        </div>
+        <div class="wf-body">
+          <div class="wf-sidebar">
+            <div class="active">Exec summary</div>
+            <div>Search footprint</div>
+            <div>Reputation</div>
+            <div>…</div>
+          </div>
+          <div class="wf-main">
+            <div class="wf-kpi">
+              <div><span class="from-a">Score 68</span></div>
+              <div><span class="from-a">Grade C</span></div>
+              <div><span class="from-a">3 Critical</span></div>
+              <div><span class="from-a">14 Findings</span></div>
+            </div>
+            <div class="wf-editorial">
+              <div class="headline"><span class="from-b">Headline: Your public presence scores 68/100…</span></div>
+              <div class="pull"><span class="from-b">Pull quote: GBP 12 reviews vs competitor 847</span></div>
+              <div><span class="label from-b">What prospects see</span> — paragraph prose, no card box</div>
+              <div><span class="label from-b">Reputation gap</span> — paragraph prose</div>
+              <div><span class="label from-b">Revenue risk</span> — paragraph prose</div>
+            </div>
+            <div class="wf-snippet"><span class="from-a">Search footprint snippet: Ranks #14… Critical badge</span></div>
+          </div>
+        </div>
+        <div class="legend">
+          <span class="from-a">From Design A</span>
+          <span class="from-b">From Design B</span>
+        </div>
+      </div>
+    </div>
+
+    <h2>Live previews</h2>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head">
+          <span class="tag tag-current">Current build</span>
+          localhost:3001 — Executive Summary tab (2026-06-22)
+        </div>
+        <div class="card-body">
+          <img src="previews/current-build.png" alt="Current LevelStack report executive summary" />
+          <p class="note">Implemented: navy sidebar, overall score card, 6 section metrics, strengths/opportunities panels, priority actions table.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="tag tag-a">Option A mockup</span>
+          Dashboard Scan — exploration PNG
+        </div>
+        <div class="card-body">
+          <img src="previews/exec-option-a.png" alt="Design Option A executive summary mockup" />
+          <p class="note">Horizontal tab bar in this mockup; you chose vertical nav. Body is closest to what shipped (cards + insight rows).</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="tag tag-b">Option B mockup</span>
+          Editorial Brief — exploration PNG
+        </div>
+        <div class="card-body">
+          <img src="previews/exec-option-b.png" alt="Design Option B editorial mockup" />
+          <p class="note">Typography-led: headline, pull quote, labeled prose. Hybrid uses this for the exec <em>body</em>, not the KPI strip.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="tag tag-a">Option A (header board)</span>
+          Header + layout exploration
+        </div>
+        <div class="card-body">
+          <img src="previews/header-option-a.png" alt="Header Option A mockup" />
+          <p class="note">Includes vertical sidebar + dashboard-style exec. Compare header band vs sidebar-only branding today.</p>
+        </div>
+      </div>
+    </div>
+
+    <h2>Header layout options (exploration)</h2>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><span class="tag tag-a">Header A</span></div>
+        <div class="card-body"><img src="previews/header-option-a.png" alt="Header option A" /></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="tag tag-b">Header B</span></div>
+        <div class="card-body"><img src="previews/header-option-b.png" alt="Header option B" /></div>
+      </div>
+    </div>
+
+    <h2>Option C (reference — not in hybrid)</h2>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head">Exec Option C — Structured Report</div>
+        <div class="card-body"><img src="previews/exec-option-c.png" alt="Option C exec" /></div>
+      </div>
+      <div class="card">
+        <div class="card-head">Header Option C</div>
+        <div class="card-body"><img src="previews/header-option-c.png" alt="Option C header" /></div>
+      </div>
+    </div>
+
+    <div class="open-hint">
+      <strong>Open this page locally:</strong> from repo root run
+      <code>open docs/v0/design-gap-comparison.html</code>
+      or serve <code>docs/v0/</code> — images load from <code>docs/v0/previews/</code>.
+      Original interactive boards:
+      <code>~/.gstack/projects/steemer473-lpd-levelstack/designs/report-layout-20250622/png-board.html</code>
+    </div>
+  </div>
+</body>
+</html>

@@ -15,6 +15,7 @@ create index if not exists levelstack_serp_cache_expires_at_idx
 alter table public.levelstack_serp_cache enable row level security;
 
 -- Service role only (pipeline writes via admin client)
+drop policy if exists "Service role full access on serp cache" on public.levelstack_serp_cache;
 create policy "Service role full access on serp cache"
   on public.levelstack_serp_cache
   for all
