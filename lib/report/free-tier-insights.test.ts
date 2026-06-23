@@ -4,8 +4,12 @@ import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
 import {
   applyFreeTierExecutiveInsights,
   buildFreeTierReputationGap,
+  buildFreeTierRevenueRisk,
   buildFreeTierWhatProspectsSee,
+  isAboutSubjectReputationFinding,
+  isGenericDirectoryListing,
   isPlaceholderReputationGap,
+  pickReputationPublicSignal,
   polishFreeTierWhatProspectsSee,
 } from "@/lib/report/free-tier-insights"
 import { resolveExecutiveContent } from "@/lib/report/executive-summary-resolve"
@@ -83,19 +87,110 @@ describe("free-tier-insights", () => {
     ).toBe(true)
   })
 
-  it("replaces free-tier reputation gap with explanatory copy", () => {
+  it("detects generic directory listings as unrelated SERP noise", () => {
+    expect(
+      isGenericDirectoryListing(
+        "Best Digital Marketing Agency near Castleberry Hill, Atlanta, GA",
+      ),
+    ).toBe(true)
+  })
+
+  it("skips unrelated directory SERP titles for Level Play Digital", () => {
+    const report: LevelstackReportJson = {
+      ...freeReport,
+      meta: { ...freeReport.meta, businessName: "Level Play Digital", ownerName: "Stephanie" },
+      sections: [
+        ...freeReport.sections.filter((s) => s.id !== "online_reputation"),
+        {
+          id: "online_reputation",
+          label: "Reputation",
+          status: "attention",
+          score: 58,
+          findings: [
+            {
+              label: "Google visibility",
+              value: "Best Digital Marketing Agency near Castleberry Hill, Atlanta, GA",
+              detail: "Unrelated local directory result",
+              severity: "medium",
+            },
+          ],
+        },
+      ],
+    }
+
+    expect(pickReputationPublicSignal(report)).toBeUndefined()
+    const copy = buildFreeTierReputationGap(report)
+    expect(copy).not.toContain("Castleberry Hill")
+    expect(copy).toContain("Reputation section scored 58/100")
+    expect(copy).toContain("Level Play Digital")
+  })
+
+  it("prefers review signals over bare business names for reputation teaser", () => {
+    const report: LevelstackReportJson = {
+      ...freeReport,
+      meta: { ...freeReport.meta, businessName: "Level Play Digital" },
+      sections: [
+        ...freeReport.sections.filter((s) => s.id !== "online_reputation"),
+        {
+          id: "online_reputation",
+          label: "Reputation",
+          status: "attention",
+          score: 55,
+          findings: [
+            {
+              label: "Yelp visibility",
+              value: "Level Play Digital",
+              detail: "Listing title only",
+              severity: "medium",
+            },
+            {
+              label: "Google reviews",
+              value: "Level Play Digital — 4.2★, 18 reviews cited",
+              detail: "Review snippet",
+              severity: "medium",
+            },
+          ],
+        },
+      ],
+    }
+
+    expect(pickReputationPublicSignal(report)).toContain("4.2★")
+    expect(pickReputationPublicSignal(report)).not.toBe("Level Play Digital")
+    expect(
+      isAboutSubjectReputationFinding(
+        report.sections.find((s) => s.id === "online_reputation")!.findings[1]!,
+        "Level Play Digital",
+        "Alex",
+      ),
+    ).toBe(true)
+  })
+
+  it("replaces free-tier reputation gap with analysis separate from upgrade", () => {
     const copy = buildFreeTierReputationGap(freeReport)
-    expect(copy).toContain("Reputation Gap compares")
-    expect(copy).toContain("free snapshot only collects")
-    expect(copy).toContain("Mixed review signals")
+    expect(copy).toContain("Reputation gap compares")
+    expect(copy).toContain("public reputation research")
+    expect(copy).toContain("From public research: Mixed review signals")
+    expect(copy).toContain("Open the Reputation tab")
+    expect(copy).toContain("Upgrade to the Full Report ($97)")
+    expect(copy).not.toContain("From public research so far:")
+    expect(copy).not.toMatch(/From public research:.*Upgrade to the Full Report/)
     expect(copy).not.toContain("Intake note: Not specified")
+  })
+
+  it("replaces free-tier revenue risk with analysis separate from upgrade", () => {
+    const copy = buildFreeTierRevenueRisk(freeReport)
+    expect(copy).toContain("From public research:")
+    expect(copy).toContain("Search footprint and Digital presence")
+    expect(copy).toContain("Upgrade to the Full Report ($97)")
+    expect(copy).not.toMatch(/From public research:.*Upgrade to the Full Report/)
   })
 
   it("replaces free-tier what prospects see with structured copy", () => {
     const copy = buildFreeTierWhatProspectsSee(freeReport)
     expect(copy).toContain("When prospects search for Alex or Test Co")
-    expect(copy).toContain("From public research so far:")
+    expect(copy).toContain("From public research:")
     expect(copy).toContain("top 10 organic results")
+    expect(copy).toContain("Open the Search footprint tab")
     expect(copy).not.toContain("Not specified")
     expect(copy).not.toContain("contactplatinum.com")
   })
@@ -110,10 +205,17 @@ describe("free-tier-insights", () => {
 
   it("resolveExecutiveContent applies free-tier insight copy", () => {
     const content = resolveExecutiveContent(freeReport)
-    expect(content.insights.reputationGap).toContain("free snapshot only collects")
-    expect(content.insights.revenueRisk).toContain("free snapshot does not ask")
-    expect(content.insights.whatProspectsSee).toContain("From public research so far:")
+    expect(content.insights.reputationGap).toContain("public reputation research")
+    expect(content.insights.revenueRisk).toContain("does not ask about")
+    expect(content.insights.whatProspectsSee).toContain("From public research:")
     expect(content.insights.whatProspectsSee).not.toContain("Not specified")
+    expect(content.structuredInsights?.whatProspectsSee.some((p) => p.kind === "highlight")).toBe(
+      true,
+    )
+    expect(
+      content.structuredInsights?.reputationGap.some((p) => p.kind === "finding"),
+    ).toBe(true)
+    expect(content.structuredInsights?.reputationGap.some((p) => p.kind === "muted")).toBe(true)
   })
 
   it("leaves paid reports unchanged", () => {

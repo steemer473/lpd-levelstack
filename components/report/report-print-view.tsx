@@ -7,6 +7,7 @@ import {
 } from "@/lib/report/display-helpers"
 import { resolveExecutiveContent } from "@/lib/report/executive-summary-resolve"
 import { FormattedReportText } from "@/components/report/formatted-report-text"
+import { ReportPrintViewFree } from "@/components/report/report-print-view-free"
 
 type ReportPrintViewProps = {
   report: LevelstackReportJson
@@ -26,6 +27,14 @@ function deriveActionBadges(index: number): {
 }
 
 export function ReportPrintView({ report }: ReportPrintViewProps) {
+  if (report.meta.reportTier === "free_snapshot") {
+    return <ReportPrintViewFree report={report} />
+  }
+
+  return <ReportPrintViewFull report={report} />
+}
+
+function ReportPrintViewFull({ report }: ReportPrintViewProps) {
   const { meta, sections, actionPlan, executiveSummary } = report
   const content = resolveExecutiveContent(report)
   const contentSections = sections.filter((s) => s.id !== "action_plan")
