@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recommended Executive Summary — Conversion Hybrid Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --rpt-navy: #001e46;
+      --rpt-page-bg: #f8f9fa;
+      --rpt-orange: #f97316;
+      --rpt-blue: #38bdf8;
+      --rpt-blue-link: #3182ce;
+      --rpt-red: #d9534f;
+      --rpt-green: #5cb85c;
+      --rpt-card-bg: #ffffff;
+      --rpt-card-border: #e2e8f0;
+      --rpt-heading: #111827;
+      --rpt-body: #4b5563;
+      --rpt-muted: #6b7280;
+      --rpt-header-divider: rgba(255, 255, 255, 0.12);
+      --rpt-critical-bg: #fdf2f2;
+      --rpt-critical-border: #f5c6cb;
+      --rpt-blue-tint-bg: #eef6fc;
+      --rpt-blue-tint-border: #b8daff;
+      --rpt-green-tint-bg: #f0fdf4;
+      --rpt-green-tint-border: #bbf7d0;
+      --rpt-red-alert-bg: #fef2f2;
+      --rpt-red-alert-border: #fecaca;
+      --rpt-radius: 12px;
+      --rpt-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background: #e2e8f0;
+      color: var(--rpt-body);
+      line-height: 1.5;
+    }
+    .preview-banner {
+      background: #1e293b;
+      color: #f8fafc;
+      text-align: center;
+      padding: 10px 16px;
+      font-size: 0.8125rem;
+    }
+    .preview-banner strong { color: #38bdf8; }
+    .preview-banner a { color: #fdba74; }
+    .shell {
+      max-width: 1280px;
+      margin: 24px auto;
+      display: flex;
+      min-height: 720px;
+      border-radius: var(--rpt-radius);
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 248px;
+      background: var(--rpt-navy);
+      color: #fff;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-brand { padding: 1.25rem 1rem; border-bottom: 1px solid var(--rpt-header-divider); }
+    .sidebar-brand .logo { font-weight: 600; font-size: 0.875rem; }
+    .sidebar-brand .company { font-weight: 600; font-size: 0.9375rem; margin-top: 0.75rem; }
+    .sidebar-brand .sub { color: var(--rpt-blue); font-size: 0.6875rem; font-weight: 600; margin-top: 0.25rem; }
+    .nav-item {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+      font-size: 0.8125rem;
+      border-bottom: 1px solid var(--rpt-header-divider);
+      color: rgba(255,255,255,0.72);
+      gap: 0.5rem;
+    }
+    .nav-item.active { background: #2563eb; color: #fff; font-weight: 600; }
+    .nav-item.locked { opacity: 0.65; }
+    .nav-item .lock { margin-left: auto; font-size: 0.625rem; }
+    .sidebar-footer { margin-top: auto; padding: 1rem; border-top: 1px solid var(--rpt-header-divider); }
+    .sidebar-footer button {
+      width: 100%;
+      padding: 0.5rem;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: default;
+    }
+    /* Main */
+    .main { flex: 1; background: var(--rpt-page-bg); overflow-y: auto; }
+    .panel { padding: 1.75rem 2rem 2.5rem; }
+    .section-label {
+      font-size: 0.625rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--rpt-muted);
+      margin-bottom: 1rem;
+    }
+    /* Row 1: headline + score */
+    .dash-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 1.5rem;
+      margin-bottom: 1.25rem;
+      align-items: flex-start;
+    }
+    .headline {
+      font-family: Poppins, Inter, sans-serif;
+      font-size: 1.375rem;
+      font-weight: 600;
+      color: var(--rpt-heading);
+      line-height: 1.35;
+      max-width: 36rem;
+    }
+    .headline em { font-style: normal; color: var(--rpt-orange); }
+    .score-card {
+      background: var(--rpt-card-bg);
+      border: 1px solid var(--rpt-card-border);
+      border-radius: var(--rpt-radius);
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: var(--rpt-shadow);
+      flex-shrink: 0;
+    }
+    .score-card .val { font-size: 1.75rem; font-weight: 700; color: var(--rpt-heading); }
+    .score-card .val span { font-size: 0.875rem; font-weight: 400; color: var(--rpt-muted); }
+    .score-card .grade {
+      font-family: Poppins, serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--rpt-orange);
+      line-height: 1;
+    }
+    /* KPI strip */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .kpi {
+      background: var(--rpt-card-bg);
+      border: 1px solid var(--rpt-card-border);
+      border-radius: var(--rpt-radius);
+      padding: 0.875rem 1rem;
+      box-shadow: var(--rpt-shadow);
+    }
+    .kpi .label {
+      font-size: 0.625rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--rpt-muted);
+    }
+    .kpi .num { font-size: 1.5rem; font-weight: 700; color: var(--rpt-heading); margin-top: 0.25rem; }
+    .kpi.critical .num { color: var(--rpt-red); }
+    .kpi.grade .num { color: var(--rpt-orange); }
+    /* Pull quote */
+    .pull-quote {
+      border-left: 4px solid var(--rpt-red);
+      padding: 0.75rem 1rem;
+      background: var(--rpt-critical-bg);
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 1.5rem;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: #7f1d1d;
+    }
+    /* Insight prose (Design B) */
+    .insights-prose { margin-bottom: 1.5rem; }
+    .insight-row { margin-bottom: 1rem; }
+    .insight-row .label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--rpt-blue-link);
+      margin-bottom: 0.25rem;
+    }
+    .insight-row p { margin: 0; font-size: 0.875rem; color: var(--rpt-body); }
+    /* Section nav cards */
+    .section-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .sec-card {
+      background: var(--rpt-card-bg);
+      border: 1px solid var(--rpt-card-border);
+      border-radius: var(--rpt-radius);
+      padding: 1rem;
+      cursor: pointer;
+      box-shadow: var(--rpt-shadow);
+      transition: border-color 0.15s;
+    }
+    .sec-card:hover { border-color: var(--rpt-blue-link); }
+    .sec-card .score { font-size: 1.25rem; font-weight: 700; color: var(--rpt-blue-link); }
+    .sec-card .score span { font-size: 0.75rem; font-weight: 400; color: var(--rpt-muted); }
+    .sec-card .name { font-size: 0.8125rem; font-weight: 500; color: var(--rpt-heading); margin-top: 0.25rem; }
+    .sec-card .link { font-size: 0.6875rem; color: var(--rpt-blue-link); margin-top: 0.5rem; display: block; }
+    /* What it means */
+    .means-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .means-card {
+      border-radius: 8px;
+      border: 1px solid;
+      padding: 1rem;
+      font-size: 0.8125rem;
+    }
+    .means-card.critical { background: var(--rpt-critical-bg); border-color: var(--rpt-critical-border); }
+    .means-card.impact { background: var(--rpt-blue-tint-bg); border-color: var(--rpt-blue-tint-border); }
+    .means-card.leverage { background: var(--rpt-green-tint-bg); border-color: var(--rpt-green-tint-border); position: relative; overflow: hidden; }
+    .means-card .cap {
+      font-size: 0.625rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+      opacity: 0.85;
+    }
+    .blur-wrap { position: relative; }
+    .blur-content { filter: blur(4px); user-select: none; opacity: 0.7; }
+    .blur-cta {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.55);
+    }
+    .blur-cta button {
+      background: var(--rpt-orange);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: default;
+    }
+    /* Two col: competitive + search snippet */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .card-block {
+      background: var(--rpt-card-bg);
+      border: 1px solid var(--rpt-card-border);
+      border-radius: var(--rpt-radius);
+      padding: 1.25rem;
+      box-shadow: var(--rpt-shadow);
+    }
+    .card-block h3 {
+      font-family: Poppins, Inter, sans-serif;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--rpt-heading);
+      margin: 0 0 0.75rem;
+    }
+    .alert-red {
+      background: var(--rpt-red-alert-bg);
+      border: 1px solid var(--rpt-red-alert-border);
+      border-radius: 6px;
+      padding: 0.625rem 0.75rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: #991b1b;
+      margin-bottom: 0.75rem;
+    }
+    .comp-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8125rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--rpt-card-border);
+    }
+    .unlock-line { font-size: 0.75rem; color: var(--rpt-muted); margin-top: 0.75rem; }
+    .link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--rpt-blue-link);
+      font-weight: 500;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: default;
+    }
+    .finding-badge {
+      display: inline-block;
+      font-size: 0.625rem;
+      font-weight: 600;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      background: #fef2f2;
+      color: #991b1b;
+      margin-top: 0.5rem;
+    }
+    /* Actions + strengths row */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1rem;
+    }
+    .action-list { list-style: none; padding: 0; margin: 0; }
+    .action-list li {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--rpt-card-border);
+      font-size: 0.8125rem;
+    }
+    .action-list li:last-child { border-bottom: none; }
+    .action-list strong { display: block; color: var(--rpt-heading); font-weight: 500; }
+    .action-list span { color: var(--rpt-muted); font-size: 0.75rem; }
+    .strength-item {
+      display: flex;
+      gap: 0.5rem;
+      font-size: 0.8125rem;
+      margin-bottom: 0.625rem;
+    }
+    .strength-item .icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      border-radius: 50%;
+      background: #dcfce7;
+      color: #166534;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.625rem;
+      flex-shrink: 0;
+    }
+    .strength-item.warn .icon { background: #ffedd5; color: #c2410c; }
+    .legend {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #fff;
+      border: 1px dashed #94a3b8;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      color: #475569;
+    }
+    .legend ul { margin: 0.5rem 0 0; padding-left: 1.25rem; }
+    @media (max-width: 900px) {
+      .shell { flex-direction: column; margin: 12px; }
+      .sidebar { width: 100%; }
+      .kpi-strip, .section-cards, .means-grid, .two-col, .bottom-row { grid-template-columns: 1fr; }
+      .dash-header { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-banner">
+    <strong>Recommended design preview</strong> — Conversion hybrid (not implemented).
+    Sample data: Apex Plumbing Atlanta ·
+    <a href="design-gap-comparison.html">Compare to other layouts</a>
+  </div>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo">◆ LevelStack</div>
+        <div class="company">Apex Plumbing Atlanta</div>
+        <div class="sub">Digital Presence Assessment</div>
+      </div>
+      <div class="nav-item active">▦ Executive Summary</div>
+      <div class="nav-item">⌕ Search footprint</div>
+      <div class="nav-item">★ Reputation</div>
+      <div class="nav-item">◉ Digital presence</div>
+      <div class="nav-item locked">◆ Revenue funnel <span class="lock">🔒</span></div>
+      <div class="nav-item locked">▤ Competitive context <span class="lock">🔒</span></div>
+      <div class="nav-item locked">☑ Action plan <span class="lock">🔒</span></div>
+      <div class="sidebar-footer">
+        <button type="button">Export report</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="panel">
+        <p class="section-label">Executive Summary · Recommended layout</p>
+
+        <!-- 1. Headline + score -->
+        <div class="dash-header">
+          <h1 class="headline">
+            Your public presence scores <em>68/100</em> — trust signals are costing you local leads in Atlanta.
+          </h1>
+          <div class="score-card">
+            <div>
+              <div style="font-size:0.625rem;text-transform:uppercase;color:var(--rpt-muted);font-weight:600;">Overall</div>
+              <div class="val">68<span>/100</span></div>
+              <div style="font-size:0.75rem;color:var(--rpt-muted);">Needs attention</div>
+            </div>
+            <div class="grade">C</div>
+          </div>
+        </div>
+
+        <!-- 2. Four KPI chips (Hybrid A) -->
+        <div class="kpi-strip">
+          <div class="kpi"><div class="label">Score</div><div class="num">68</div></div>
+          <div class="kpi grade"><div class="label">Grade</div><div class="num">C</div></div>
+          <div class="kpi critical"><div class="label">Critical issues</div><div class="num">3</div></div>
+          <div class="kpi"><div class="label">Findings</div><div class="num">14</div></div>
+        </div>
+
+        <!-- 3. Critical pull quote (Design B) -->
+        <div class="pull-quote">
+          Google Business Profile shows 12 reviews while your top competitor has 847 — prospects see that gap before they call.
+        </div>
+
+        <!-- 4. Editorial insights (Design B prose) -->
+        <div class="insights-prose">
+          <div class="insight-row">
+            <div class="label">What prospects see</div>
+            <p>You rank #14 for &ldquo;emergency plumber atlanta&rdquo; — top 3 results capture 72% of clicks. Your GBP listing appears on page 2 of the map pack.</p>
+          </div>
+          <div class="insight-row">
+            <div class="label">Reputation gap</div>
+            <p>Free snapshot is limited on reputation intake; public research shows review volume and rating lag top competitors in your market.</p>
+          </div>
+          <div class="insight-row">
+            <div class="label">Revenue risk</div>
+            <p>Low search visibility may underperform paid traffic when trust signals on your site and listings don&rsquo;t match ad promises.</p>
+          </div>
+        </div>
+
+        <!-- 5. Three free section cards (navigation) -->
+        <div class="section-cards">
+          <div class="sec-card">
+            <div class="score">52<span>/100</span></div>
+            <div class="name">Search footprint</div>
+            <span class="link">View section →</span>
+          </div>
+          <div class="sec-card">
+            <div class="score">61<span>/100</span></div>
+            <div class="name">Reputation</div>
+            <span class="link">View section →</span>
+          </div>
+          <div class="sec-card">
+            <div class="score">58<span>/100</span></div>
+            <div class="name">Digital presence</div>
+            <span class="link">View section →</span>
+          </div>
+        </div>
+
+        <!-- 6. What it means (V2 highlights + upsell) -->
+        <div class="means-grid">
+          <div class="means-card critical">
+            <div class="cap">Most critical issue</div>
+            GBP review gap vs #1 competitor (12 vs 847 reviews).
+          </div>
+          <div class="means-card impact">
+            <div class="cap">Business impact</div>
+            Estimated 40–60% of local-intent searchers never reach your site when you rank below page 1.
+          </div>
+          <div class="means-card leverage">
+            <div class="cap">Highest leverage opportunity</div>
+            <div class="blur-wrap">
+              <div class="blur-content">Review generation campaign could close the trust gap within 30 days. Full competitive and funnel analysis unlocks in Full Report.</div>
+              <div class="blur-cta"><button type="button">Upgrade to Full Report</button></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. Competitive snapshot + Search snippet -->
+        <div class="two-col">
+          <div class="card-block">
+            <h3>Competitive snapshot</h3>
+            <p style="font-size:0.75rem;color:var(--rpt-muted);margin:0 0 0.5rem;">Search: &lsquo;emergency plumber atlanta&rsquo;</p>
+            <div class="alert-red">Your position: Not on Page 1</div>
+            <div class="comp-row">
+              <span><strong>#1</strong> atlantaplumbingpros.com</span>
+              <span>SERP #2</span>
+            </div>
+            <p class="unlock-line">#1 is atlantaplumbingpros.com — unlock to see all 8 competitors and how you compare.</p>
+            <button type="button" class="link-btn">Unlock full competitive analysis →</button>
+          </div>
+          <div class="card-block">
+            <h3>Search footprint highlight</h3>
+            <p style="font-size:0.875rem;font-weight:500;color:var(--rpt-heading);margin:0;">
+              Ranks <strong style="color:var(--rpt-orange);">#14</strong> for &ldquo;emergency plumber atlanta&rdquo;
+            </p>
+            <p style="font-size:0.8125rem;margin:0.5rem 0 0;">Top 3 results capture 72% of clicks. Your GBP listing appears on page 2 of map pack results.</p>
+            <span class="finding-badge">Critical</span>
+            <button type="button" class="link-btn">View Search footprint →</button>
+          </div>
+        </div>
+
+        <!-- 8. Priority actions + strengths (compact) -->
+        <div class="bottom-row">
+          <div class="card-block">
+            <h3>What to do first</h3>
+            <ul class="action-list">
+              <li>
+                <strong>Launch review request workflow</strong>
+                <span>Why now: GBP review gap is the #1 trust blocker in your market.</span>
+              </li>
+              <li>
+                <strong>Fix NAP consistency on top 5 directories</strong>
+                <span>Quick win — improves map pack eligibility within 2 weeks.</span>
+              </li>
+              <li>
+                <strong>Search in incognito for your primary service terms</strong>
+                <span>See what prospects see on page 1 without personal history.</span>
+              </li>
+            </ul>
+            <button type="button" class="link-btn">View full action plan (locked) →</button>
+          </div>
+          <div class="card-block">
+            <h3>Strengths &amp; opportunities</h3>
+            <div class="strength-item">
+              <span class="icon">✓</span>
+              <span>Owner domain ranks for branded searches in Atlanta.</span>
+            </div>
+            <div class="blur-wrap" style="min-height:4rem;">
+              <div class="blur-content">
+                <div class="strength-item"><span class="icon">✓</span><span>Additional strengths hidden in free snapshot.</span></div>
+                <div class="strength-item warn"><span class="icon">!</span><span>More opportunities in full report.</span></div>
+              </div>
+              <div class="blur-cta"><button type="button">Unlock all insights</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <strong>Component sources in this preview</strong>
+          <ul>
+            <li><strong>4 KPI chips</strong> — approved hybrid (Design A)</li>
+            <li><strong>Headline + pull quote + insight prose</strong> — Design B editorial</li>
+            <li><strong>3 section cards</strong> — navigation to free tabs (current build pattern, trimmed)</li>
+            <li><strong>Highlight row + competitive snapshot + blur upsells</strong> — ExecutiveSummaryV2 patterns</li>
+            <li><strong>Compact action list</strong> — actionPlan.thisWeek data, links to locked Action plan tab</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

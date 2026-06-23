@@ -19,7 +19,8 @@ import {
   type ReactNode,
 } from "react"
 
-import { ExecutiveSummaryV2 } from "@/components/report/executive-summary-v2"
+import { ExecutiveSummaryConversion } from "@/components/report/executive-summary-conversion"
+import { ExecutiveSummaryDashboard } from "@/components/report/executive-summary-dashboard"
 import { FindingCard, FindingFlag } from "@/components/report/finding-card"
 import {
   DataPanel,
@@ -860,12 +861,11 @@ export function ReportTabContent({
   const { sections, actionPlan } = report
 
   if (activeTab === "executive_summary") {
-    return (
-      <ExecutiveSummaryV2
-        report={report}
-        onSelectTab={onSelectTab ?? (() => {})}
-      />
-    )
+    const onTab = onSelectTab ?? (() => {})
+    if (report.meta.reportTier === "free_snapshot") {
+      return <ExecutiveSummaryConversion report={report} onSelectTab={onTab} />
+    }
+    return <ExecutiveSummaryDashboard report={report} onSelectTab={onTab} />
   }
 
   if (activeTab === "action_plan") {
