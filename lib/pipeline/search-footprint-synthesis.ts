@@ -224,7 +224,7 @@ export function buildDeterministicSearchFootprintSection(
           `What Google shows under your link: "${domainSnippetHit.snippet.slice(0, 200)}"`,
           "If these differ a lot, prospects may see outdated messaging in search — worth updating your page title and short description.",
         ].join(" "),
-        severity: "medium",
+        severity: "good",
       })
     } else {
       findings.push({
@@ -245,10 +245,10 @@ export function buildDeterministicSearchFootprintSection(
     if (ownerSearch && ownerSearch.results.length > 0) {
       findings.push({
         label: `Google — "${intake.ownerName}"`,
-        value: `Page 1 includes: ${ownerSearch.results[0]?.title ?? "mixed results"}`,
+        value: `When someone searches your name, page 1 shows: ${ownerSearch.results[0]?.title ?? "mixed results"}`,
         detail: [
           `Personal brand searches for "${intake.ownerName}" can influence trust before prospects visit your business site.`,
-          formatTopResults(ownerSearch.results),
+          `Top results for your name: ${formatTopResults(ownerSearch.results)}`,
         ].join(" "),
         severity: ownerSearchSeverity(ownerSearch.results, buyerHost),
       })

@@ -1156,3 +1156,74 @@
   background: #ffedd5;
   color: #c2410c;
 }
+
+/* —— Section finding cards (search / reputation / digital presence) —— */
+.levelstack-report .rpt-finding-card {
+  background: var(--rpt-card-bg);
+  border: 1px solid var(--rpt-card-border);
+  border-radius: var(--rpt-radius);
+  box-shadow: var(--rpt-shadow);
+  padding: 1rem 1.125rem;
+}
+
+.levelstack-report .rpt-finding-context {
+  color: var(--rpt-body);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.levelstack-report .rpt-finding-severity {
+  border-radius: 8px;
+  padding: 0.625rem 0.75rem;
+}
+
+.levelstack-report .rpt-finding-severity.is-critical {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.levelstack-report .rpt-finding-severity.is-attention {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.levelstack-report .rpt-finding-severity.is-good {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.levelstack-report .rpt-finding-severity-text {
+  color: var(--rpt-body);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  margin: 0.5rem 0 0;
+}
+
+.levelstack-report .rpt-section-score-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--rpt-card-bg);
+  border: 1px solid var(--rpt-card-border);
+  border-left-width: 4px;
+  border-radius: var(--rpt-radius);
+  box-shadow: var(--rpt-shadow);
+  padding: 0.875rem 1rem;
+}
+
+.levelstack-report .rpt-section-score-value {
+  color: var(--rpt-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0.125rem 0 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.levelstack-report .rpt-section-score-denom {
+  color: var(--rpt-blue);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-left: 0.125rem;
+}

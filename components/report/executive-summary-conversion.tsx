@@ -233,6 +233,7 @@ function CompetitiveSnapshotPanel({
     0,
     (competitive.competitorCount ?? 0) - (previewCompetitor ? 1 : 0),
   )
+  const leadingRank = competitive.businessRank
 
   return (
     <div className="rpt-card p-5 h-full">
@@ -250,18 +251,23 @@ function CompetitiveSnapshotPanel({
       {previewCompetitor ? (
         <div className="rpt-conv-comp-row">
           <span>
-            <strong>#1</strong> {previewCompetitor.domain}
+            <strong>#1 result</strong> {previewCompetitor.domain}
           </span>
           <span className="rpt-muted-text tabular-nums">SERP #{previewCompetitor.serpPosition}</span>
         </div>
+      ) : leadingRank != null && leadingRank <= 3 ? (
+        <p className="rpt-body-text text-sm mb-2">
+          You rank <strong>#{leadingRank}</strong> for your business name in Google — no other
+          domains appeared above you in this snapshot.
+        </p>
       ) : null}
       {hiddenCompetitorCount > 0 ? (
         <p className="rpt-muted-text text-sm mt-3">
           {previewCompetitor
-            ? `#1 is ${previewCompetitor.domain} — unlock to see all ${competitive.competitorCount ?? hiddenCompetitorCount + 1} competitors and how you compare`
+            ? `Top organic result: ${previewCompetitor.domain} — unlock to see all ${competitive.competitorCount ?? hiddenCompetitorCount + 1} results and how you compare`
             : `${competitive.competitorCount ?? hiddenCompetitorCount} competitors analyzed — unlock to see who ranks above you`}
         </p>
-      ) : !previewCompetitor ? (
+      ) : !previewCompetitor && !(leadingRank != null && leadingRank <= 3) ? (
         <p className="rpt-muted-text text-xs">
           Unlock the full report for competitive rankings from live search data.
         </p>

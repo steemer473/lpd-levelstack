@@ -2,7 +2,8 @@ import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
 import { businessNameForSearch, marketLocationLabel } from "@/lib/intake/location"
 import {
   bestReputationHit,
-  platformFromQuery,
+  findOwnSiteReputationResult,
+  formatReputationQueryLabel,
 } from "@/lib/research/reputation-parse"
 import type { SerpOrganicResult } from "@/lib/research/serp"
 import { hostnameFromUrl, resultsMentionDomain } from "@/lib/research/serp"
@@ -86,7 +87,7 @@ export function buildSectionsFromResearch(
           ? "Your website was not in the top 10 organic results for this query."
           : businessSearch?.limitation ?? "Search data unavailable for business name.",
       detail: businessSearch?.results.length
-        ? `Top results: ${formatTopResults(businessSearch.results)}`
+        ? `These are the top Google results prospects see: ${formatTopResults(businessSearch.results)}`
         : (businessSearch?.limitation ?? ""),
       severity: businessSearchSeverity(
         businessHit,
@@ -96,11 +97,11 @@ export function buildSectionsFromResearch(
     {
       label: `Google — "${intake.ownerName}"`,
       value:
-        ownerSearch?.results.length ?
-          `Page 1 includes: ${ownerSearch.results[0]?.title ?? "mixed results"}`
-        : "No organic results captured.",
+        ownerSearch?.results.length
+          ? `When someone searches your name, page 1 shows: ${ownerSearch.results[0]?.title ?? "mixed results"}`
+          : "No organic results captured when searching your owner name.",
       detail: ownerSearch?.results.length
-        ? formatTopResults(ownerSearch.results)
+        ? `Top results for your name: ${formatTopResults(ownerSearch.results)}`
         : (ownerSearch?.limitation ?? ""),
       severity: ownerSearchSeverity(
         ownerSearch?.results ?? [],
@@ -109,7 +110,7 @@ export function buildSectionsFromResearch(
     },
   ]
 
-  const reputationFindings = buildReputationFindings(intake, bundle)
+  const reputationFindings = buildReputationFindings(intake, bundle, buyerHost)
 
   const site = bundle.digitalPresence.website
   const psi = bundle.digitalPresence.pageSpeed
@@ -187,7 +188,9 @@ export function buildSectionsFromResearch(
   const digitalFindings = [
     {
       label: "Homepage signals",
-      value: site.title ? `Title: “${site.title}”` : "Could not read page title.",
+      value: site.title
+        ? `First impression on your homepage: Title: “${site.title}”`
+        : "Could not read your homepage title.",
       detail: [
         site.metaDescription ? `${TERMS.metaDescription}: ${site.metaDescription}` : null,
         site.h1 ? `${TERMS.mainHeading}: ${site.h1}` : null,
@@ -195,17 +198,17 @@ export function buildSectionsFromResearch(
       ]
         .filter(Boolean)
         .join(" "),
-      severity: site.title ? ("medium" as const) : ("high" as const),
+      severity: site.title && site.metaDescription && site.h1 ? ("good" as const) : site.title ? ("low" as const) : ("high" as const),
     },
     ...(psi.mobileScore != null
       ? [
           {
             label: "Mobile site speed",
-            value: `Lighthouse mobile score ${psi.mobileScore}/100`,
+            value: `Mobile site speed: ${psi.mobileScore}/100 (Lighthouse)`,
             detail: [
               psi.lcp ? `${TERMS.lcp}: ${psi.lcp}` : null,
               psi.cls ? `${TERMS.cls}: ${psi.cls}` : null,
-              `Source: ${TERMS.pageSpeed} (mobile).`,
+              `Source: ${TERMS.pageSpeed} (mobile). 70+ is healthy; under 50 often feels broken on phones.`,
             ]
               .filter(Boolean)
               .join(" "),
@@ -392,7 +395,7 @@ export function buildSectionsFromResearch(
         {
           platform: TERMS.aiOverview,
           result: aiOverview ?? `No ${TERMS.aiOverview} snippet returned for footprint queries.`,
-          severity: aiOverview ? ("medium" as const) : ("high" as const),
+          severity: aiOverview ? ("low" as const) : ("high" as const),
         },
         {
           platform: "ChatGPT / Perplexity",
@@ -533,38 +536,67 @@ function gbpLocationMismatch(
 function buildReputationFindings(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
+  buyerHost: string | null,
 ): ReportSection["findings"] {
   const findings: ReportSection["findings"] = []
+  const repContext = {
+    businessName: intake.primaryBusinessName,
+    ownerName: intake.ownerName,
+    buyerHost,
+  }
 
   for (const search of bundle.reputation.searches) {
     if (!search.results.length && !search.limitation) continue
-    const platform = platformFromQuery(search.query)
-    const hit = bestReputationHit(search.results, search.query, {
-      businessName: intake.primaryBusinessName,
-      ownerName: intake.ownerName,
-    })
+
+    const hit = bestReputationHit(search.results, search.query, repContext)
+    const ownSite = findOwnSiteReputationResult(search.results, repContext)
+    const label = formatReputationQueryLabel(search.query)
 
     if (hit) {
-      const { rating, reviewCount } = hit.parsed
+      const { rating, reviewCount, platform } = hit.parsed
+      const platformLabel = platform ?? "public listing"
+
+      if (rating != null) {
+        findings.push({
+          label,
+          value: `${rating}★${reviewCount != null ? ` (${reviewCount} reviews cited)` : ""} on ${platformLabel}`,
+          detail: `Listing: ${hit.result.title.slice(0, 80)} · ${hit.result.link}. Google shows: ${hit.result.snippet.slice(0, 160)}`,
+          severity:
+            rating < 4
+              ? ("critical" as const)
+              : rating < 4.2
+                ? ("high" as const)
+                : ("good" as const),
+        })
+      } else {
+        findings.push({
+          label,
+          value: "No star rating or review count appeared in search results",
+          detail: `Top relevant result: ${hit.result.title.slice(0, 80)} · ${hit.result.link}. Google shows: ${hit.result.snippet.slice(0, 160)}`,
+          severity: "high" as const,
+        })
+      }
+    } else if (ownSite) {
       findings.push({
-        label: platform ? `${platform} visibility` : search.query.slice(0, 48),
+        label,
         value:
-          rating != null
-            ? `${hit.result.title.slice(0, 80)} — ${rating}★${reviewCount != null ? `, ${reviewCount} reviews cited` : ""}`
-            : hit.result.title.slice(0, 100),
-        detail: `${hit.result.link} · ${hit.result.snippet.slice(0, 200)}`,
-        severity:
-          rating != null && rating < 4
-            ? ("critical" as const)
-            : rating != null && rating < 4.3
-              ? ("high" as const)
-              : ("medium" as const),
+          "No review profile found — your website ranks instead of third-party reviews",
+        detail: `When prospects search for reviews, Google shows your homepage first: ${ownSite.link}. Google shows: ${ownSite.snippet.slice(0, 180)}`,
+        severity: "high" as const,
+      })
+    } else if (search.results.length > 0) {
+      findings.push({
+        label,
+        value: `No review listings found for "${search.query.replace(/\s+reviews?$/i, "").trim()}"`,
+        detail:
+          "Unrelated directory and list pages were filtered out. Prospects searching for reviews may not see credible third-party proof.",
+        severity: "high" as const,
       })
     } else if (search.limitation) {
       findings.push({
-        label: platform ?? "Reputation search",
+        label,
         value: search.limitation.slice(0, 100),
-        detail: `Query: ${search.query}`,
+        detail: `We searched Google for: ${search.query}`,
         severity: "medium",
       })
     }
@@ -574,7 +606,12 @@ function buildReputationFindings(
     findings.push({
       label: "Review-oriented search",
       value: "No platform-specific review snippets captured.",
-      detail: intake.complaintsAwareness.slice(0, 300),
+      detail: [
+        "We searched Google for review and reputation queries tied to your business.",
+        intake.complaintsAwareness.slice(0, 220),
+      ]
+        .filter(Boolean)
+        .join(" "),
       severity: intake.reputationScale <= 6 ? "high" : "medium",
     })
   }

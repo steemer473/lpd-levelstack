@@ -20,27 +20,25 @@ function SerpResultsList({
   return (
     <div className="mt-2 space-y-2">
       {intro ? (
-        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-          {intro}
-        </p>
+        <p className="rpt-caption mb-1">{intro}</p>
       ) : null}
       <ol className="space-y-2 list-none pl-0">
         {items.map((item) => (
           <li
             key={`${item.position}-${item.url}`}
-            className="flex gap-2 text-[13px] leading-snug text-muted-foreground"
+            className="flex gap-2 text-[13px] leading-snug rpt-body-text"
           >
             <span className="shrink-0 font-semibold tabular-nums text-lpd-orange">
               #{item.position}
             </span>
             <span className="min-w-0">
-              <span className="text-foreground">{item.title}</span>
+              <span className="text-[var(--rpt-heading)] font-medium">{item.title}</span>
               <span className="block mt-0.5">
                 <Link
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[12px] text-lpd-orange/90 hover:text-lpd-orange hover:underline break-all"
+                  className="text-[12px] text-[var(--rpt-blue-link)] hover:underline break-all"
                 >
                   {item.url}
                 </Link>
@@ -61,11 +59,8 @@ function ParsedDetailBody({ parsed }: { parsed: ParsedFindingDetail }) {
       return (
         <ul className="mt-2 space-y-1.5 list-none pl-0">
           {parsed.items.map((item) => (
-            <li
-              key={item.key}
-              className="text-[13px] leading-relaxed text-muted-foreground"
-            >
-              <span className="font-semibold text-foreground">
+            <li key={item.key} className="text-[13px] leading-relaxed rpt-body-text">
+              <span className="font-semibold text-[var(--rpt-heading)]">
                 {DETAIL_KEY_LABELS[item.key] ?? item.key}:{" "}
               </span>
               {item.value}
@@ -77,10 +72,7 @@ function ParsedDetailBody({ parsed }: { parsed: ParsedFindingDetail }) {
       return (
         <ul className="mt-2 space-y-1.5 list-disc pl-4 marker:text-lpd-orange">
           {parsed.items.map((item, i) => (
-            <li
-              key={i}
-              className="text-[13px] leading-relaxed text-muted-foreground"
-            >
+            <li key={i} className="text-[13px] leading-relaxed rpt-body-text">
               {item}
             </li>
           ))}
@@ -90,7 +82,7 @@ function ParsedDetailBody({ parsed }: { parsed: ParsedFindingDetail }) {
       return (
         <div className="mt-2 space-y-2">
           {parsed.paragraphs.map((p, i) => (
-            <p key={i} className="text-[13px] leading-relaxed text-muted-foreground">
+            <p key={i} className="text-[13px] leading-relaxed rpt-body-text">
               {p}
             </p>
           ))}
@@ -98,9 +90,7 @@ function ParsedDetailBody({ parsed }: { parsed: ParsedFindingDetail }) {
       )
     case "plain":
       return (
-        <p className="text-[13px] leading-relaxed text-muted-foreground mt-2">
-          {parsed.text}
-        </p>
+        <p className="text-[13px] leading-relaxed rpt-body-text mt-2">{parsed.text}</p>
       )
     default:
       return null
@@ -112,12 +102,12 @@ export function FindingValueHeadline({ value }: { value: string }) {
 
   if (!emphasis) {
     return (
-      <p className="text-sm font-semibold text-foreground leading-snug">{value}</p>
+      <p className="text-sm font-semibold text-[var(--rpt-heading)] leading-snug">{value}</p>
     )
   }
 
   return (
-    <p className="text-sm leading-snug text-foreground">
+    <p className="text-sm leading-snug text-[var(--rpt-heading)]">
       <span className="font-semibold">{lead} </span>
       <span className="font-semibold text-lpd-orange">{emphasis}</span>
     </p>
@@ -138,21 +128,25 @@ export function DataPanel({
   children: ReactNode
 }) {
   return (
-    <div
-      className={cn(
-        "rounded-lg border border-border/70 bg-muted/40 p-4 mb-3",
-        className,
-      )}
-    >
+    <div className={cn("rpt-finding-card mb-3", className)}>
       {children}
     </div>
   )
 }
 
-export function DataPanelLabel({ children }: { children: ReactNode }) {
+export function DataPanelLabel({
+  children,
+  subtitle,
+}: {
+  children: ReactNode
+  subtitle?: string
+}) {
   return (
-    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 leading-tight">
-      {children}
-    </p>
+    <div className="mb-2">
+      <p className="rpt-caption">{children}</p>
+      {subtitle ? (
+        <p className="rpt-finding-context mt-1">{subtitle}</p>
+      ) : null}
+    </div>
   )
 }

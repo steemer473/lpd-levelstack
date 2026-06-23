@@ -6,6 +6,7 @@ import {
   PAID_ONLY_SECTION_IDS,
 } from "@/lib/pipeline/constants"
 import { extractUpgradeTeasers } from "@/lib/pipeline/assemble-free-report"
+import { hostnameFromUrl } from "@/lib/research/serp"
 import type {
   LevelstackReportJson,
   ReportSection,
@@ -257,7 +258,7 @@ export function assembleReportFromSignals(
 
   const upgradeTeasers =
     reportTier === "free_snapshot"
-      ? extractUpgradeTeasers(allSections, emptyResearchBundle())
+      ? extractUpgradeTeasers(allSections, emptyResearchBundle(), hostnameFromUrl(intake.websiteUrl))
       : undefined
 
   return {
