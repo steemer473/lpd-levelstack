@@ -104,8 +104,20 @@ describe("extractUpgradeTeasers", () => {
       search.findings[0].detail =
         "Top results: #1 Rival Co (https://rival-example.com/); #2 Other (https://other.com/)"
     }
-    const teasers = extractUpgradeTeasers(sections, bundle)
+    const teasers = extractUpgradeTeasers(sections, bundle, "example.com")
     expect(teasers.previewCompetitor?.domain).toBe("rival-example.com")
     expect(teasers.previewCompetitor?.rank).toBe(1)
+  })
+
+  it("skips own domain when picking preview competitor", () => {
+    const bundle = emptyResearchBundle()
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const search = sections.find((s) => s.id === "search_footprint")
+    if (search?.findings[0]) {
+      search.findings[0].detail =
+        "Top results: #1 Test Co (https://example.com/); #2 Rival Co (https://rival-example.com/)"
+    }
+    const teasers = extractUpgradeTeasers(sections, bundle, "example.com")
+    expect(teasers.previewCompetitor?.domain).toBe("rival-example.com")
   })
 })

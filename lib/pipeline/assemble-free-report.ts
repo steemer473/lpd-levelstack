@@ -16,6 +16,7 @@ import {
   buildSectionsFromResearch,
 } from "@/lib/pipeline/serp-backed-sections"
 import { extractPreviewCompetitor } from "@/lib/report/parse-serp-rows"
+import { hostnameFromUrl } from "@/lib/research/serp"
 
 function signalRows(signals: AuditScoreBundle["signals"]) {
   return signals.map((s) => ({
@@ -34,6 +35,7 @@ function signalRows(signals: AuditScoreBundle["signals"]) {
 export function extractUpgradeTeasers(
   allSections: ReportSection[],
   bundle: ResearchBundle,
+  buyerHost?: string | null,
 ): NonNullable<LevelstackReportJson["meta"]["upgradeTeasers"]> {
   const competitive = allSections.find((s) => s.id === "competitive_context")
   const search = allSections.find((s) => s.id === "search_footprint")
@@ -77,7 +79,7 @@ export function extractUpgradeTeasers(
     ""
 
   const previewCompetitor = detailSource
-    ? extractPreviewCompetitor(detailSource)
+    ? extractPreviewCompetitor(detailSource, buyerHost)
     : undefined
 
   return {
@@ -100,7 +102,11 @@ export function assembleFreeReportFromResearch(
   )
 
   const sections = allSections.filter((s) => FREE_TIER_SECTION_IDS.has(s.id))
-  const upgradeTeasers = extractUpgradeTeasers(allSections, bundle)
+  const upgradeTeasers = extractUpgradeTeasers(
+    allSections,
+    bundle,
+    hostnameFromUrl(intake.websiteUrl),
+  )
 
   const executiveSummary = buildExecutiveSummaryFromResearch(
     intake,

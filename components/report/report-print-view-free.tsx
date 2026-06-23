@@ -1,4 +1,5 @@
 import { ExecutiveInsightBody } from "@/components/report/executive-insight-body"
+import { FindingPrintBlock } from "@/components/report/finding-card"
 import { FormattedReportText } from "@/components/report/formatted-report-text"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
 import {
@@ -349,10 +350,7 @@ export function ReportPrintViewFree({ report }: ReportPrintViewFreeProps) {
               {label} ({section.score}/100)
             </h2>
             {section.findings.map((f, i) => (
-              <div key={i} className="mb-3">
-                <p className="font-medium">{f.value}</p>
-                <p className="text-gray-700 text-xs mt-0.5">{f.detail}</p>
-              </div>
+              <FindingPrintBlock key={i} sectionId={id} finding={f} />
             ))}
           </section>
         )

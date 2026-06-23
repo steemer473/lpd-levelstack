@@ -1,4 +1,5 @@
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
+import { FindingPrintBlock } from "@/components/report/finding-card"
 import {
   planDisplayName,
   readinessHeadline,
@@ -168,10 +169,7 @@ function ReportPrintViewFull({ report }: ReportPrintViewProps) {
             {section.label} ({section.score}/100)
           </h2>
           {section.findings.map((f, i) => (
-            <div key={i} className="mb-3 pl-0">
-              <p className="font-medium">{f.value}</p>
-              <p className="text-gray-700 text-xs mt-0.5">{f.detail}</p>
-            </div>
+            <FindingPrintBlock key={i} sectionId={section.id} finding={f} />
           ))}
         </section>
       ))}

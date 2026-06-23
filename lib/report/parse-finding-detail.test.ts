@@ -16,6 +16,16 @@ describe("parseFindingDetail", () => {
     }
   })
 
+  it("strips prospect-facing Top results prefix", () => {
+    const parsed = parseFindingDetail(
+      "These are the top Google results prospects see: #1 Acme (https://acme.com); #2 Beta (https://beta.com)",
+    )
+    expect(parsed?.kind).toBe("serp")
+    if (parsed?.kind === "serp") {
+      expect(parsed.intro).toContain("prospects see")
+    }
+  })
+
   it("strips Top results prefix", () => {
     const parsed = parseFindingDetail(
       "Top results: #1 Acme (https://acme.com); #2 Beta (https://beta.com)",

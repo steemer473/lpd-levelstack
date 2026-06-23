@@ -21,12 +21,13 @@ import {
 
 import { ExecutiveSummaryConversion } from "@/components/report/executive-summary-conversion"
 import { ExecutiveSummaryDashboard } from "@/components/report/executive-summary-dashboard"
-import { FindingCard, FindingFlag } from "@/components/report/finding-card"
+import { FindingCard, FindingSeverityBlock } from "@/components/report/finding-card"
 import {
   DataPanel,
   DataPanelLabel,
   FindingDetailContent,
 } from "@/components/report/finding-detail"
+import { scoreRowHint } from "@/lib/report/finding-context"
 import { SectionGuideInfo } from "@/components/report/section-guide-info"
 import { Button } from "@/components/ui/button"
 import type { LevelstackReportJson, ReportSection } from "@/lib/pipeline/report-types"
@@ -37,11 +38,12 @@ import {
   PAID_TAB_IDS,
   priorityBreakdown,
   scoreBarColor,
+  sectionScoreAccent,
   sectionStatusBadge,
   SECTION_TAB_ORDER,
 } from "@/lib/report/display-helpers"
 import { REPORT_INTRO } from "@/lib/report/section-guides"
-import { extractPreviewCompetitor } from "@/lib/report/parse-serp-rows"
+import { buildUpgradeTeaserCopy } from "@/lib/report/parse-serp-rows"
 import { getHubPricingUrl, getHubSeoWaitlistUrl, getHubWorkflowWaitlistUrl } from "@/lib/urls"
 import { cn } from "@/lib/utils"
 
@@ -115,39 +117,45 @@ export function useReportTabs(report: LevelstackReportJson) {
 export function ScoreRows({ section }: { section: ReportSection }) {
   if (!section.scoreRows?.length) return null
   return (
-    <ul className="mt-1 divide-y divide-border/60 list-none pl-0">
-      {section.scoreRows.map((row) => (
-        <li key={row.label} className="py-3 first:pt-0 last:pb-0">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-            {row.label}
-          </p>
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm font-semibold text-foreground">{row.value}</span>
-            <span className="flex items-center gap-2 shrink-0">
-              <span
-                className="inline-block w-20 h-1.5 rounded-full bg-border overflow-hidden"
-                aria-hidden
-              >
+    <ul className="mt-1 divide-y divide-[var(--rpt-card-border)] list-none pl-0">
+      {section.scoreRows.map((row) => {
+        const hint = scoreRowHint(row.label, row.tone)
+        return (
+          <li key={row.label} className="py-3 first:pt-0 last:pb-0">
+            <p className="rpt-caption mb-1">{row.label}</p>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm font-semibold text-[var(--rpt-heading)]">
+                {row.value}
+              </span>
+              <span className="flex items-center gap-2 shrink-0">
                 <span
-                  className="block h-full rounded-full"
-                  style={{
-                    width: `${row.percent}%`,
-                    backgroundColor:
-                      row.tone === "red"
-                        ? LPD.red
-                        : row.tone === "amber"
-                          ? LPD.amber
-                          : LPD.green,
-                  }}
-                />
+                  className="inline-block w-20 h-1.5 rounded-full bg-[#e2e8f0] overflow-hidden"
+                  aria-hidden
+                >
+                  <span
+                    className="block h-full rounded-full"
+                    style={{
+                      width: `${row.percent}%`,
+                      backgroundColor:
+                        row.tone === "red"
+                          ? LPD.red
+                          : row.tone === "amber"
+                            ? LPD.amber
+                            : LPD.green,
+                    }}
+                  />
+                </span>
+                <span className="text-xs tabular-nums text-[var(--rpt-muted)] w-8 text-right">
+                  {row.percent}%
+                </span>
               </span>
-              <span className="text-xs tabular-nums text-muted-foreground w-8 text-right">
-                {row.percent}%
-              </span>
-            </span>
-          </div>
-        </li>
-      ))}
+            </div>
+            {hint ? (
+              <p className="text-xs text-[var(--rpt-muted)] mt-1 leading-snug">{hint}</p>
+            ) : null}
+          </li>
+        )
+      })}
     </ul>
   )
 }
@@ -208,13 +216,7 @@ export function UpgradeBanner({ report }: { report: LevelstackReportJson }) {
     report.meta.issueCountForUpgrade ??
     report.meta.criticalCount + report.meta.highCount
 
-  const previewCompetitor =
-    report.meta.upgradeTeasers?.previewCompetitor ??
-    (() => {
-      const search = report.sections.find((s) => s.id === "search_footprint")
-      const detail = search?.findings.find((f) => f.detail.includes("http"))?.detail
-      return detail ? extractPreviewCompetitor(detail) : undefined
-    })()
+  const upgradeCopy = buildUpgradeTeaserCopy(report)
 
   return (
     <div className="rpt-upsell flex flex-col gap-3 px-7 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -223,11 +225,7 @@ export function UpgradeBanner({ report }: { report: LevelstackReportJson }) {
           We found {issueCount} issue{issueCount === 1 ? "" : "s"} in your public presence —
           including gaps that may be costing you leads.
         </p>
-        <p className="mt-1 text-white/60">
-          {previewCompetitor
-            ? `#1 competitor: ${previewCompetitor.domain} — unlock your Full Report ($97) for full competitive analysis and your prioritized 90-day action plan.`
-            : "Unlock your Full Report ($97) for revenue funnel diagnosis, full competitive analysis, and your prioritized 90-day action plan."}
-        </p>
+        <p className="mt-1 text-white/60">{upgradeCopy}</p>
       </div>
       <Button variant="brand" asChild className="shrink-0">
         <Link href={getHubPricingUrl()}>Upgrade — $97</Link>
@@ -573,40 +571,66 @@ export function SectionPanel({
 
   if (section.id === "action_plan") return null
 
+  const accent = sectionScoreAccent(section.id)
+
   return (
-    <div className="px-6 py-5">
+    <div className="rpt-dash-panel">
+      <div
+        className="rpt-section-score-header mb-4"
+        style={{ borderLeftColor: accent.bar }}
+      >
+        <div>
+          <p className="rpt-caption">Section score</p>
+          <p className="rpt-section-score-value">
+            {section.score}
+            <span className="rpt-section-score-denom">/100</span>
+          </p>
+        </div>
+        <span className={cn("text-[11px] font-medium px-2.5 py-1 rounded", statusClass)}>
+          {sectionStatusBadge(section)}
+        </span>
+      </div>
+
       <SectionPanelHeader
         title={section.label}
         tabId={section.id}
-        trailing={
-          <span className={cn("text-[11px] font-medium px-2.5 py-1 rounded", statusClass)}>
-            {sectionStatusBadge(section)}
-          </span>
-        }
+        trailing={null}
       />
 
       {section.findings.map((f, i) => (
-        <FindingCard key={i} finding={f} />
+        <FindingCard key={i} finding={f} sectionId={section.id} />
       ))}
 
       {section.scoreRows && section.scoreRows.length > 0 && (
         <DataPanel>
-          <DataPanelLabel>Website &amp; presence signals</DataPanelLabel>
+          <DataPanelLabel subtitle="Quick health checks for your website and Google Maps listing.">
+            Website &amp; presence signals
+          </DataPanelLabel>
           <ScoreRows section={section} />
         </DataPanel>
       )}
 
       {section.aiPreview && section.aiPreview.length > 0 && (
         <>
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground my-3 mb-2">
+          <p className="rpt-caption my-3 mb-2">
             AI search visibility preview (as of {reportDate})
           </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-2">
             {section.aiPreview.map((ai, i) => (
               <DataPanel key={i} className="mb-0">
-                <DataPanelLabel>{ai.platform}</DataPanelLabel>
+                <DataPanelLabel subtitle="Summary shown when prospects ask AI about you.">
+                  {ai.platform}
+                </DataPanelLabel>
                 <FindingDetailContent detail={ai.result} />
-                <FindingFlag severity={ai.severity} />
+                <FindingSeverityBlock
+                  sectionId="search_footprint"
+                  finding={{
+                    label: ai.platform,
+                    value: ai.result.slice(0, 160),
+                    detail: ai.result,
+                    severity: ai.severity,
+                  }}
+                />
               </DataPanel>
             ))}
           </div>
@@ -632,14 +656,14 @@ export function SectionPanelHeader({
   subtitle?: string
 }) {
   return (
-    <div className="flex items-center justify-between border-b border-border pb-3 mb-4 gap-3">
+    <div className="flex items-center justify-between border-b border-[var(--rpt-card-border)] pb-3 mb-4 gap-3">
       <div className="flex items-center gap-1.5 min-w-0">
         <div className="min-w-0">
-          <h3 className="text-[15px] font-medium truncate font-[family-name:var(--font-heading)]">
+          <h3 className="text-[15px] font-semibold truncate font-[family-name:var(--font-heading)] text-[var(--rpt-heading)]">
             {title}
           </h3>
           {subtitle ? (
-            <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
+            <p className="text-xs text-[var(--rpt-muted)] mt-0.5">{subtitle}</p>
           ) : null}
         </div>
         <SectionGuideInfo tabId={tabId} />

@@ -6,6 +6,9 @@ import {
   buildFreeTierStructuredExecutiveInsights,
 } from "@/lib/report/free-tier-insights"
 import {
+  deriveBuyerHostFromReport,
+  extractBusinessSearchRank,
+  isExcludedSerpDomain,
   parseSerpRowsFromDetail,
 } from "@/lib/report/parse-serp-rows"
 
@@ -37,6 +40,7 @@ export type CompetitiveSnapshot = {
   rows: CompetitiveSnapshotRow[]
   competitorCount?: number
   previewTitle?: string
+  businessRank?: number | null
 }
 
 function hasStructuredInsights(
@@ -124,27 +128,35 @@ export function resolveCompetitiveSnapshot(
     positionAlert = "Your position: Not on Page 1"
   }
 
+  const buyerHost = deriveBuyerHostFromReport(report)
+
   const competitiveDetail = serviceFinding?.detail?.trim()
   const detailSource =
     competitiveDetail ||
     search?.findings.find((f) => f.detail.includes("http"))?.detail ||
     ""
 
-  const rows = parseSerpRowsFromDetail(detailSource)
+  const rows = parseSerpRowsFromDetail(detailSource, 3, buyerHost)
   const competitorCount = teasers?.competitorCount ?? rows.length
 
   const previewFromMeta = teasers?.previewCompetitor
-  const previewRow: CompetitiveSnapshotRow | undefined = previewFromMeta
+  const previewFromMetaValid =
+    previewFromMeta && !isExcludedSerpDomain(previewFromMeta.domain, buyerHost)
+      ? previewFromMeta
+      : undefined
+
+  const previewRow: CompetitiveSnapshotRow | undefined = previewFromMetaValid
     ? {
         rank: 1,
-        domain: previewFromMeta.domain,
-        serpPosition: previewFromMeta.rank,
+        domain: previewFromMetaValid.domain,
+        serpPosition: previewFromMetaValid.rank,
       }
     : rows[0]
       ? { rank: 1, domain: rows[0].domain, serpPosition: rows[0].serpPosition }
       : undefined
 
-  const previewTitle = previewFromMeta?.title ?? rows[0]?.title
+  const previewTitle = previewFromMetaValid?.title ?? rows[0]?.title
+  const businessRank = extractBusinessSearchRank(report)
 
   return {
     searchQuery,
@@ -157,5 +169,6 @@ export function resolveCompetitiveSnapshot(
         : rows,
     competitorCount,
     previewTitle,
+    businessRank,
   }
 }

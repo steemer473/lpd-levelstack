@@ -44,9 +44,11 @@ function parseSerpDetail(detail: string): ParsedFindingDetail | null {
   let intro: string | undefined
   let body = detail.trim()
 
-  const topResultsPrefix = /^Top results:\s*/i
+  const topResultsPrefix =
+    /^(?:Top results(?: for your name)?|These are the top Google results prospects see):\s*/i
   if (topResultsPrefix.test(body)) {
-    intro = "Top results"
+    const introMatch = body.match(topResultsPrefix)
+    intro = introMatch?.[0]?.replace(/:\s*$/, "").trim() ?? "Top results"
     body = body.replace(topResultsPrefix, "")
   }
 
