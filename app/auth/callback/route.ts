@@ -56,6 +56,13 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  console.error("[auth/callback] auth failed", {
+    hasCode: Boolean(code),
+    hasTokenHash: Boolean(token_hash),
+    type,
+    next,
+  })
+
   const signIn = new URL("/auth/sign-in", origin)
   signIn.searchParams.set("error", "auth")
   if (next.startsWith("/")) {
