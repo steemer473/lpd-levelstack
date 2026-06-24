@@ -8,9 +8,10 @@ import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
 type ReportPrintClientProps = {
   report: LevelstackReportJson
   autoPrint?: boolean
+  reportId?: string
 }
 
-export function ReportPrintClient({ report, autoPrint }: ReportPrintClientProps) {
+export function ReportPrintClient({ report, autoPrint, reportId }: ReportPrintClientProps) {
   useEffect(() => {
     if (autoPrint) {
       const t = window.setTimeout(() => window.print(), 400)
@@ -29,7 +30,7 @@ export function ReportPrintClient({ report, autoPrint }: ReportPrintClientProps)
           Print / Save as PDF
         </button>
       </div>
-      <ReportPrintView report={report} />
+      <ReportPrintView report={report} reportId={reportId} />
     </div>
   )
 }

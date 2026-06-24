@@ -7,16 +7,18 @@ export type LevelstackReportRow = {
   id: string
   status: string
   report_json: unknown
+  free_snapshot_json?: unknown
   plan_id: string | null
   report_tier?: string | null
   error_message: string | null
   job_id: string | null
   intake_id: string
   user_id?: string
+  upgrade_notify_sent_at?: string | null
 }
 
 const REPORT_COLUMNS =
-  "id, status, report_json, plan_id, report_tier, error_message, job_id, intake_id, user_id"
+  "id, status, report_json, free_snapshot_json, plan_id, report_tier, error_message, job_id, intake_id, user_id, upgrade_notify_sent_at"
 const REPORT_COLUMNS_LEGACY =
   "id, status, report_json, plan_id, error_message, job_id, intake_id, user_id"
 
@@ -32,7 +34,7 @@ async function queryReportById(
 
   if (!error) return data
 
-  if (error.code === "42703" || error.message.includes("report_tier")) {
+  if (error.code === "42703" || error.message.includes("report_tier") || error.message.includes("free_snapshot_json")) {
     const { data: legacy } = await supabase
       .from("levelstack_reports")
       .select(REPORT_COLUMNS_LEGACY)
@@ -60,7 +62,7 @@ export async function getReportForUser(
 
   if (!error) return data
 
-  if (error.code === "42703" || error.message.includes("report_tier")) {
+  if (error.code === "42703" || error.message.includes("report_tier") || error.message.includes("free_snapshot_json")) {
     const { data: legacy } = await supabase
       .from("levelstack_reports")
       .select(REPORT_COLUMNS_LEGACY)

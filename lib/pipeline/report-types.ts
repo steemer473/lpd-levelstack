@@ -129,6 +129,7 @@ export const levelstackReportJsonSchema = z.object({
           .optional(),
       })
       .optional(),
+    teaserActionCount: z.number().int().min(0).optional(),
     partnerBranding: z
       .object({
         companyName: z.string(),

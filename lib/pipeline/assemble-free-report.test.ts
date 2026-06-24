@@ -77,6 +77,7 @@ describe("assembleFreeReportFromResearch", () => {
     }
     expect(report.meta.upgradeTeasers).toBeDefined()
     expect(report.meta.lockedSectionCount).toBe(3)
+    expect(report.meta.teaserActionCount).toBeGreaterThan(0)
 
     const parsed = levelstackReportJsonSchema.safeParse(report)
     expect(parsed.success).toBe(true)

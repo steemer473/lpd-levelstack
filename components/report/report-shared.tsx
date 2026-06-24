@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
-  ExternalLink,
   Info,
 } from "lucide-react"
 import Link from "next/link"
@@ -21,6 +20,8 @@ import {
 
 import { ExecutiveSummaryConversion } from "@/components/report/executive-summary-conversion"
 import { ExecutiveSummaryDashboard } from "@/components/report/executive-summary-dashboard"
+import { LockedSectionPreview } from "@/components/report/locked-section-preview"
+import { SapBridgeBlock } from "@/components/report/sap-bridge-block"
 import { FindingCard, FindingSeverityBlock } from "@/components/report/finding-card"
 import {
   DataPanel,
@@ -34,7 +35,6 @@ import type { LevelstackReportJson, ReportSection } from "@/lib/pipeline/report-
 import {
   LPD,
   biggestProblemSections,
-  LOCKED_SECTION_LABELS,
   PAID_TAB_IDS,
   priorityBreakdown,
   scoreBarColor,
@@ -44,7 +44,7 @@ import {
 } from "@/lib/report/display-helpers"
 import { REPORT_INTRO } from "@/lib/report/section-guides"
 import { buildUpgradeTeaserCopy } from "@/lib/report/parse-serp-rows"
-import { getHubPricingUrl, getHubSeoWaitlistUrl, getHubWorkflowWaitlistUrl } from "@/lib/urls"
+import { getHubUpgradeUrl, getHubSeoWaitlistUrl, getHubWorkflowWaitlistUrl } from "@/lib/urls"
 import { cn } from "@/lib/utils"
 
 export type ReportViewProps = {
@@ -209,7 +209,13 @@ export function CompetitiveGrid({ section }: { section: ReportSection }) {
   )
 }
 
-export function UpgradeBanner({ report }: { report: LevelstackReportJson }) {
+export function UpgradeBanner({
+  report,
+  reportId,
+}: {
+  report: LevelstackReportJson
+  reportId?: string
+}) {
   if (report.meta.reportTier !== "free_snapshot") return null
 
   const issueCount =
@@ -217,6 +223,7 @@ export function UpgradeBanner({ report }: { report: LevelstackReportJson }) {
     report.meta.criticalCount + report.meta.highCount
 
   const upgradeCopy = buildUpgradeTeaserCopy(report)
+  const upgradeUrl = getHubUpgradeUrl({ reportId, source: "levelstack_report" })
 
   return (
     <div className="rpt-upsell flex flex-col gap-3 px-7 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -228,32 +235,7 @@ export function UpgradeBanner({ report }: { report: LevelstackReportJson }) {
         <p className="mt-1 text-white/60">{upgradeCopy}</p>
       </div>
       <Button variant="brand" asChild className="shrink-0">
-        <Link href={getHubPricingUrl()}>Upgrade — $97</Link>
-      </Button>
-    </div>
-  )
-}
-
-const LOCKED_SECTION_DESCRIPTIONS: Record<string, string> = {
-  revenue_funnel:
-    "See how your ad spend, landing pages, and offer clarity affect conversion — and where you're leaking leads.",
-  competitive_context:
-    "See who ranks above you, how you compare on reviews and authority, and where to close the gap.",
-  action_plan:
-    "Get your full prioritized backlog — who owns each task, time estimates, and what to fix this week, month, and quarter.",
-}
-
-export function LockedSectionPanel({ sectionId }: { sectionId: string }) {
-  const label = LOCKED_SECTION_LABELS[sectionId] ?? "This section"
-  const description =
-    LOCKED_SECTION_DESCRIPTIONS[sectionId] ??
-    "Included in the Full LevelStack Report ($97)."
-  return (
-    <div className="px-6 py-8 text-center">
-      <p className="text-lg font-semibold mb-2">{label}</p>
-      <p className="text-muted-foreground text-sm max-w-md mx-auto mb-4">{description}</p>
-      <Button variant="brand" asChild>
-        <Link href={getHubPricingUrl()}>Unlock full report — $97</Link>
+        <Link href={upgradeUrl}>Upgrade — $97</Link>
       </Button>
     </div>
   )
@@ -278,43 +260,6 @@ export function AutomatorFlagCallout({
         Learn more
       </Link>
     </p>
-  )
-}
-
-export function UpsellStrip({ variant }: { variant: "search" | "closing" }) {
-  const href = getHubSeoWaitlistUrl()
-  const text =
-    variant === "search" ? (
-      <>
-        <strong className="text-white block mb-0.5">
-          SEO Automator Pro is designed to address this.
-        </strong>
-        Continuous monitoring of AI search visibility (AISO, AEO, GEO) — structured
-        content signals so AI engines can find and cite your business.
-      </>
-    ) : (
-      <>
-        <strong className="text-white block mb-0.5">
-          SEO Automator Pro is designed to keep these gaps closed.
-        </strong>
-        LevelStack finds them once. SEO Automator Pro monitors traditional SEO, local
-        SEO, and AI visibility continuously.
-      </>
-    )
-
-  return (
-    <div className="rpt-upsell mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4">
-      <p className="text-xs text-white/60 leading-relaxed max-w-xl">{text}</p>
-      <Link
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="rpt-upsell-btn shrink-0 inline-flex items-center gap-1"
-      >
-        Join the waitlist
-        <ExternalLink className="h-3 w-3" />
-      </Link>
-    </div>
   )
 }
 
@@ -411,6 +356,7 @@ export function ReportDashboard({ report }: { report: LevelstackReportJson }) {
 }
 
 export function ActionPlanPanel({ report }: { report: LevelstackReportJson }) {
+  const isFree = report.meta.reportTier === "free_snapshot"
   const groups = [
     {
       key: "week",
@@ -491,7 +437,7 @@ export function ActionPlanPanel({ report }: { report: LevelstackReportJson }) {
           })}
         </div>
       ))}
-      <UpsellStrip variant="closing" />
+      {!isFree ? <SapBridgeBlock placement="fullActionPlan" /> : null}
     </div>
   )
 }
@@ -548,9 +494,11 @@ export function ActionPlanKanban({ report }: { report: LevelstackReportJson }) {
           </ul>
         </div>
       ))}
-      <div className="lg:col-span-3">
-        <UpsellStrip variant="closing" />
-      </div>
+      {report.meta.reportTier !== "free_snapshot" ? (
+        <div className="lg:col-span-3">
+          <SapBridgeBlock placement="fullActionPlan" />
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -638,8 +586,6 @@ export function SectionPanel({
       )}
 
       {section.competitiveGrid && <CompetitiveGrid section={section} />}
-
-      {section.id === "search_footprint" && <UpsellStrip variant="search" />}
     </div>
   )
 }
@@ -875,26 +821,40 @@ export function ReportTabContent({
   reportDate,
   actionPlanVariant = "table",
   onSelectTab,
+  reportId,
 }: {
   report: LevelstackReportJson
   activeTab: string
   reportDate: string
   actionPlanVariant?: "table" | "kanban"
   onSelectTab?: (tabId: string) => void
+  reportId?: string
 }) {
   const { sections, actionPlan } = report
 
   if (activeTab === "executive_summary") {
     const onTab = onSelectTab ?? (() => {})
     if (report.meta.reportTier === "free_snapshot") {
-      return <ExecutiveSummaryConversion report={report} onSelectTab={onTab} />
+      return (
+        <ExecutiveSummaryConversion
+          report={report}
+          onSelectTab={onTab}
+          reportId={reportId}
+        />
+      )
     }
     return <ExecutiveSummaryDashboard report={report} onSelectTab={onTab} />
   }
 
   if (activeTab === "action_plan") {
     if (report.meta.reportTier === "free_snapshot") {
-      return <LockedSectionPanel sectionId="action_plan" />
+      return (
+        <LockedSectionPreview
+          sectionId="action_plan"
+          report={report}
+          reportId={reportId}
+        />
+      )
     }
     return (
       <div className="px-6 py-5">
@@ -925,7 +885,13 @@ export function ReportTabContent({
     report.meta.reportTier === "free_snapshot" &&
     lockedIds.has(activeTab)
   ) {
-    return <LockedSectionPanel sectionId={activeTab} />
+    return (
+      <LockedSectionPreview
+        sectionId={activeTab}
+        report={report}
+        reportId={reportId}
+      />
+    )
   }
 
   return sections

@@ -72,12 +72,3 @@ export function isPaidPlan(planId: string | null | undefined): boolean {
     planId === "levelstack-review-call"
   )
 }
-
-export function getHubUpgradeUrl(tier: ReportTier): string {
-  const base =
-    process.env.NEXT_PUBLIC_HUB_URL ?? "https://levelplaydigital.com"
-  if (tier === "free_snapshot") {
-    return new URL("/platform/levelstack#pricing", base).toString()
-  }
-  return new URL("/platform/levelstack", base).toString()
-}

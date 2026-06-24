@@ -7,7 +7,7 @@ import {
   getDefaultAdminNotifyEmail,
 } from "@/lib/email/email-layout"
 import { sendEmail } from "@/lib/email/send-email"
-import { getAppUrl, getHubPricingUrl, getHubSeoWaitlistUrl } from "@/lib/urls"
+import { getAppUrl, getHubUpgradeUrl, getHubSeoWaitlistUrl } from "@/lib/urls"
 import type { ReportTier } from "@/lib/levelstack-plans"
 
 type ReportReadyParams = {
@@ -48,7 +48,11 @@ function escapeHtml(value: string): string {
 }
 
 function buildFreeSnapshotReadyBody(params: ReportReadyParams): string {
-  const upgradeUrl = getHubPricingUrl()
+  const upgradeUrl = getHubUpgradeUrl({
+    reportId: params.reportId,
+    planId: "levelstack-full-report",
+    source: "levelstack_email",
+  })
   const signInUrl = params.signInUrl ?? getAppUrl(`/reports/${params.reportId}`)
   const resendUrl =
     params.resendUrl ?? buildReportResendSignInUrl(params.reportId)
@@ -89,7 +93,7 @@ function buildFreeSnapshotReadyBody(params: ReportReadyParams): string {
 
 export async function sendReportReadyEmail(params: ReportReadyParams): Promise<void> {
   const reportUrl = getAppUrl(`/reports/${params.reportId}`)
-  const upgradeUrl = getHubPricingUrl()
+  const printUrl = getAppUrl(`/reports/${params.reportId}/print`)
 
   if (params.reportTier === "free_snapshot") {
     const body = buildFreeSnapshotReadyBody(params)
@@ -108,20 +112,29 @@ export async function sendReportReadyEmail(params: ReportReadyParams): Promise<v
 
   const subject = `Your full LevelStack report for ${params.businessName} is ready`
   const layoutTitle = "Your full report is ready"
+  const safeBusiness = escapeHtml(params.businessName)
 
   const body = `
     <p style="margin:0 0 16px;">Hi,</p>
     <p style="margin:0 0 16px;">
-      Your LevelStack report for <strong>${params.businessName}</strong> is ready.
+      Your LevelStack report for <strong>${safeBusiness}</strong> is ready — all six sections
+      are now unlocked.
     </p>
     ${
       params.topFinding
-        ? `<p style="margin:0 0 16px;"><strong>Key finding:</strong> ${params.topFinding}</p>`
+        ? `<p style="margin:0 0 16px;"><strong>Top finding:</strong> ${escapeHtml(params.topFinding)}</p>`
         : ""
     }
-    <p style="margin:0 0 16px;">View your complete six-section report and prioritized action plan.</p>
-    <p style="margin:0;">
-      ${emailCtaLink(reportUrl, "Open your report →")}
+    <p style="margin:0 0 16px;">What&apos;s included:</p>
+    <ul style="margin:0 0 16px;padding-left:20px;">
+      <li>Revenue funnel diagnosis</li>
+      <li>Full competitive context</li>
+      <li>Prioritized action plan with Who and Time</li>
+      <li>PDF export</li>
+    </ul>
+    ${emailCtaButton(reportUrl, "Open your full report →")}
+    <p style="margin:16px 0 0;">
+      ${emailCtaLink(printUrl, "Download PDF →")}
     </p>
   `
 
@@ -174,7 +187,11 @@ export async function sendFreeSnapshotAdminNotificationEmail(
 /** Nurture follow-ups (D1/D3/D7/D14) — reserved for GHL workflow or cron; not sent from the pipeline. */
 export async function scheduleNurtureEmails(params: NurtureParams): Promise<void> {
   const seoUrl = getHubSeoWaitlistUrl()
-  const upgradeUrl = getHubPricingUrl()
+  const upgradeUrl = getHubUpgradeUrl({
+    reportId: params.reportId,
+    planId: "levelstack-full-report",
+    source: "levelstack_email",
+  })
 
   if (params.reportTier !== "free_snapshot") {
     const body = `
@@ -230,7 +247,11 @@ export async function sendNurtureDayEmail(
   params: NurtureParams,
 ): Promise<void> {
   const seoUrl = getHubSeoWaitlistUrl()
-  const upgradeUrl = getHubPricingUrl()
+  const upgradeUrl = getHubUpgradeUrl({
+    reportId: params.reportId,
+    planId: "levelstack-full-report",
+    source: "levelstack_email",
+  })
 
   const bodies: Record<number, string> = {
     3: `<p style="margin:0 0 16px;">LevelStack finds gaps once. SEO Automator Pro is designed to keep them closed — traditional SEO, local SEO, and AI search visibility.</p><p style="margin:0;">${emailCtaLink(seoUrl, "Join the waitlist →")}</p>`,

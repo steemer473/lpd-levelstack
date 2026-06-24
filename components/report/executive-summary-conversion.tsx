@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils"
 type ExecutiveSummaryConversionProps = {
   report: LevelstackReportJson
   onSelectTab: (tabId: string) => void
+  reportId?: string
 }
 
 function splitFirstSentence(text: string): { first: string; rest: string } {
@@ -118,12 +119,14 @@ function MeansCard({
   tintClass,
   icon: Icon,
   blurRest,
+  reportId,
 }: {
   title: string
   body: string
   tintClass: string
   icon: typeof AlertTriangle
   blurRest?: string
+  reportId?: string
 }) {
   return (
     <div className={cn("rounded-lg border p-4 h-full", tintClass)}>
@@ -138,7 +141,10 @@ function MeansCard({
             paragraphClassName="rpt-highlight-body text-sm leading-relaxed"
             className="mb-2"
           />
-          <UpsellBlurOverlay message="Unlock full competitive and funnel analysis — $97">
+          <UpsellBlurOverlay
+            message="Unlock full competitive and funnel analysis — $97"
+            reportId={reportId}
+          >
             <FormattedReportText
               text={blurRest}
               paragraphClassName="rpt-highlight-body text-sm leading-relaxed"
@@ -287,6 +293,7 @@ function CompetitiveSnapshotPanel({
 export function ExecutiveSummaryConversion({
   report,
   onSelectTab,
+  reportId,
 }: ExecutiveSummaryConversionProps) {
   const { meta, sections, actionPlan } = report
   const content = resolveExecutiveContent(report)
@@ -401,6 +408,7 @@ export function ExecutiveSummaryConversion({
           tintClass="rpt-highlight-green"
           icon={Target}
           blurRest={leverage.rest || undefined}
+          reportId={reportId}
         />
       </div>
 
@@ -469,7 +477,10 @@ export function ExecutiveSummaryConversion({
           ))}
           {hiddenStrengths.length > 0 || hiddenOpps.length > 0 ? (
             <div className="mt-3">
-              <UpsellBlurOverlay message="Unlock all strengths and opportunities in your Full Report — $97">
+              <UpsellBlurOverlay
+                message="Unlock all strengths and opportunities in your Full Report — $97"
+                reportId={reportId}
+              >
                 <div className="space-y-2">
                   {hiddenStrengths.map((s, i) => (
                     <div key={i} className="rpt-conv-strength-item">
