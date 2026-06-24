@@ -37,5 +37,5 @@ export default async function ReportPrintPage({ params, searchParams }: PageProp
     redirect(`/reports/${reportId}`)
   }
 
-  return <ReportPrintClient report={parsed.data} autoPrint={auto === "1"} />
+  return <ReportPrintClient report={parsed.data} autoPrint={auto === "1"} reportId={reportId} />
 }

@@ -15,10 +15,11 @@ import {
   resolveCompetitiveSnapshot,
   resolveExecutiveContent,
 } from "@/lib/report/executive-summary-resolve"
-import { getHubPricingUrl } from "@/lib/urls"
+import { getHubUpgradeUrl } from "@/lib/urls"
 
 type ReportPrintViewFreeProps = {
   report: LevelstackReportJson
+  reportId?: string
 }
 
 function splitFirstSentence(text: string): { first: string; rest: string } {
@@ -91,14 +92,14 @@ function KpiStrip({ meta }: { meta: LevelstackReportJson["meta"] }) {
   )
 }
 
-export function ReportPrintViewFree({ report }: ReportPrintViewFreeProps) {
+export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreeProps) {
   const { meta, sections, actionPlan } = report
   const content = resolveExecutiveContent(report)
   const competitive = resolveCompetitiveSnapshot(report)
   const headlineParts = executiveConversionHeadlineParts(report)
   const leverage = splitFirstSentence(content.highlights.highestLeverageOpportunity)
   const sectionById = new Map(sections.map((s) => [s.id, s]))
-  const upgradeUrl = getHubPricingUrl()
+  const upgradeUrl = getHubUpgradeUrl({ reportId, source: "levelstack_print" })
 
   const search = sections.find((s) => s.id === "search_footprint")
   const searchFinding = search?.findings[0]

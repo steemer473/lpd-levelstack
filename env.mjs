@@ -59,6 +59,8 @@ export const env = createEnv({
       .enum(["true", "false"])
       .optional()
       .transform((v) => v === "true"),
+    /** Shared secret for hub → product POST /api/upgrade/notify */
+    LEVELSTACK_UPGRADE_NOTIFY_SECRET: optionalString,
     /** Development only — replace prior free snapshot on re-submit (same email) */
     LEVELSTACK_DEV_REPLACE_SNAPSHOT: z
       .enum(["true", "false"])
@@ -94,6 +96,7 @@ export const env = createEnv({
     LEVELSTACK_DEV_BYPASS_ENTITLEMENT: process.env.LEVELSTACK_DEV_BYPASS_ENTITLEMENT,
     LEVELSTACK_DEV_SKIP_WEBSITE_CHECK: process.env.LEVELSTACK_DEV_SKIP_WEBSITE_CHECK,
     LEVELSTACK_DEV_REPLACE_SNAPSHOT: process.env.LEVELSTACK_DEV_REPLACE_SNAPSHOT,
+    LEVELSTACK_UPGRADE_NOTIFY_SECRET: process.env.LEVELSTACK_UPGRADE_NOTIFY_SECRET,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_HUB_URL: process.env.NEXT_PUBLIC_HUB_URL,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,

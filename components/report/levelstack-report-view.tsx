@@ -59,6 +59,7 @@ export function LevelstackReportView({ report, reportId }: LevelstackReportViewP
               activeTab={nav.activeTab}
               reportDate={meta.reportDate}
               onSelectTab={nav.selectTab}
+              reportId={reportId}
             />
           </div>
 
@@ -71,7 +72,7 @@ export function LevelstackReportView({ report, reportId }: LevelstackReportViewP
             />
           ) : null}
 
-          <UpgradeBanner report={report} />
+          <UpgradeBanner report={report} reportId={reportId} />
 
           <ReportFooter meta={meta} />
         </div>

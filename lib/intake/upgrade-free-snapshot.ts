@@ -38,6 +38,16 @@ export async function upgradeFreeSnapshotToPaidIntake(params: {
   const planId = await getLevelStackPlanId(params.supabase, params.user.id)
   const reportTier = planIdToReportTier(planId)
 
+  const { data: existingReport } = await admin
+    .from("levelstack_reports")
+    .select("report_json, free_snapshot_json")
+    .eq("id", params.reportId)
+    .eq("user_id", params.user.id)
+    .maybeSingle()
+
+  const backupJson =
+    existingReport?.free_snapshot_json ?? existingReport?.report_json ?? null
+
   const { error: intakeError } = await admin
     .from("levelstack_intakes")
     .update({
@@ -75,6 +85,9 @@ export async function upgradeFreeSnapshotToPaidIntake(params: {
       report_tier: reportTier,
       report_json: null,
       error_message: null,
+      ...(existingReport?.free_snapshot_json == null && backupJson
+        ? { free_snapshot_json: backupJson }
+        : {}),
     })
     .eq("id", params.reportId)
     .eq("user_id", params.user.id)

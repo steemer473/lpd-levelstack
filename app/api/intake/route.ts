@@ -135,6 +135,26 @@ export async function POST(request: Request) {
       )
     }
 
+    if (
+      existingReport?.report_tier !== "free_snapshot" &&
+      existingReport?.status === "failed" &&
+      existingReport.job_id
+    ) {
+      after(() =>
+        runReportPipeline({
+          jobId: existingReport.job_id,
+          reportId: existingReport.id,
+          intakeId: existing.id,
+        }).catch((err) => console.error("[pipeline]", err)),
+      )
+      return NextResponse.json({
+        success: true,
+        message: "Report generation restarted.",
+        intakeId: existing.id,
+        reportId: existingReport.id,
+      })
+    }
+
     return NextResponse.json(
       {
         success: false,

@@ -15,6 +15,29 @@ export function getHubPricingUrl(): string {
   return new URL("/platform/levelstack#pricing", base).toString()
 }
 
+export type HubUpgradeSource =
+  | "levelstack_report"
+  | "levelstack_email"
+  | "levelstack_print"
+
+export type GetHubUpgradeUrlParams = {
+  reportId?: string
+  planId?: "levelstack-full-report" | "levelstack-strategy-call"
+  source?: HubUpgradeSource
+}
+
+/** Hub checkout entry with optional report context for Stripe metadata passthrough. */
+export function getHubUpgradeUrl(params: GetHubUpgradeUrlParams = {}): string {
+  const { reportId, planId = "levelstack-full-report", source } = params
+  const base = env.NEXT_PUBLIC_HUB_URL ?? "https://levelplaydigital.com"
+  const url = new URL("/platform/levelstack", base)
+  if (reportId) url.searchParams.set("reportId", reportId)
+  url.searchParams.set("planId", planId)
+  if (source) url.searchParams.set("source", source)
+  url.hash = "pricing"
+  return url.toString()
+}
+
 export function getHubSeoWaitlistUrl(): string {
   const base = env.NEXT_PUBLIC_HUB_URL ?? "https://levelplaydigital.com"
   return new URL("/platform/seo", base).toString()

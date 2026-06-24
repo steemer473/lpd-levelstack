@@ -114,7 +114,10 @@ export function assembleFreeReportFromResearch(
     sections,
   )
 
-  const rawPlan = buildActionPlanFromSections(sections, intake)
+  const rawPlan = buildActionPlanFromSections(allSections, intake)
+  const teaserActionCount =
+    rawPlan.thisWeek.length + rawPlan.thisMonth.length + rawPlan.thisQuarter.length
+
   const actionPlan = {
     thisWeek: rawPlan.thisWeek.slice(0, 4),
     thisMonth: [] as typeof rawPlan.thisMonth,
@@ -148,6 +151,7 @@ export function assembleFreeReportFromResearch(
       issueCountForUpgrade: failCount + warnCount,
       lockedSectionCount: PAID_ONLY_SECTION_IDS.size,
       upgradeTeasers,
+      teaserActionCount,
     },
     executiveSummary,
     sections,

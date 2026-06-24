@@ -12,6 +12,7 @@ import { ReportPrintViewFree } from "@/components/report/report-print-view-free"
 
 type ReportPrintViewProps = {
   report: LevelstackReportJson
+  reportId?: string
 }
 
 type BadgeLevel = "high" | "medium" | "low"
@@ -27,9 +28,9 @@ function deriveActionBadges(index: number): {
   return { impact: "medium", effort: "low", priority: "medium" }
 }
 
-export function ReportPrintView({ report }: ReportPrintViewProps) {
+export function ReportPrintView({ report, reportId }: ReportPrintViewProps) {
   if (report.meta.reportTier === "free_snapshot") {
-    return <ReportPrintViewFree report={report} />
+    return <ReportPrintViewFree report={report} reportId={reportId} />
   }
 
   return <ReportPrintViewFull report={report} />
@@ -133,32 +134,45 @@ function ReportPrintViewFull({ report }: ReportPrintViewProps) {
           </div>
         </div>
 
-        {actionPlan.thisWeek.length > 0 ? (
+        {actionPlan.thisWeek.length +
+          actionPlan.thisMonth.length +
+          actionPlan.thisQuarter.length >
+        0 ? (
           <>
-            <h3 className="font-medium mb-2">Priority actions</h3>
-            <table className="w-full text-xs border-collapse border border-gray-200 mb-4">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left py-2 px-2 font-semibold">Action</th>
-                  <th className="text-left py-2 px-2 font-semibold">Impact</th>
-                  <th className="text-left py-2 px-2 font-semibold">Effort</th>
-                  <th className="text-left py-2 px-2 font-semibold">Priority</th>
-                </tr>
-              </thead>
-              <tbody>
-                {actionPlan.thisWeek.map((item, i) => {
-                  const badges = deriveActionBadges(i)
-                  return (
-                    <tr key={i} className="border-b border-gray-100">
-                      <td className="py-2 px-2">{item.task}</td>
-                      <td className="py-2 px-2 capitalize">{badges.impact}</td>
-                      <td className="py-2 px-2 capitalize">{badges.effort}</td>
-                      <td className="py-2 px-2 capitalize">{badges.priority}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+            <h3 className="font-medium mb-2">Prioritized action plan</h3>
+            {(
+              [
+                { label: "This week", items: actionPlan.thisWeek },
+                { label: "This month", items: actionPlan.thisMonth },
+                { label: "This quarter", items: actionPlan.thisQuarter },
+              ] as const
+            )
+              .filter((g) => g.items.length > 0)
+              .map((group) => (
+                <div key={group.label} className="mb-4 break-inside-avoid">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                    {group.label}
+                  </p>
+                  <table className="w-full text-xs border-collapse border border-gray-200 mb-2">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200">
+                        <th className="text-left py-2 px-2 font-semibold">Action</th>
+                        <th className="text-left py-2 px-2 font-semibold">Who</th>
+                        <th className="text-left py-2 px-2 font-semibold">Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.items.map((item, i) => (
+                        <tr key={i} className="border-b border-gray-100">
+                          <td className="py-2 px-2">{item.task}</td>
+                          <td className="py-2 px-2">{item.who}</td>
+                          <td className="py-2 px-2">{item.time}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
           </>
         ) : null}
       </section>
@@ -168,9 +182,50 @@ function ReportPrintViewFull({ report }: ReportPrintViewProps) {
           <h2 className="text-base font-semibold uppercase mb-2">
             {section.label} ({section.score}/100)
           </h2>
+          {section.aiPreview && section.aiPreview.length > 0 ? (
+            <div className="mb-4">
+              <h3 className="text-xs font-semibold uppercase text-gray-500 mb-2">
+                AI search preview
+              </h3>
+              {section.aiPreview.map((ai, i) => (
+                <div key={i} className="mb-2 rounded border border-gray-200 p-3">
+                  <p className="text-xs font-semibold text-gray-600">{ai.platform}</p>
+                  <p className="text-sm text-gray-800 mt-1">{ai.result}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
           {section.findings.map((f, i) => (
             <FindingPrintBlock key={i} sectionId={section.id} finding={f} />
           ))}
+          {section.competitiveGrid ? (
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-xs border-collapse border border-gray-200">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="p-2 text-left" />
+                    {section.competitiveGrid.columnHeaders.map((h) => (
+                      <th key={h} className="p-2 text-left font-semibold">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {section.competitiveGrid.rows.map((row) => (
+                    <tr key={row.label} className="border-t border-gray-100">
+                      <td className="p-2 font-medium text-gray-600">{row.label}</td>
+                      {row.cells.map((cell, ci) => (
+                        <td key={ci} className="p-2">
+                          {cell}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
         </section>
       ))}
 

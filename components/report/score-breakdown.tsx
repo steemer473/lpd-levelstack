@@ -6,7 +6,7 @@ import { useState } from "react"
 
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
 import { PAID_TAB_IDS, SECTION_TAB_ORDER } from "@/lib/report/display-helpers"
-import { getHubPricingUrl } from "@/lib/urls"
+import { getHubUpgradeUrl } from "@/lib/urls"
 
 type ScoreBreakdownProps = {
   report: LevelstackReportJson
@@ -18,7 +18,10 @@ function rptScoreBarColor(score: number): string {
   return "var(--rpt-green, #5cb85c)"
 }
 
-export function ScoreBreakdown({ report }: ScoreBreakdownProps) {
+export function ScoreBreakdown({
+  report,
+  reportId,
+}: ScoreBreakdownProps & { reportId?: string }) {
   const [open, setOpen] = useState(false)
   const { meta, sections } = report
   const isFree = meta.reportTier === "free_snapshot"
@@ -69,7 +72,7 @@ export function ScoreBreakdown({ report }: ScoreBreakdownProps) {
                       <span className="block h-full w-1/2 rounded-full bg-muted" />
                     </span>
                     <Link
-                      href={getHubPricingUrl()}
+                      href={getHubUpgradeUrl({ reportId, source: "levelstack_report" })}
                       className="text-[10px] font-medium uppercase tracking-wide text-brand-orange shrink-0"
                     >
                       Locked

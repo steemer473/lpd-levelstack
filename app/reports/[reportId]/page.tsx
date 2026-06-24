@@ -5,9 +5,11 @@ import { ProductShell } from "@/components/layout/product-shell"
 import { LevelstackReportView } from "@/components/report/levelstack-report-view"
 import { RegenerateReportButton } from "@/components/report/regenerate-report-button"
 import { ReportGenerating } from "@/components/report/report-generating"
+import { RetryReportButton } from "@/components/report/retry-report-button"
 import { Button } from "@/components/ui/button"
 import { FormPanel } from "@/components/ui/form-panel"
 import { isDevReportPreviewEnabled } from "@/lib/dev-report-preview"
+import { requirePaidIntakeAccess } from "@/lib/levelstack-access"
 import { isPlaceholderReport } from "@/lib/pipeline/placeholder-report"
 import { levelstackReportJsonSchema } from "@/lib/pipeline/report-types"
 import { getReportById, resolveReportAccess } from "@/lib/reports/get-report"
@@ -16,10 +18,14 @@ import { createClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"
 
-type PageProps = { params: Promise<{ reportId: string }> }
+type PageProps = {
+  params: Promise<{ reportId: string }>
+  searchParams: Promise<{ view?: string }>
+}
 
-export default async function ReportPage({ params }: PageProps) {
+export default async function ReportPage({ params, searchParams }: PageProps) {
   const { reportId } = await params
+  const { view } = await searchParams
   const supabase = await createClient()
   if (!supabase) {
     return null
@@ -54,6 +60,8 @@ export default async function ReportPage({ params }: PageProps) {
 
   if (report.status === "failed") {
     const isDev = process.env.NODE_ENV === "development"
+    const paidAccess = user ? await requirePaidIntakeAccess(supabase, user.id) : false
+    const hasFreeBackup = Boolean(report.free_snapshot_json)
 
     return (
       <ProductShell maxWidth="md" showSignOut={Boolean(user)} resultsStyle>
@@ -61,15 +69,26 @@ export default async function ReportPage({ params }: PageProps) {
           <div>
             <h1 className="text-xl font-semibold mb-2">Report generation failed</h1>
             <p className="text-muted-foreground text-sm">
-              {report.error_message ?? "Something went wrong while building your report."}
+              {paidAccess
+                ? "Generation hit a snag — your purchase is safe. You can retry below."
+                : (report.error_message ??
+                  "Something went wrong while building your report.")}
             </p>
           </div>
-          {isDev && (devPreview || user) && (
+          {paidAccess ? <RetryReportButton reportId={reportId} /> : null}
+          {hasFreeBackup ? (
+            <Button asChild variant="outline">
+              <Link href={`/reports/${reportId}?view=snapshot`}>View your free snapshot</Link>
+            </Button>
+          ) : null}
+          {isDev && (devPreview || user) ? (
             <RegenerateReportButton reportId={reportId} />
-          )}
-          <Button asChild variant="brand">
-            <Link href="/intake">Back to intake</Link>
-          </Button>
+          ) : null}
+          {!paidAccess ? (
+            <Button asChild variant="brand">
+              <Link href="/intake">Back to intake</Link>
+            </Button>
+          ) : null}
         </FormPanel>
       </ProductShell>
     )
@@ -105,7 +124,11 @@ export default async function ReportPage({ params }: PageProps) {
     )
   }
 
-  const parsed = levelstackReportJsonSchema.safeParse(report.report_json)
+  const parsed = levelstackReportJsonSchema.safeParse(
+    view === "snapshot" && report.free_snapshot_json
+      ? report.free_snapshot_json
+      : report.report_json,
+  )
   if (!parsed.success) {
     return (
       <ProductShell maxWidth="md" showSignOut resultsStyle>
@@ -118,10 +141,36 @@ export default async function ReportPage({ params }: PageProps) {
 
   const isDev = process.env.NODE_ENV === "development"
   const isStalePlaceholder = isPlaceholderReport(parsed.data)
+  const paidPendingIntake =
+    user &&
+    report.report_tier === "free_snapshot" &&
+    report.status === "ready" &&
+    (await requirePaidIntakeAccess(supabase, user.id))
 
   return (
     <ProductShell showSignOut={Boolean(user)} resultsStyle>
       <div className="space-y-4 w-full">
+        {view === "snapshot" && report.free_snapshot_json ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40 px-4 py-3 text-sm">
+            Viewing your free snapshot backup.{" "}
+            <Link href={`/reports/${reportId}`} className="text-brand-orange font-medium hover:underline">
+              Return to report status
+            </Link>
+          </div>
+        ) : null}
+        {paidPendingIntake ? (
+          <div className="rounded-lg border border-brand-orange/30 bg-brand-orange/5 px-4 py-3 text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p className="font-medium">Payment received — complete intake to unlock your full report.</p>
+              <p className="text-muted-foreground mt-0.5">
+                Takes about 3 minutes; your full report generates automatically after submit.
+              </p>
+            </div>
+            <Button variant="brand" asChild className="shrink-0">
+              <Link href={`/intake?from=upgrade&reportId=${reportId}`}>Complete intake →</Link>
+            </Button>
+          </div>
+        ) : null}
         {isDev && (devPreview || user) && (
           <RegenerateReportButton
             reportId={reportId}

@@ -5,20 +5,25 @@ import { Lock } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
-import { getHubPricingUrl } from "@/lib/urls"
+import { getHubUpgradeUrl, type HubUpgradeSource } from "@/lib/urls"
 import { cn } from "@/lib/utils"
 
 type UpsellBlurOverlayProps = {
   message: string
   className?: string
   children: ReactNode
+  reportId?: string
+  source?: HubUpgradeSource
 }
 
 export function UpsellBlurOverlay({
   message,
   className,
   children,
+  reportId,
+  source = "levelstack_report",
 }: UpsellBlurOverlayProps) {
+  const upgradeUrl = getHubUpgradeUrl({ reportId, source })
   return (
     <div className={cn("grid overflow-hidden rounded-lg", className)}>
       <div
@@ -31,7 +36,7 @@ export function UpsellBlurOverlay({
         <Lock className="h-5 w-5 shrink-0 text-brand-orange" aria-hidden />
         <p className="text-sm font-medium text-foreground max-w-xs">{message}</p>
         <Button variant="brand" size="sm" asChild className="shrink-0">
-          <Link href={getHubPricingUrl()}>Unlock Full Report — $97</Link>
+          <Link href={upgradeUrl}>Unlock Full Report — $97</Link>
         </Button>
       </div>
     </div>
