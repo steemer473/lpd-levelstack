@@ -23,6 +23,7 @@ import {
   parseFreeSnapshotInput,
   type FreeSnapshotFormValues,
 } from "@/lib/intake/free-snapshot-schema"
+import { resolveFreeSnapshotSubmitRedirect } from "@/lib/intake/resolve-free-snapshot-submit-redirect"
 import { getHubPricingUrl } from "@/lib/urls"
 
 export function FreeSnapshotForm() {
@@ -64,6 +65,7 @@ export function FreeSnapshotForm() {
         reportId?: string
         signInUrl?: string
         existingUser?: boolean
+        redirectImmediately?: boolean
       }
 
       if (!res.ok) {
@@ -71,24 +73,27 @@ export function FreeSnapshotForm() {
         return
       }
 
-      if (json.existingUser) {
-        setSubmitNotice(
-          json.message ??
-            "Welcome back! We're refreshing your snapshot. Sign in below to watch progress — we'll email you when it's ready.",
-        )
-        if (json.signInUrl) {
-          setExistingUserSignInUrl(json.signInUrl)
-        }
-        return
-      }
+      const action = resolveFreeSnapshotSubmitRedirect(json)
 
-      if (json.signInUrl) {
-        window.location.assign(json.signInUrl)
-        return
-      }
-
-      if (json.reportId) {
-        router.push(`/reports/${json.reportId}`)
+      switch (action?.type) {
+        case "redirect_report":
+        case "redirect_report_fallback":
+          router.push(`/reports/${action.reportId}`)
+          return
+        case "redirect_magic_link":
+          window.location.assign(action.signInUrl)
+          return
+        case "welcome_back":
+          setSubmitNotice(
+            json.message ??
+              "Welcome back! We're refreshing your snapshot. Sign in below to watch progress — we'll email you when it's ready.",
+          )
+          if (action.signInUrl) {
+            setExistingUserSignInUrl(action.signInUrl)
+          }
+          return
+        default:
+          break
       }
     } catch {
       setSubmitError("Network error. Please try again.")
@@ -184,8 +189,17 @@ export function FreeSnapshotForm() {
           </p>
         )}
 
-        <Button type="submit" variant="brand" className="w-full" disabled={submitting}>
-          {submitting ? "Running your snapshot…" : "Run my snapshot"}
+        <Button
+          type="submit"
+          variant="brand"
+          className="w-full"
+          disabled={submitting || Boolean(submitNotice)}
+        >
+          {submitting
+            ? "Running your snapshot…"
+            : submitNotice
+              ? "Use the link above to continue"
+              : "Run my snapshot"}
         </Button>
 
         <p className="text-muted-foreground text-xs text-center">

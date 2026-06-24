@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card"
 import { FormPanel } from "@/components/ui/form-panel"
 import { sendUpgradeNotifyEmailsIfNeeded } from "@/lib/email/upgrade-notify"
+import { getLatestReportForIntake } from "@/lib/reports/get-latest-report-for-intake"
 import { sanitizeFreeSnapshotPrefill } from "@/lib/intake/upgrade-prefill"
 import { levelstackIntakeDefaults, type LevelstackIntakeFormValues } from "@/lib/intake/schema"
 import { getLevelStackPlanId, requirePaidIntakeAccess } from "@/lib/levelstack-access"
@@ -95,17 +96,17 @@ export default async function IntakePage({ searchParams }: PageProps) {
     .maybeSingle()
 
   if (existing) {
-    const { data: existingReport } = await supabase
-      .from("levelstack_reports")
-      .select("id, report_tier, status")
-      .eq("intake_id", existing.id)
-      .maybeSingle()
+    const existingReport = await getLatestReportForIntake(supabase, existing.id)
 
     const isFreeUpgrade =
       paidAccess && existingReport?.report_tier === "free_snapshot"
 
     const reportGenerating =
       existingReport?.status === "pending" || existingReport?.status === "generating"
+
+    if (existingReport?.report_tier === "free_snapshot" && !paidAccess && existingReport.id) {
+      redirect(`/reports/${existingReport.id}`)
+    }
 
     if (!isFreeUpgrade) {
       if (existingReport?.status === "failed" && paidAccess) {
