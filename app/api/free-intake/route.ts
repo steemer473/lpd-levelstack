@@ -16,6 +16,7 @@ import { planIdToReportTier } from "@/lib/levelstack-plans"
 import { syncFreeSnapshotLead } from "@/lib/ghl/sync-levelstack-lead"
 import { runReportPipeline } from "@/lib/pipeline/run-report-pipeline"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@/lib/supabase/server"
 import { getAppUrl } from "@/lib/urls"
 
 export const maxDuration = 300
@@ -246,6 +247,17 @@ export async function POST(request: Request) {
   const signInUrl = await generateReportMagicLink(admin, email, report.id)
   const reportPath = `/reports/${report.id}`
 
+  let redirectImmediately = false
+  const sessionClient = await createClient()
+  if (existingUser && sessionClient) {
+    const {
+      data: { user: sessionUser },
+    } = await sessionClient.auth.getUser()
+    if (sessionUser?.id === userId) {
+      redirectImmediately = true
+    }
+  }
+
   const newUserMessage = signInUrl
     ? NEW_USER_MESSAGE
     : "Your snapshot is generating. Sign in with the same email to view your report."
@@ -253,6 +265,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     success: true,
     existingUser,
+    redirectImmediately,
     reportId: report.id,
     intakeId,
     signInUrl: signInUrl ?? undefined,

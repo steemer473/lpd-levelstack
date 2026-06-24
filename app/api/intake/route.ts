@@ -9,6 +9,7 @@ import { planIdToReportTier } from "@/lib/levelstack-plans"
 import { isWebsiteReachable } from "@/lib/intake/validate-website"
 import { levelstackIntakeSchema } from "@/lib/intake/schema"
 import { upgradeFreeSnapshotToPaidIntake } from "@/lib/intake/upgrade-free-snapshot"
+import { getLatestReportForIntake } from "@/lib/reports/get-latest-report-for-intake"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
@@ -79,11 +80,7 @@ export async function POST(request: Request) {
   }
 
   if (existing) {
-    const { data: existingReport } = await supabase
-      .from("levelstack_reports")
-      .select("id, status, job_id, report_tier")
-      .eq("intake_id", existing.id)
-      .maybeSingle()
+    const existingReport = await getLatestReportForIntake(supabase, existing.id)
 
     if (existingReport?.report_tier === "free_snapshot") {
       const upgraded = await upgradeFreeSnapshotToPaidIntake({
@@ -135,14 +132,15 @@ export async function POST(request: Request) {
       )
     }
 
+    const failedJobId = existingReport?.job_id
     if (
       existingReport?.report_tier !== "free_snapshot" &&
       existingReport?.status === "failed" &&
-      existingReport.job_id
+      failedJobId
     ) {
       after(() =>
         runReportPipeline({
-          jobId: existingReport.job_id,
+          jobId: failedJobId,
           reportId: existingReport.id,
           intakeId: existing.id,
         }).catch((err) => console.error("[pipeline]", err)),

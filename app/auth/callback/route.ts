@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code")
   const token_hash = searchParams.get("token_hash")
   const type = (searchParams.get("type") ?? "magiclink") as EmailOtpType
-  const next = searchParams.get("next") ?? "/intake"
+  const next = searchParams.get("next") ?? "/free"
 
   const supabase = await createClient()
   if (!supabase) {

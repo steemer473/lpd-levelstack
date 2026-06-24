@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { FormPanel } from "@/components/ui/form-panel"
+import { getLatestReportForIntake } from "@/lib/reports/get-latest-report-for-intake"
 import { createClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"
@@ -41,11 +42,11 @@ export default async function IntakeCompletePage() {
     redirect("/intake")
   }
 
-  const { data: report } = await supabase
-    .from("levelstack_reports")
-    .select("id")
-    .eq("intake_id", intake.id)
-    .maybeSingle()
+  const report = await getLatestReportForIntake(supabase, intake.id, "id")
+
+  if (report?.id) {
+    redirect(`/reports/${report.id}`)
+  }
 
   return (
     <FormPanel className="max-w-lg mx-auto text-center">
@@ -53,8 +54,8 @@ export default async function IntakeCompletePage() {
         <CardHeader>
           <CardTitle>Intake received</CardTitle>
           <CardDescription>
-            We&apos;re generating your LevelStack report. Open your report page for
-            live progress.
+            We&apos;re generating your LevelStack report. If progress doesn&apos;t appear
+            shortly, contact support with the time below.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -65,15 +66,9 @@ export default async function IntakeCompletePage() {
               : "recently"}
             .
           </p>
-          {report?.id ? (
-            <Button variant="brand" asChild className="w-full sm:w-auto">
-              <Link href={`/reports/${report.id}`}>View report progress</Link>
-            </Button>
-          ) : (
-            <Button variant="outline" asChild>
-              <Link href="/intake">Back to intake</Link>
-            </Button>
-          )}
+          <Button variant="outline" asChild>
+            <Link href="/free">Back to free snapshot</Link>
+          </Button>
         </CardContent>
       </Card>
     </FormPanel>
