@@ -1,5 +1,10 @@
 import { env } from "@/env.mjs"
-import { buildReportResendSignInUrl, MAGIC_LINK_EXPIRY_LABEL } from "@/lib/auth/magic-link-callback"
+import { generateAuthMagicLink } from "@/lib/auth/generate-report-magic-link"
+import {
+  buildUpgradeIntakePath,
+  buildUpgradeIntakeResendSignInUrl,
+  MAGIC_LINK_EXPIRY_LABEL,
+} from "@/lib/auth/magic-link-callback"
 import {
   emailCtaButton,
   emailCtaLink,
@@ -43,9 +48,11 @@ export type UpgradeNotifyParams = {
 }
 
 function buildPaymentReceivedBody(params: UpgradeNotifyParams): string {
-  const intakeUrl = getAppUrl(`/intake?from=upgrade&reportId=${params.reportId}`)
+  const intakePath = buildUpgradeIntakePath(params.reportId)
+  const intakeUrl = getAppUrl(intakePath)
   const signInUrl = params.signInUrl ?? intakeUrl
-  const resendUrl = buildReportResendSignInUrl(params.reportId)
+  const resendUrl = buildUpgradeIntakeResendSignInUrl(params.reportId)
+  const ctaUrl = params.signInUrl ?? intakeUrl
   const planLabel = planDisplayName(params.planId)
   const price = planPriceLabel(params.planId)
   const safeBusiness = escapeHtml(params.businessName)
@@ -61,7 +68,7 @@ function buildPaymentReceivedBody(params: UpgradeNotifyParams): string {
       and a PDF export — once you complete a short intake (~3 minutes).
     </p>
     ${strategyCallNote(params.planId)}
-    ${emailCtaButton(intakeUrl, "Complete your intake →")}
+    ${emailCtaButton(ctaUrl, "Complete your intake →")}
     <p style="margin:16px 0 8px;font-size:14px;color:#64748b;">
       Or copy this link into your browser:
     </p>
@@ -94,6 +101,9 @@ function buildPaidUpgradeAdminBody(params: UpgradeNotifyParams): string {
     </p>
   `
 }
+
+/** Exported for unit tests. */
+export { buildPaymentReceivedBody }
 
 export async function sendPaymentReceivedEmail(params: UpgradeNotifyParams): Promise<void> {
   const body = buildPaymentReceivedBody(params)
@@ -147,11 +157,15 @@ export async function sendUpgradeNotifyEmailsIfNeeded(params: {
 
   if (row?.upgrade_notify_sent_at) return false
 
+  const intakePath = buildUpgradeIntakePath(params.reportId)
+  const signInUrl = await generateAuthMagicLink(admin, params.email, intakePath)
+
   await sendPaymentReceivedEmail({
     email: params.email,
     businessName: params.businessName,
     reportId: params.reportId,
     planId: params.planId,
+    signInUrl: signInUrl ?? undefined,
   })
 
   await sendPaidUpgradeAdminNotificationEmail({

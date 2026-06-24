@@ -11,6 +11,17 @@ export function buildReportResendSignInUrl(reportId: string): string {
   return getAppUrl(`/auth/sign-in?redirect=${encodeURIComponent(reportPath)}`)
 }
 
+/** Intake upgrade path after paid checkout (free snapshot → full report). */
+export function buildUpgradeIntakePath(reportId: string): string {
+  return `/intake?from=upgrade&reportId=${reportId}`
+}
+
+/** Sign-in page for requesting a fresh magic link to the upgrade intake flow. */
+export function buildUpgradeIntakeResendSignInUrl(reportId: string): string {
+  const intakePath = buildUpgradeIntakePath(reportId)
+  return getAppUrl(`/auth/sign-in?redirect=${encodeURIComponent(intakePath)}`)
+}
+
 /** Server-verifiable magic link — uses hashed_token, not Supabase action_link (hash fragments). */
 export function buildMagicLinkCallbackUrl(
   hashedToken: string,

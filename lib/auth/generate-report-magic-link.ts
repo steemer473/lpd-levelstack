@@ -9,14 +9,13 @@ import { getAppUrl } from "@/lib/urls"
 export { MAGIC_LINK_EXPIRY_LABEL, MAGIC_LINK_EXPIRY_SECONDS }
 export { buildReportResendSignInUrl } from "@/lib/auth/magic-link-callback"
 
-export async function generateReportMagicLink(
+export async function generateAuthMagicLink(
   admin: NonNullable<ReturnType<typeof createAdminClient>>,
   email: string,
-  reportId: string,
+  nextPath: string,
 ): Promise<string | null> {
-  const reportPath = `/reports/${reportId}`
   const callbackUrl = getAppUrl(
-    `/auth/callback?next=${encodeURIComponent(reportPath)}`,
+    `/auth/callback?next=${encodeURIComponent(nextPath)}`,
   )
 
   const { data: link, error } = await admin.auth.admin.generateLink({
@@ -32,8 +31,20 @@ export async function generateReportMagicLink(
 
   const hashedToken = link?.properties?.hashed_token ?? null
   if (hashedToken) {
-    return buildMagicLinkCallbackUrl(hashedToken, reportPath)
+    return buildMagicLinkCallbackUrl(hashedToken, nextPath)
   }
 
-  return link?.properties?.action_link ?? null
+  console.error(
+    "[magic-link] generateLink returned no hashed_token — refusing action_link fallback",
+    { email, nextPath },
+  )
+  return null
+}
+
+export async function generateReportMagicLink(
+  admin: NonNullable<ReturnType<typeof createAdminClient>>,
+  email: string,
+  reportId: string,
+): Promise<string | null> {
+  return generateAuthMagicLink(admin, email, `/reports/${reportId}`)
 }

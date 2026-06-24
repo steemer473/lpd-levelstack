@@ -51,6 +51,6 @@ Product upgrade links use `getHubUpgradeUrl` with query params:
 2. Persist `reportId` on Stripe Checkout Session / PaymentIntent `metadata`.
 3. On `checkout.session.completed`, write `orders` with correct `plan_id`.
 4. Success redirect: `{NEXT_PUBLIC_LEVELSTACK_APP_URL}/intake?from=upgrade&reportId={id}` (not only `/account`).
-5. (Recommended) POST to product `POST /api/upgrade/notify` with shared secret so E1 payment-received email fires even if buyer closes the tab.
+5. POST to product `POST /api/upgrade/notify` with shared secret `LEVELSTACK_UPGRADE_NOTIFY_SECRET` (same value on hub + product Vercel) so payment-received email with magic link fires from webhook.
 
 Product interim fallback: entitlement poll on `/intake?from=upgrade` until `orders` row exists.

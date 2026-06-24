@@ -47,6 +47,8 @@ function SignInForm() {
   const redirect = searchParams.get("redirect") || "/intake"
   const authError = searchParams.get("error")
   const isReportRedirect = redirect.startsWith("/reports/")
+  const isUpgradeIntakeRedirect =
+    redirect.startsWith("/intake") && redirect.includes("from=upgrade")
 
   useEffect(() => {
     const supabase = createClient()
@@ -150,11 +152,19 @@ function SignInForm() {
         tagline: "LevelStack",
         heading: isReportRedirect
           ? "Sign in to view your snapshot"
-          : "Sign in with your hub account",
-        headingHighlight: isReportRedirect ? "your snapshot" : "hub account",
+          : isUpgradeIntakeRedirect
+            ? "Sign in to complete your full report intake"
+            : "Sign in with your hub account",
+        headingHighlight: isReportRedirect
+          ? "your snapshot"
+          : isUpgradeIntakeRedirect
+            ? "full report intake"
+            : "hub account",
         description: isReportRedirect
           ? "Use the email from your free snapshot — we'll send a sign-in link, or use a password if you've set one."
-          : "Use the same email and password as your Level Play Digital hub account.",
+          : isUpgradeIntakeRedirect
+            ? "Use the same email from checkout — we'll send a sign-in link to continue your paid intake."
+            : "Use the same email and password as your Level Play Digital hub account.",
         badges: [{ icon: Shield, label: "Secure sign-in" }],
       }}
     >
