@@ -125,4 +125,54 @@ describe("extractUpgradeTeasers", () => {
     const teasers = extractUpgradeTeasers(sections, bundle, "example.com")
     expect(teasers.previewCompetitor?.domain).toBe("rival-example.com")
   })
+
+  it("uses resolved column domain as previewCompetitor when grid columns exist (P1.8.1)", () => {
+    // Grid resolved a local rival — previewCompetitor should name it, not raw SERP #1.
+    const bundle = emptyResearchBundle()
+    bundle.competitiveContext.competitorColumns = [
+      { domain: "local-agency.com", source: "category_peer", title: "Local Agency Atlanta" },
+    ]
+    const sections = buildSectionsFromResearch(intake, bundle)
+    // Service SERP detail has a different domain at #1 — resolved column should win.
+    const competitive = sections.find((s) => s.id === "competitive_context")
+    if (competitive?.findings[0]) {
+      competitive.findings[0].detail =
+        "#1 Unrelated Platform (https://unrelated.com/); #2 Other (https://other.com/)"
+    }
+    const teasers = extractUpgradeTeasers(sections, bundle, "example.com")
+    expect(teasers.previewCompetitor?.domain).toBe("local-agency.com")
+    expect(teasers.previewCompetitor?.title).toBe("Local Agency Atlanta")
+    // No position in service SERP → defaults to 1
+    expect(teasers.previewCompetitor?.rank).toBe(1)
+  })
+
+  it("picks up serpPosition when resolved column appears in the service SERP detail (P1.8.1)", () => {
+    const bundle = emptyResearchBundle()
+    bundle.competitiveContext.competitorColumns = [
+      { domain: "rival-example.com", source: "service_peer" },
+    ]
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const competitive = sections.find((s) => s.id === "competitive_context")
+    if (competitive?.findings[0]) {
+      competitive.findings[0].detail =
+        "#1 Google (https://google.com/); #3 Rival Co (https://rival-example.com/)"
+    }
+    const teasers = extractUpgradeTeasers(sections, bundle, "example.com")
+    expect(teasers.previewCompetitor?.domain).toBe("rival-example.com")
+    // Position #3 in the service SERP → should be surfaced, not raw #1
+    expect(teasers.previewCompetitor?.rank).toBe(3)
+  })
+
+  it("falls back to raw SERP parse when no resolved columns exist (P1.8.1 regression guard)", () => {
+    const bundle = emptyResearchBundle()
+    // competitorColumns empty — original fallback behaviour must still work
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const competitive = sections.find((s) => s.id === "competitive_context")
+    if (competitive?.findings[0]) {
+      competitive.findings[0].detail =
+        "#1 Rival Co (https://rival-example.com/); #2 Other (https://other.com/)"
+    }
+    const teasers = extractUpgradeTeasers(sections, bundle, "example.com")
+    expect(teasers.previewCompetitor?.domain).toBe("rival-example.com")
+  })
 })

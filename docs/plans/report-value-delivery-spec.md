@@ -406,9 +406,9 @@ Forcing "local relevance" into the *pure-namesake* fallback was considered and r
 - [x] Regen: LPD grid shows local agencies, not Unity LevelPlay; review row clean
 - [x] Full unit suite + type-check pass
 
-### Follow-up (recommended next slice) — P1.8.1: align the conversion trigger
+### Follow-up shipped as P1.8.1
 
-The free-tier `previewCompetitor` (→ executive-summary tease, free snapshot, and the GHL `top_competitor` merge field) is still extracted from the raw service-SERP #1 (`extractPreviewCompetitor`), which can diverge from the now-smart grid. It should name the **same resolved local rival** shown in the grid. This is the still-open item at "P1 — Named competitor in paid section" (GHL merge field) and the preview-path alignment note in P0 §5.
+See section below.
 
 ### Files
 
@@ -416,6 +416,55 @@ The free-tier `previewCompetitor` (→ executive-summary tease, free snapshot, a
 |------|--------|
 | `lib/research/serp/competitor-resolve.ts` | Reorder ladder: category peer before namesake |
 | `lib/research/serp/competitor-resolve.test.ts` | Tests encoding category-over-namesake + namesake-only fallback |
+
+---
+
+## P1.8.1 — Align conversion trigger to resolved local rival (shipped 2026-06-25)
+
+### Problem
+
+After P1.8, the competitive grid correctly names local rivals (e.g., Modo Modo Agency for LPD). But `meta.upgradeTeasers.previewCompetitor` — which drives the executive summary tease and the planned GHL `top_competitor` email merge field — was still derived from raw brand-search SERP #1 at display time (`resolvePreviewCompetitorForReport`). The two could diverge: grid says "Modo Modo Agency," tease says a brand-name twin.
+
+### Architecture finding
+
+`previewCompetitor` is stored on free snapshots only (competitive analysis is paid). For paid full reports, `meta.upgradeTeasers` was `undefined` and `resolvePreviewCompetitorForReport` fell back to brand SERP parse. The real fix needed to be in the paid-report assembly path (`run-report-pipeline.ts`), not the free-report assembly function.
+
+### Fix
+
+Two complementary changes:
+
+1. **`lib/pipeline/run-report-pipeline.ts`** — after the paid full report is assembled and before schema validation, set `meta.upgradeTeasers.previewCompetitor` from `bundle.competitiveContext.competitorColumns[0]` (the P1.8-ordered local rival). Rank defaults to 1 (top result on the relevant category/service SERP).
+
+2. **`lib/pipeline/assemble-free-report.ts`** — in `extractUpgradeTeasers`, check `bundle.competitiveContext.competitorColumns[0]` before falling back to raw SERP parse. Future-proofing: if competitive analysis is ever included in free-tier bundles, the right rival is automatically used.
+
+### Result (regen `031e84ed…`, 2026-06-25 ~16:35)
+
+```json
+"upgradeTeasers": {
+  "previewCompetitor": {
+    "rank": 1,
+    "title": "Modo Modo Agency - Atlanta",
+    "domain": "modomodoagency.com"
+  }
+}
+```
+
+The executive summary tease, teaser copy builder, and future GHL `top_competitor` field all now name the same rival as the grid. The closed item from the P1 spec "GHL merge field top_competitor populated from previewCompetitor.domain or grid column" is now data-ready.
+
+### Acceptance criteria
+
+- [x] `meta.upgradeTeasers.previewCompetitor.domain` matches grid column 0 domain on paid full report
+- [x] `extractUpgradeTeasers` uses resolved columns when available, raw SERP fallback when empty (4 new unit tests)
+- [x] Full suite (231 tests) + type-check pass; .gitignore updated to exclude `.env.local.bak` / `.env.vercel.production`
+
+### Files
+
+| File | Change |
+|------|--------|
+| `lib/pipeline/run-report-pipeline.ts` | Set `upgradeTeasers.previewCompetitor` from resolved column on paid reports |
+| `lib/pipeline/assemble-free-report.ts` | `extractUpgradeTeasers` checks resolved columns first |
+| `lib/pipeline/assemble-free-report.test.ts` | 4 new tests for resolved-column and fallback paths |
+| `.gitignore` | Add `.env.local.bak`, `.env.vercel.production` |
 
 ---
 

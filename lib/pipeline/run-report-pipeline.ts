@@ -237,6 +237,25 @@ export async function runReportPipeline({
       reportJson.meta.overallScore = audit.overallScore
       reportJson.meta.letterGrade = audit.letterGrade
       reportJson.meta.reportTier = reportTier
+
+      // P1.8.1 — wire the resolved grid rival as the report's conversion trigger.
+      // `resolvePreviewCompetitorForReport` (used by the executive summary and future
+      // GHL top_competitor field) checks meta.upgradeTeasers?.previewCompetitor first.
+      // Setting it here from the resolved column (which now places local rivals first
+      // per P1.8) means the tease copy and email nurture name the same competitor shown
+      // in the competitive grid — not the raw SERP #1.
+      const p181Column = bundle.competitiveContext.competitorColumns[0]
+      if (p181Column) {
+        reportJson.meta.upgradeTeasers = {
+          ...reportJson.meta.upgradeTeasers,
+          previewCompetitor: {
+            rank: 1,
+            domain: p181Column.domain,
+            title: p181Column.title,
+          },
+        }
+      }
+
       reportJson.signalRows = audit.signals.map((s) => ({
         label: s.label,
         value: s.status.toUpperCase(),
