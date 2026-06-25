@@ -64,7 +64,7 @@ const NON_COMPETITOR_HOSTS = new Set([
  * non-denylisted host serving a list page never becomes a grid column (P1.7).
  */
 const DIRECTORY_LISTING_TITLE_PATTERN =
-  /\btop\s+\d+\b|\b\d+\s+(?:top|best)\b|\b\d+\s+[\w&'.\- ]{0,40}\b(?:companies|startups|agencies|firms|vendors|tools|brands)\b|\bbest\b[\w&'.\- ]{0,40}\b(?:in|near|for)\b|\b(?:companies|startups|agencies|firms|vendors|providers)\s+(?:in|near)\b|\b(?:company|agency|firm|provider)\s+in\b|\blist of\b|\bdirectory\b|\btop[- ]rated\b/i
+  /\btop\s+\d+\b|\b\d+\s+(?:top|best)\b|\b\d+\s+[\w&'.\- ]{0,40}\b(?:companies|startups|agencies|firms|vendors|tools|brands)\b|\bbest\b[\w&'.\- ]{0,40}\b(?:in|near|for)\b|\b(?:companies|startups|agencies|firms|vendors|providers|services)\s+(?:in|near)\b|\b(?:company|agency|firm|provider)\s+in\b|\b(?:development|consulting|engineering|outsourcing)\s+services\b|\blist of\b|\bdirectory\b|\btop[- ]rated\b/i
 
 /**
  * Titles returned when a homepage fetch hits a bot wall / interstitial instead of

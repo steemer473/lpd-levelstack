@@ -270,6 +270,30 @@ export function LevelstackIntakeForm({
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
+                  <FormDescription>
+                    Describe what you sell in plain language.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="primaryServiceKeywords"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Search keywords (optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="e.g. marketing operations software"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    2–5 words a prospect would actually type into Google. We use
+                    this to find your real competitors. Leave blank to use your
+                    primary service above.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

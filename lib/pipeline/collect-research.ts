@@ -16,9 +16,10 @@ import { fetchPageSpeedSignals } from "@/lib/research/pagespeed"
 import {
   googleOrganicSearch,
   hostnameFromUrl,
-  qualifiedPeerDomains,
   runSerpQueries,
+  buyerRelevanceTokens,
   categoryPeerQuery,
+  relevantServicePeerColumns,
   resolveCompetitorColumns,
 } from "@/lib/research/serp"
 import { searchSocialPlatforms } from "@/lib/research/social-search"
@@ -167,17 +168,20 @@ export async function collectPaidEnrichment(
   const serviceSearch = await googleOrganicSearch(q)
   const buyerHost = hostnameFromUrl(intake.websiteUrl)
 
-  // P1.7: gate on *qualified* peers (directories/listicles excluded) so the
-  // category fallback fires whenever page 1 is all aggregators, not just when
-  // it is empty.
-  const servicePeerDomains = qualifiedPeerDomains(
-    serviceSearch.results,
+  // P1.7.1: gate on *relevant* peers — qualified (not directories/listicles)
+  // AND on-vertical for the buyer's GBP category. The category fallback fires
+  // whenever page 1 has no real, on-vertical peer (all aggregators, or peers
+  // from a different vertical), not just when it is empty.
+  const relevanceTokens = buyerRelevanceTokens(gbp.category)
+  const relevantPeers = relevantServicePeerColumns({
+    serviceSearch,
     buyerHost,
-    3,
-  )
+    relevanceTokens,
+    limit: 3,
+  })
 
   let categoryPeerSearch = null
-  if (servicePeerDomains.length === 0) {
+  if (relevantPeers.length === 0) {
     const categoryQuery = categoryPeerQuery(intake, gbp)
     categoryPeerSearch = await googleOrganicSearch(categoryQuery)
   }
@@ -190,6 +194,7 @@ export async function collectPaidEnrichment(
       brandSearches: bundle.searchFootprint.searches,
       categoryPeerSearch,
       nameCollisions: bundle.nameCollisions.collisions,
+      buyerCategory: gbp.category,
     })
 
   const snapshotDomains = columns.map((c) => c.domain)

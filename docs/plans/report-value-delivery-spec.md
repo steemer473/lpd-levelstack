@@ -52,6 +52,7 @@ Separately, the report URL requires sign-in before first view, which burns the p
 | **P1** | First-view access (magic link) | 1–2 days | Report opens without password on valid token |
 | **P1** | Named competitor in paid grid | 1 day | ≥1 real competitor column on service search |
 | **P1.7** | Directory/listicle filter + Tier A quality gate | 0.5 day | Shipped 2026-06-25 — directories never become grid columns |
+| **P1.7.1** | Service-peer relevance gate + intake search keywords | 0.5 day | Shipped 2026-06-25 — off-vertical vendors dropped; grid agrees with prose |
 | **P1** | Finding dedup (reputation) | 0.5 day | Clutch/G2/Capterra merged to one finding |
 | **P2** | Action plan specificity | 2–3 days | Tasks include copy-paste artifacts |
 | **P2** | SERP evidence links | 1 day | Findings link to search URL used |
@@ -330,6 +331,47 @@ Secondary leaks: snapshot homepage titles showed bot walls ("Checking your brows
 | `lib/pipeline/collect-research.ts` | Category fallback gated on qualified peers |
 | `lib/research/competitor.ts` | `cleanCompetitorHomepageTitle` snapshot hygiene |
 | `lib/research/serp.ts` | Re-export new helpers |
+
+---
+
+## P1.7.1 — Service-peer relevance gate + intake search keywords (shipped 2026-06-25)
+
+### Problem
+
+The P1.7 regen of `031e84ed…` confirmed directories were gone, but the grid then promoted **off-vertical SaaS-dev / IT vendor SEO-landing pages** (`centurygroup.net`, `ideapeel.com`, `charterglobal.com`) as "Service peers" — because they are real (non-directory) hosts that rank for the vague query "SAAS and stand alone products Atlanta, GA". The grid still contradicted the prose (which named Unity LevelPlay / Level Agency). Root causes: (a) ambiguous intake `primaryService`, (b) no relevance check on service peers.
+
+### Fix
+
+1. **Service-peer relevance gate** (`relevantServicePeerColumns`, `buyerRelevanceTokens` in `competitor-resolve.ts`): keep a service peer only when its SERP title/snippet/host matches a token from the buyer's **GBP category** (Google's authoritative classification). With no category the gate is disabled (host/title gates still apply). We deliberately do **not** filter on the buyer's own service phrase — a real competitor rarely echoes your wording, so that would prune legit peers.
+2. **Broadened SEO-landing title heuristics** (`isDirectoryListingTitle`): `… services in/near …`, `development|consulting|engineering|outsourcing services`. Trailing-geo patterns were intentionally excluded (would wrongly drop "Bob's Plumbing in Dallas").
+3. **Intake search keywords** (`primaryServiceKeywords`): optional concise field ("2–5 words a prospect would Google") on the intake form + schema. `serviceSearchTerm()` prefers it over the verbose `primaryService` for the service/category SERP. Addresses the query-quality root cause for future intakes.
+4. **Gating parity**: `collectPaidEnrichment` runs the category-peer fallback when no *relevant* peer exists (not just when none qualify), and passes `gbp.category` into `resolveCompetitorColumns`.
+
+### Result (regen `031e84ed…`, 2026-06-25 04:46)
+
+- Off-vertical vendors removed; grid mode = `namesake`, label "Category & namesake comparison".
+- **Grid and prose agree** (both lead with Unity LevelPlay).
+- **Residual (tracked separately):** namesake *selection* favors full brand-string matches (Unity LevelPlay, a sports-streaming "LevelPlay") over the locally-relevant Level Agency / Level Workforce, because brand-token scoring rewards matching both "level"+"play"; collision typing did not elevate the local rivals this run. Review row still leaks "Unity Reviews 451". This is a P1.6 namesake-quality refinement, not a P1.7 directory issue.
+
+### Acceptance criteria
+
+- [x] Off-vertical service peers dropped when GBP category known (`competitor-resolve.test.ts`)
+- [x] Relevance gate disabled (no pruning) when no category — existing service-peer tests still pass
+- [x] SEO service-landing titles flagged; local "… in <City>" business titles not flagged (`competitor-domains.test.ts`)
+- [x] `serviceSearchTerm` prefers `primaryServiceKeywords` (`research-queries.test.ts`)
+- [x] Regen: grid and prose name the same entity; no directory/vendor columns
+- [ ] Namesake entity quality (Level Agency over Unity sports/levelplay) — deferred to P1.6.x
+
+### Files
+
+| File | Change |
+|------|--------|
+| `lib/research/serp/competitor-resolve.ts` | Relevance gate, `buyerRelevanceTokens`, `relevantServicePeerColumns`, category in resolver |
+| `lib/research/serp/competitor-domains.ts` | Broadened SEO-landing title patterns |
+| `lib/pipeline/research-queries.ts` | `serviceSearchTerm` (keywords-first) |
+| `lib/intake/schema.ts` | Optional `primaryServiceKeywords` |
+| `components/intake/levelstack-intake-form.tsx` | Keywords field + guidance |
+| `lib/pipeline/collect-research.ts` | Relevance-gated category fallback; pass category |
 
 ---
 

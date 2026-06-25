@@ -20,11 +20,13 @@ export {
   topCompetitorDomains,
 } from "@/lib/research/serp/competitor-domains"
 export {
+  buyerRelevanceTokens,
   categoryPeerQuery,
   COMPARISON_SOURCE_LABELS,
   competitiveSectionLabel,
   extractNamesakeDomainsFromBrandSearch,
   formatSerpEvidenceTable,
+  relevantServicePeerColumns,
   resolveCompetitorColumns,
   type CompetitiveComparisonMode,
   type CompetitorColumn,
