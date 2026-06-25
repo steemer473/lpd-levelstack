@@ -1,3 +1,4 @@
+import { cookies } from "next/headers"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
@@ -8,11 +9,12 @@ import { ReportGenerating } from "@/components/report/report-generating"
 import { RetryReportButton } from "@/components/report/retry-report-button"
 import { Button } from "@/components/ui/button"
 import { FormPanel } from "@/components/ui/form-panel"
+import { reportAccessCookieName } from "@/lib/auth/report-access-token"
 import { isDevReportPreviewEnabled } from "@/lib/dev-report-preview"
 import { requirePaidIntakeAccess } from "@/lib/levelstack-access"
 import { isPlaceholderReport } from "@/lib/pipeline/placeholder-report"
 import { levelstackReportJsonSchema } from "@/lib/pipeline/report-types"
-import { getReportById, resolveReportAccess } from "@/lib/reports/get-report"
+import { resolveReportAccess } from "@/lib/reports/get-report"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
@@ -37,12 +39,19 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user && !devPreview) {
-    redirect(`/auth/sign-in?redirect=/reports/${reportId}`)
+  // Possession-based access: the access route sets this HttpOnly cookie after
+  // verifying an emailed token, so token recipients can view without a session.
+  let accessToken: string | null = null
+  if (!user) {
+    const cookieStore = await cookies()
+    accessToken = cookieStore.get(reportAccessCookieName(reportId))?.value ?? null
   }
 
-  const report = await resolveReportAccess(reportId, user?.id ?? null)
+  const report = await resolveReportAccess(reportId, user?.id ?? null, accessToken)
   if (!report) {
+    if (!user && !devPreview) {
+      redirect(`/auth/sign-in?redirect=/reports/${reportId}`)
+    }
     return (
       <ProductShell maxWidth="md" showSignOut resultsStyle>
         <FormPanel className="max-w-lg mx-auto text-center">

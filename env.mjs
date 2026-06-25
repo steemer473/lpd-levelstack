@@ -27,6 +27,8 @@ export const env = createEnv({
       emptyToUndefined,
       z.string().email().optional(),
     ),
+    /** HMAC key for possession-based report access tokens (emailed magic links). Required in production. */
+    LEVELSTACK_REPORT_TOKEN_SECRET: requiredInVercelProduction(z.string().min(32)),
     OPENAI_API_KEY: requiredInVercelProduction(z.string().min(1)),
     ANTHROPIC_API_KEY: optionalString,
     SERPAPI_KEY: optionalString,
@@ -80,6 +82,7 @@ export const env = createEnv({
     FROM_EMAIL: process.env.FROM_EMAIL,
     FROM_NAME: process.env.FROM_NAME,
     LEVELSTACK_ADMIN_NOTIFY_EMAIL: process.env.LEVELSTACK_ADMIN_NOTIFY_EMAIL,
+    LEVELSTACK_REPORT_TOKEN_SECRET: process.env.LEVELSTACK_REPORT_TOKEN_SECRET,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     SERPAPI_KEY: process.env.SERPAPI_KEY,

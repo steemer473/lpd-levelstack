@@ -16,6 +16,10 @@ type ReportReadyParams = {
   reportId: string
   reportTier: ReportTier
   topFinding?: string
+  /** Token access link (opens the report from any device, no sign-in). */
+  accessUrl?: string
+  /** Token access link that lands on the PDF/print view. */
+  accessPrintUrl?: string
   signInUrl?: string
   resendUrl?: string
   expirationLabel?: string
@@ -53,7 +57,8 @@ function buildFreeSnapshotReadyBody(params: ReportReadyParams): string {
     planId: "levelstack-full-report",
     source: "levelstack_email",
   })
-  const signInUrl = params.signInUrl ?? getAppUrl(`/reports/${params.reportId}`)
+  const signInUrl =
+    params.accessUrl ?? params.signInUrl ?? getAppUrl(`/reports/${params.reportId}`)
   const resendUrl =
     params.resendUrl ?? buildReportResendSignInUrl(params.reportId)
   const expirationLabel = params.expirationLabel ?? MAGIC_LINK_EXPIRY_LABEL
@@ -113,6 +118,8 @@ export async function sendReportReadyEmail(params: ReportReadyParams): Promise<v
   const subject = `Your full LevelStack report for ${params.businessName} is ready`
   const layoutTitle = "Your full report is ready"
   const safeBusiness = escapeHtml(params.businessName)
+  const openUrl = params.accessUrl ?? reportUrl
+  const pdfUrl = params.accessPrintUrl ?? printUrl
 
   const body = `
     <p style="margin:0 0 16px;">Hi,</p>
@@ -132,9 +139,9 @@ export async function sendReportReadyEmail(params: ReportReadyParams): Promise<v
       <li>Prioritized action plan with Who and Time</li>
       <li>PDF export</li>
     </ul>
-    ${emailCtaButton(reportUrl, "Open your full report →")}
+    ${emailCtaButton(openUrl, "Open your full report →")}
     <p style="margin:16px 0 0;">
-      ${emailCtaLink(printUrl, "Download PDF →")}
+      ${emailCtaLink(pdfUrl, "Download PDF →")}
     </p>
   `
 

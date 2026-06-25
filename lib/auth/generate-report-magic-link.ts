@@ -1,8 +1,11 @@
 import {
   buildMagicLinkCallbackUrl,
+  buildReportAccessPath,
   MAGIC_LINK_EXPIRY_LABEL,
   MAGIC_LINK_EXPIRY_SECONDS,
 } from "@/lib/auth/magic-link-callback"
+import { signReportAccessToken } from "@/lib/auth/report-access-token"
+import type { ReportTier } from "@/lib/levelstack-plans"
 import type { createAdminClient } from "@/lib/supabase/admin"
 import { getAppUrl } from "@/lib/urls"
 
@@ -47,4 +50,30 @@ export async function generateReportMagicLink(
   reportId: string,
 ): Promise<string | null> {
   return generateAuthMagicLink(admin, email, `/reports/${reportId}`)
+}
+
+/**
+ * Absolute URL that opens a report from an email with zero friction: the
+ * access route verifies the signed token, sets an HttpOnly cookie, and
+ * redirects to the clean report URL. Works on any device for the token's
+ * lifetime, independent of Supabase OTP state. Returns null if the signing
+ * secret is unset.
+ */
+export function generateReportAccessUrl(
+  reportId: string,
+  tier: ReportTier,
+): string | null {
+  const token = signReportAccessToken(reportId, tier)
+  if (!token) return null
+  return getAppUrl(buildReportAccessPath(reportId, token))
+}
+
+/** Same as {@link generateReportAccessUrl} but lands on the print/PDF view. */
+export function generateReportAccessPrintUrl(
+  reportId: string,
+  tier: ReportTier,
+): string | null {
+  const token = signReportAccessToken(reportId, tier)
+  if (!token) return null
+  return getAppUrl(buildReportAccessPath(reportId, token, { to: "print" }))
 }
