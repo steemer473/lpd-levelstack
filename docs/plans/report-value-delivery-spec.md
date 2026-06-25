@@ -157,42 +157,86 @@ Separately, the report URL requires sign-in before first view, which burns the p
 
 ---
 
-## P1 — First-view report access
+## P1 — First-view report access — SHIPPED
 
 ### Problem
 
-```40:42:app/reports/[reportId]/page.tsx
-if (!user && !devPreview) {
-  redirect(`/auth/sign-in?redirect=/reports/${reportId}`)
-}
-```
+The report-ready email promised instant access, but two paths hit a sign-in wall:
 
-Magic-link email promises instant access; user hits sign-in wall if cookie expired.
+1. **Supabase OTP magic links are single-use + 24h.** A second click (or any click
+   after the OTP is consumed/expired) redirected to `/auth/sign-in`. The plaintext
+   fallback URL in the email was the *same* magic link, so copy-paste also died
+   after first use.
+2. **Paid users got no link at all** — the full-report email pointed at a bare
+   `/reports/{id}`, which `proxy.ts` blocks for anyone without a live session.
 
-### Fix options (pick A for v1)
+The real gate is `proxy.ts` (Edge middleware) guarding `/reports/:path*`, which
+redirects unauthenticated requests to `/auth/sign-in` *before* the page renders.
 
-**A (recommended):** Signed report token in magic-link URL
+### Shipped design — signed token + cookie exchange (revised from original Option A)
 
-- Magic link: `/reports/{id}?token={hmac}` (short TTL, single-use or 24h)
-- `resolveReportAccess` accepts valid token without `user`
-- After view, prompt optional "Save to account" (existing email)
+Independent, possession-based access tokens, decoupled from Supabase OTP. A
+second-opinion review (gpt-5.5) flagged three gaps in the original "token on the
+report URL" plan; the shipped design fixes all three:
 
-**B:** Supabase session from magic link sets persistent cookie (verify OTP flow sets session before redirect)
+1. **Token binds `reportId + tier + expiry`** (HMAC-SHA256, constant-time verify).
+   Tier binding closes the upgrade hole: `upgradeFreeSnapshotToPaidIntake` reuses
+   the same `reportId` row and flips `report_tier` free→full, so a stale free
+   token must not unlock the upgraded paid report. `resolveReportAccess` rejects
+   on tier mismatch.
+2. **Access route `/reports/{id}/access?rtoken=…`** verifies the token (Node
+   runtime), sets an HttpOnly+Secure+SameSite=Lax cookie, and **redirects to the
+   clean URL** — keeping the token out of browser history, server logs, and the
+   Referer header.
+3. **The cookie covers report page, print page, and PDF download** with no extra
+   plumbing (the print/PDF link never needed its own session).
+4. **`proxy.ts` is token-aware**: it exempts the `/access` subroute and passes
+   report/print pages through when the possession cookie is present (coarse gate;
+   the page does the authoritative crypto + tier check, so forged cookies fail).
+5. **Both tiers** get the token link in `sendReportReadyEmail` (button + plaintext).
+6. **30-day TTL** (`REPORT_ACCESS_TOKEN_TTL_SECONDS`) — possession access to one's
+   own report, not a login session.
+
+Mutations (`/api/reports/{id}/run`, status, regeneration, intake) stay auth-only.
+Status polling stays auth-only — report emails are only sent once the report is
+`ready`, and the paid-upgrade pending page always has a logged-in user, so token
+recipients land on a ready report.
 
 ### Acceptance criteria
 
-- [ ] User clicking email link sees report within 5s without typing password
-- [ ] Token expires per `MAGIC_LINK_EXPIRY_LABEL` (24h)
-- [ ] Report still requires auth for non-token access
+- [x] User clicking the email link sees the report without typing a password,
+      on any device, even after the Supabase OTP is consumed/expired
+- [x] Works for both free-snapshot and paid (full-report) tiers
+- [x] PDF/print works for token recipients (same cookie)
+- [x] Token expires per `REPORT_ACCESS_TOKEN_TTL_SECONDS` (30 days)
+- [x] Stale free token cannot unlock an upgraded paid report (tier binding)
+- [x] Token kept off the destination URL (clean redirect)
+- [x] Report still requires auth/token for any non-token access (proxy + page)
+- [x] Fails closed when `LEVELSTACK_REPORT_TOKEN_SECRET` is unset
 
 ### Files
 
 | File | Change |
 |------|--------|
-| `app/reports/[reportId]/page.tsx` | Token-aware access |
-| `lib/reports/get-report.ts` | `resolveReportAccess` token path |
-| `lib/auth/magic-link-callback.ts` | Append token to redirect |
-| `app/reports/[reportId]/print/page.tsx` | Same token rule |
+| `lib/auth/report-access-token.ts` | **New** — sign/verify (reportId+tier+expiry), cookie-name helper |
+| `app/reports/[reportId]/access/route.ts` | **New** — verify token, set cookie, clean redirect (`?to=print` supported) |
+| `proxy.ts` | Token-aware: exempt `/access`, pass report/print pages with cookie present |
+| `lib/reports/get-report.ts` | `resolveReportAccess(reportId, userId, token?)` — admin path with tier check |
+| `app/reports/[reportId]/page.tsx` | Read access cookie; serve token recipients; redirect only when no report+no user+no token |
+| `app/reports/[reportId]/print/page.tsx` | Same cookie-based access |
+| `lib/auth/generate-report-magic-link.ts` | `generateReportAccessUrl` / `generateReportAccessPrintUrl` |
+| `lib/auth/magic-link-callback.ts` | `buildReportAccessPath` |
+| `lib/email/report-delivery.ts` | `accessUrl` / `accessPrintUrl` on both tiers |
+| `lib/pipeline/run-report-pipeline.ts` | Mint token + access URLs for both tiers |
+| `env.mjs` | `LEVELSTACK_REPORT_TOKEN_SECRET` (required in production) |
+
+### Notes / follow-ups
+
+- Revocation is by secret rotation only (acceptable for a low-volume $97 product).
+  A DB-backed token table (per-link revoke + audit) is the upgrade if needed.
+- Optional "Save to account" prompt for token-only viewers — not built (P2).
+- Set `Referrer-Policy: no-referrer` on report/print pages as defense-in-depth (P2;
+  token is already off the URL).
 
 ---
 

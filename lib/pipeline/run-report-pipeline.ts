@@ -23,12 +23,11 @@ import {
 import { assembleReportJson } from "@/lib/pipeline/build-sections"
 import { emptyResearchBundle } from "@/lib/pipeline/research-types"
 import {
-  generateReportMagicLink,
+  generateReportAccessPrintUrl,
+  generateReportAccessUrl,
 } from "@/lib/auth/generate-report-magic-link"
-import {
-  buildReportResendSignInUrl,
-  MAGIC_LINK_EXPIRY_LABEL,
-} from "@/lib/auth/magic-link-callback"
+import { buildReportResendSignInUrl } from "@/lib/auth/magic-link-callback"
+import { REPORT_ACCESS_TOKEN_TTL_LABEL } from "@/lib/auth/report-access-token"
 import { sendReportReadyEmail } from "@/lib/email/report-delivery"
 import { planIdToReportTier, type ReportTier } from "@/lib/levelstack-plans"
 import { resolveReportPlanId } from "@/lib/pipeline/resolve-report-plan-id"
@@ -336,27 +335,25 @@ export async function runReportPipeline({
         audit.signals.find((s) => s.status === "fail")?.finding ??
         audit.signals.find((s) => s.status === "warning")?.finding
 
-      if (reportTier === "free_snapshot") {
-        const signInUrl = await generateReportMagicLink(admin, email, reportId)
-        await sendReportReadyEmail({
-          to: email,
-          businessName: parsed.data.primaryBusinessName,
-          reportId,
-          reportTier,
-          topFinding,
-          signInUrl: signInUrl ?? undefined,
-          resendUrl: buildReportResendSignInUrl(reportId),
-          expirationLabel: MAGIC_LINK_EXPIRY_LABEL,
-        })
-      } else {
-        await sendReportReadyEmail({
-          to: email,
-          businessName: parsed.data.primaryBusinessName,
-          reportId,
-          reportTier,
-          topFinding,
-        })
-      }
+      // Zero-friction access for both tiers: a signed token opens the report
+      // (and its PDF) from any device for the token's lifetime, independent of
+      // Supabase OTP single-use/expiry. The access route exchanges the token
+      // for an HttpOnly cookie and redirects to a clean URL.
+      const accessUrl = generateReportAccessUrl(reportId, reportTier) ?? undefined
+      const accessPrintUrl =
+        generateReportAccessPrintUrl(reportId, reportTier) ?? undefined
+
+      await sendReportReadyEmail({
+        to: email,
+        businessName: parsed.data.primaryBusinessName,
+        reportId,
+        reportTier,
+        topFinding,
+        accessUrl,
+        accessPrintUrl,
+        resendUrl: buildReportResendSignInUrl(reportId),
+        expirationLabel: REPORT_ACCESS_TOKEN_TTL_LABEL,
+      })
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : "Pipeline failed"

@@ -22,6 +22,24 @@ export function buildUpgradeIntakeResendSignInUrl(reportId: string): string {
   return getAppUrl(`/auth/sign-in?redirect=${encodeURIComponent(intakePath)}`)
 }
 
+/**
+ * Path to the report access route that exchanges a signed token for an
+ * HttpOnly cookie, then redirects to the clean report (or print) URL.
+ * Keeping the token off the final report URL avoids leaking it via browser
+ * history, server logs, and the Referer header.
+ */
+export function buildReportAccessPath(
+  reportId: string,
+  token: string,
+  options?: { to?: "print" },
+): string {
+  const params = new URLSearchParams({ rtoken: token })
+  if (options?.to === "print") {
+    params.set("to", "print")
+  }
+  return `/reports/${reportId}/access?${params.toString()}`
+}
+
 /** Server-verifiable magic link — uses hashed_token, not Supabase action_link (hash fragments). */
 export function buildMagicLinkCallbackUrl(
   hashedToken: string,

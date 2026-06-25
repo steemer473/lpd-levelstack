@@ -1,3 +1,4 @@
+import { verifyReportAccessToken } from "@/lib/auth/report-access-token"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { isDevReportPreviewEnabled } from "@/lib/dev-report-preview"
@@ -84,18 +85,46 @@ export async function getReportById(
   return queryReportById(supabase, reportId)
 }
 
+/** Current tier of a report row, tolerating the legacy plan_id-only shape. */
+function reportTierOf(row: LevelstackReportRow): ReportTier {
+  if (
+    row.report_tier === "free_snapshot" ||
+    row.report_tier === "full_report" ||
+    row.report_tier === "strategy_call"
+  ) {
+    return row.report_tier
+  }
+  return planIdToReportTier(row.plan_id)
+}
+
 /**
  * Resolve a report for the current viewer.
- * Owners always use RLS. In local dev preview, falls back to service-role lookup
- * so rebuild/status APIs work when the signed-in hub account ≠ report owner.
+ * Owners always use RLS. A valid possession token (emailed magic link) grants
+ * read-only access via the service-role client without a Supabase session, but
+ * only when the token's bound tier still matches the report's current tier —
+ * this stops a stale free-snapshot token from unlocking an upgraded paid report
+ * (upgrades reuse the same reportId row). In local dev preview, falls back to
+ * service-role lookup so rebuild/status APIs work when the signed-in hub
+ * account ≠ report owner.
  */
 export async function resolveReportAccess(
   reportId: string,
   userId: string | null,
+  accessToken?: string | null,
 ): Promise<LevelstackReportRow | null> {
   if (userId) {
     const owned = await getReportForUser(reportId, userId)
     if (owned) return owned
+  }
+
+  if (accessToken) {
+    const claims = verifyReportAccessToken(accessToken, reportId)
+    if (claims) {
+      const row = await getReportById(reportId)
+      if (row && reportTierOf(row) === claims.tier) {
+        return row
+      }
+    }
   }
 
   if (isDevReportPreviewEnabled()) {

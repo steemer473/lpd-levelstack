@@ -32,6 +32,24 @@ export async function proxy(request: NextRequest) {
     return sessionResponse
   }
 
+  // Possession-based report access (emailed magic links). This proxy runs in
+  // the Edge runtime (no node:crypto), so it only does a coarse pass-through;
+  // the authoritative signature + tier verification happens in the Node route
+  // handler / server components, which reject forged tokens. A stale sign-in
+  // wall here is exactly what we're removing for both free and paid recipients.
+  if (pathname.startsWith("/reports/")) {
+    const [, , reportId, sub] = pathname.split("/")
+    // The /access route verifies the signed `rtoken` itself and sets the cookie.
+    if (reportId && sub === "access") {
+      return sessionResponse
+    }
+    // Report + print pages: cookie name mirrors reportAccessCookieName() in
+    // lib/auth/report-access-token.ts (inlined to keep node:crypto out of Edge).
+    if (reportId && request.cookies.get(`lvlstk_ra_${reportId}`)) {
+      return sessionResponse
+    }
+  }
+
   const url = env.NEXT_PUBLIC_SUPABASE_URL
   const anon = env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!url || !anon) {
