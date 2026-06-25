@@ -252,6 +252,48 @@ After P0 denylist fix, many paid reports (especially national/SaaS buyers) have 
 
 ---
 
+## P1.6 — Namesake quality pass (shipped 2026-06-25)
+
+### Problem
+
+P1.5 fallback shipped but the namesake grid named the wrong entities. gstack regen review of `031e84ed…` found:
+
+- Buyer's own alt domain `levelplaydigital.cloud` shown as a competitor (root squat)
+- Unrelated product `Unity LevelPlay` and generic `levelplay` ranked over real rivals
+- Real confusion brands (Level Agency, Level Workforce) appeared in LLM prose but not the grid
+- Review row junk: "Read Customer Service Reviews of truepla", "Unity Reviews 451"
+- Verbose `primaryService` ("SAAS and stand alone products, operational efficiency products") produced low-signal service queries
+
+### Fix
+
+1. **Namesake scoring** (`resolveNamesakeColumns` in `lib/research/serp/competitor-resolve.ts`):
+   - Brand-token overlap scoring (`brandSignificantTokens`, length >= 4, drops generic descriptors); zero-overlap candidates excluded.
+   - `isBuyerRootSquat()` removes same-root / different-TLD buyer domains.
+   - Prefer detected `nameCollisions` (typed `direct_competitor` weighted highest) over raw brand-search order.
+2. **Wire name collisions** — `collectPaidEnrichment()` passes `bundle.nameCollisions.collisions` into `resolveCompetitorColumns()`.
+3. **Snapshot guardrails** (`reviewHitMatchesDomain` in `lib/research/competitor.ts`) — review rating/snippet kept only when the hit text references the competitor's brand root; otherwise cell is `—` with an honest limitation.
+4. **Service query normalization** (`normalizeServiceQuery` in `lib/pipeline/research-queries.ts`) — first clause, capped at 6 words; used by `serviceMarketQuery` and `categoryPeerQuery`.
+
+### Acceptance criteria
+
+- [x] Buyer root squats never appear as competitor columns (`competitor-resolve.test.ts`, dogfood test)
+- [x] Typed `direct_competitor` collisions surface ahead of raw brand-search hits
+- [x] Zero brand-token-overlap domains excluded from namesake grid
+- [x] Unrelated review pages do not populate review cells (`competitor.test.ts`)
+- [x] Verbose `primaryService` reduced to a searchable phrase (`research-queries.test.ts`)
+- [ ] LPD production regen: grid names Level Agency / Level Workforce, no `.cloud` squat, clean review row
+
+### Files
+
+| File | Change |
+|------|--------|
+| `lib/research/serp/competitor-resolve.ts` | Namesake scoring, squat exclusion, collision merge |
+| `lib/pipeline/collect-research.ts` | Pass name collisions into resolver |
+| `lib/research/competitor.ts` | Review snapshot domain-match guard |
+| `lib/pipeline/research-queries.ts` | `normalizeServiceQuery` |
+
+---
+
 ## P1 — Reputation finding dedup
 
 ### Problem

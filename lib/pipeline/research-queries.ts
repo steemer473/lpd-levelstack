@@ -16,8 +16,22 @@ export function priorNamesForSearch(intake: LevelstackIntakeFormValues): string[
     )
 }
 
+/**
+ * Intake `primaryService` is free text and often a verbose, multi-clause phrase
+ * (e.g. "SAAS and stand alone products, operational efficiency products").
+ * Reduce it to a searchable phrase: first clause, capped word count.
+ */
+export function normalizeServiceQuery(service: string): string {
+  const trimmed = service.trim()
+  if (!trimmed) return trimmed
+  const firstClause = (trimmed.split(/[;,]/)[0] ?? trimmed).trim() || trimmed
+  const words = firstClause.split(/\s+/)
+  if (words.length > 6) return words.slice(0, 6).join(" ")
+  return firstClause
+}
+
 export function serviceMarketQuery(intake: LevelstackIntakeFormValues): string {
-  const service = intake.primaryService.trim()
+  const service = normalizeServiceQuery(intake.primaryService)
   const location = marketLocationLabel(intake)
 
   if (location && intake.geoMarket === "local") {

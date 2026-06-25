@@ -163,6 +163,156 @@ describe("resolveCompetitorColumns", () => {
     expect(resolved.mode).toBe("category_peer")
     expect(resolved.columns[0]?.domain).toBe("local-agency.com")
   })
+
+  it("excludes buyer-root squats (same brand, different TLD) from namesakes", () => {
+    const serviceSearch = {
+      query: "marketing automation platform Atlanta, GA",
+      results: [
+        {
+          query: "q",
+          position: 1,
+          title: "Google",
+          link: "https://google.com/",
+          snippet: "",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+
+    const brandSearches = [
+      {
+        query: "Level Play Digital",
+        results: [
+          {
+            query: "Level Play Digital",
+            position: 1,
+            title: "Level Play Digital Cloud",
+            link: "https://levelplaydigital.cloud/index.php",
+            snippet: "",
+          },
+          {
+            query: "Level Play Digital",
+            position: 2,
+            title: "Level Agency",
+            link: "https://levelagency.com/",
+            snippet: "",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+
+    const resolved = resolveCompetitorColumns({
+      intake,
+      buyerHost: "levelplaydigital.com",
+      serviceSearch,
+      brandSearches,
+      categoryPeerSearch: null,
+    })
+
+    expect(resolved.columns.map((c) => c.domain)).not.toContain(
+      "levelplaydigital.cloud",
+    )
+    expect(resolved.columns.map((c) => c.domain)).toContain("levelagency.com")
+  })
+
+  it("prefers typed direct_competitor name collisions over raw brand order", () => {
+    const serviceSearch = {
+      query: "marketing automation platform Atlanta, GA",
+      results: [
+        {
+          query: "q",
+          position: 1,
+          title: "Google",
+          link: "https://google.com/",
+          snippet: "",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+
+    const brandSearches = [
+      {
+        query: "Level Play Digital",
+        results: [
+          {
+            query: "Level Play Digital",
+            position: 1,
+            title: "Level Play News",
+            link: "https://levelplaynews.com/",
+            snippet: "",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+
+    const resolved = resolveCompetitorColumns({
+      intake,
+      buyerHost: "levelplaydigital.com",
+      serviceSearch,
+      brandSearches,
+      categoryPeerSearch: null,
+      nameCollisions: [
+        {
+          title: "Level Agency LLC",
+          link: "https://levelagency.com/",
+          type: "direct_competitor",
+        },
+      ],
+    })
+
+    expect(resolved.mode).toBe("namesake")
+    expect(resolved.columns[0]?.domain).toBe("levelagency.com")
+  })
+
+  it("drops zero brand-token-overlap noise from namesakes", () => {
+    const serviceSearch = {
+      query: "marketing automation platform Atlanta, GA",
+      results: [
+        {
+          query: "q",
+          position: 1,
+          title: "Google",
+          link: "https://google.com/",
+          snippet: "",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+
+    const brandSearches = [
+      {
+        query: "Level Play Digital",
+        results: [
+          {
+            query: "Level Play Digital",
+            position: 1,
+            title: "Acme Widgets Unlimited",
+            link: "https://acme-widgets.com/",
+            snippet: "Industrial widgets",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+
+    const resolved = resolveCompetitorColumns({
+      intake,
+      buyerHost: "levelplaydigital.com",
+      serviceSearch,
+      brandSearches,
+      categoryPeerSearch: null,
+    })
+
+    expect(resolved.columns.map((c) => c.domain)).not.toContain("acme-widgets.com")
+  })
 })
 
 describe("formatSerpEvidenceTable", () => {

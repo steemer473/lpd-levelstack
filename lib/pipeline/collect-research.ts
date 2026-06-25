@@ -186,6 +186,7 @@ export async function collectPaidEnrichment(
       serviceSearch,
       brandSearches: bundle.searchFootprint.searches,
       categoryPeerSearch,
+      nameCollisions: bundle.nameCollisions.collisions,
     })
 
   const snapshotDomains = columns.map((c) => c.domain)
