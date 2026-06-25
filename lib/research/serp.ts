@@ -11,8 +11,12 @@ export {
 } from "@/lib/research/serp/router"
 export {
   filterCompetitorDomains,
+  isBotInterstitialTitle,
   isCompetitorCandidate,
+  isDirectoryListingTitle,
   isNonCompetitorHost,
+  isQualifiedPeerResult,
+  qualifiedPeerDomains,
   topCompetitorDomains,
 } from "@/lib/research/serp/competitor-domains"
 export {

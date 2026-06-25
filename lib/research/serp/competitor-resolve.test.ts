@@ -53,6 +53,77 @@ describe("resolveCompetitorColumns", () => {
     expect(resolved.columns.map((c) => c.domain)).toEqual(["rival-co.com"])
   })
 
+  it("does not treat directory/listicle SERP hits as service peers (P1.7)", () => {
+    // Exact production failure: page 1 is all software directories / listicles
+    // (gregslist, f6s) plus a non-denylisted host with a listicle title.
+    const serviceSearch = {
+      query: "SAAS and stand alone products Atlanta, GA",
+      results: [
+        {
+          query: "q",
+          position: 1,
+          title: "B2B SaaS Software Companies in Atlanta, GA",
+          link: "https://gregslist.com/atlanta/software-companies-type/b2b-saas/",
+          snippet: "",
+        },
+        {
+          query: "q",
+          position: 2,
+          title: "SaaS Development Company in Atlanta, GA",
+          link: "https://www.solidfuture.com/saas-development-company-atlanta",
+          snippet: "",
+        },
+        {
+          query: "q",
+          position: 3,
+          title: "72 top SaaS companies and startups in Atlanta in June 2026",
+          link: "https://www.f6s.com/companies/saas/united-states/georgia/atlanta/co",
+          snippet: "",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+
+    const brandSearches = [
+      {
+        query: "Level Play Digital",
+        results: [
+          {
+            query: "Level Play Digital",
+            position: 1,
+            title: "Level Play Digital",
+            link: "https://levelplaydigital.com/",
+            snippet: "",
+          },
+          {
+            query: "Level Play Digital",
+            position: 2,
+            title: "Level Agency",
+            link: "https://levelagency.com/",
+            snippet: "",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+
+    const resolved = resolveCompetitorColumns({
+      intake,
+      buyerHost: "levelplaydigital.com",
+      serviceSearch,
+      brandSearches,
+      categoryPeerSearch: null,
+    })
+
+    expect(resolved.servicePeerDomains).toEqual([])
+    expect(resolved.mode).toBe("namesake")
+    expect(resolved.columns.map((c) => c.domain)).toContain("levelagency.com")
+    expect(resolved.columns.map((c) => c.domain)).not.toContain("gregslist.com")
+    expect(resolved.columns.map((c) => c.domain)).not.toContain("solidfuture.com")
+  })
+
   it("falls back to namesake domains from brand search", () => {
     const serviceSearch = {
       query: "marketing automation platform Atlanta, GA",

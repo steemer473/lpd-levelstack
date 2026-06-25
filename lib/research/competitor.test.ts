@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { reviewHitMatchesDomain } from "@/lib/research/competitor"
+import {
+  cleanCompetitorHomepageTitle,
+  reviewHitMatchesDomain,
+} from "@/lib/research/competitor"
 
 describe("reviewHitMatchesDomain", () => {
   it("accepts a review hit that references the competitor brand root", () => {
@@ -34,5 +37,25 @@ describe("reviewHitMatchesDomain", () => {
       snippet: "",
     }
     expect(reviewHitMatchesDomain(hit, "ab.com")).toBe(false)
+  })
+})
+
+describe("cleanCompetitorHomepageTitle", () => {
+  it("keeps a real homepage title", () => {
+    expect(
+      cleanCompetitorHomepageTitle("Level Agency: Full-service digital marketing"),
+    ).toBe("Level Agency: Full-service digital marketing")
+  })
+
+  it("suppresses bot interstitial titles (P1.7)", () => {
+    expect(cleanCompetitorHomepageTitle("Checking your browser")).toBeNull()
+    expect(cleanCompetitorHomepageTitle("Just a moment...")).toBeNull()
+  })
+
+  it("suppresses directory listicle titles", () => {
+    expect(
+      cleanCompetitorHomepageTitle("72 top SaaS companies and startups in Atlanta"),
+    ).toBeNull()
+    expect(cleanCompetitorHomepageTitle(null)).toBeNull()
   })
 })
