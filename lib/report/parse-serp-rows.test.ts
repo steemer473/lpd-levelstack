@@ -36,6 +36,12 @@ describe("parse-serp-rows", () => {
     expect(parseSerpRowsFromDetail(ownSiteDetail, 3, "levelplaydigital.com")).toHaveLength(1)
   })
 
+  it("excludes google.com from preview competitor", () => {
+    const detail =
+      'Top results: #1 Google (https://www.google.com/); #2 Rival Co (https://rival-example.com/)'
+    expect(extractPreviewCompetitor(detail)?.domain).toBe("rival-example.com")
+  })
+
   it("matches www and bare domains", () => {
     expect(domainsMatch("www.levelplaydigital.com", "levelplaydigital.com")).toBe(true)
   })

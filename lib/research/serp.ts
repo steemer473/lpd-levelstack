@@ -8,5 +8,10 @@ export {
   hostnameFromUrl,
   resultsMentionDomain,
   runSerpQueries,
-  topCompetitorDomains,
 } from "@/lib/research/serp/router"
+export {
+  filterCompetitorDomains,
+  isCompetitorCandidate,
+  isNonCompetitorHost,
+  topCompetitorDomains,
+} from "@/lib/research/serp/competitor-domains"

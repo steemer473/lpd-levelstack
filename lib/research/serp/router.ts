@@ -203,30 +203,6 @@ export function resultsMentionDomain(
   return results.find((r) => r.link.toLowerCase().includes(host)) ?? null
 }
 
-export function topCompetitorDomains(
-  results: import("@/lib/research/serp/types").SerpOrganicResult[],
-  excludeHost: string | null,
-  limit = 3,
-): string[] {
-  const seen = new Set<string>()
-  const domains: string[] = []
-
-  for (const row of results) {
-    try {
-      const host = new URL(row.link).hostname.replace(/^www\./, "").toLowerCase()
-      if (!host || host === excludeHost?.toLowerCase()) continue
-      if (seen.has(host)) continue
-      seen.add(host)
-      domains.push(host)
-      if (domains.length >= limit) break
-    } catch {
-      continue
-    }
-  }
-
-  return domains
-}
-
 export type {
   SerpOrganicResult,
   SerpSearchResponse,

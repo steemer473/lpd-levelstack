@@ -51,6 +51,13 @@ export function runQualityGate(
     warnings.push("Executive summary has fewer than 2 paragraphs.")
   }
 
+  const criticalIssue = report.executiveSummary.criticalIssue?.trim()
+  if (!criticalIssue || criticalIssue.length < 12) {
+    warnings.push("Executive criticalIssue is missing or too short.")
+  } else if (criticalIssue === "Review search footprint first.") {
+    warnings.push("Executive criticalIssue is still the generic fallback.")
+  }
+
   if (report.actionPlan.thisWeek.length > 4) {
     warnings.push("Action plan thisWeek exceeds 4 items.")
   }

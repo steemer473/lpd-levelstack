@@ -6,7 +6,11 @@ import {
   formatReputationQueryLabel,
 } from "@/lib/research/reputation-parse"
 import type { SerpOrganicResult } from "@/lib/research/serp"
-import { hostnameFromUrl, resultsMentionDomain } from "@/lib/research/serp"
+import {
+  filterCompetitorDomains,
+  hostnameFromUrl,
+  resultsMentionDomain,
+} from "@/lib/research/serp"
 import type { ResearchBundle } from "@/lib/pipeline/research-types"
 import type { ReportSection } from "@/lib/pipeline/report-types"
 import {
@@ -301,7 +305,10 @@ export function buildSectionsFromResearch(
       : []),
   ]
 
-  const compDomains = bundle.competitiveContext.competitorDomains
+  const compDomains = filterCompetitorDomains(
+    bundle.competitiveContext.competitorDomains,
+    buyerHost,
+  )
 
   const youLabel = intake.primaryBusinessName.slice(0, 20)
   const yourPosition = serviceSearch
@@ -375,10 +382,11 @@ export function buildSectionsFromResearch(
       value:
         compDomains.length > 0
           ? `Top domains on page 1 include: ${compDomains.join(", ")}`
-          : "Competitor domains could not be inferred.",
+          : "No direct competitor domains on page 1 for this query — see Search footprint for brand confusion signals.",
       detail: serviceSearch?.results.length
         ? formatTopResults(serviceSearch.results)
-        : (serviceSearch?.limitation ?? ""),
+        : (serviceSearch?.limitation ??
+          "Run a service-market search with identifiable business competitors to populate this section."),
       severity: "medium" as const,
     },
   ]

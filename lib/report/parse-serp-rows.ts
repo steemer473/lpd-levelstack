@@ -1,4 +1,5 @@
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
+import { isNonCompetitorHost } from "@/lib/research/serp/competitor-domains"
 import { hostnameFromUrl } from "@/lib/research/serp"
 
 export type SerpRowFromDetail = {
@@ -29,6 +30,7 @@ export function isExcludedSerpDomain(
   domain: string,
   excludeHost: string | null | undefined,
 ): boolean {
+  if (isNonCompetitorHost(domain)) return true
   if (!excludeHost) return false
   return domainsMatch(domain, excludeHost)
 }
