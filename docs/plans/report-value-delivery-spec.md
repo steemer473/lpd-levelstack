@@ -213,6 +213,45 @@ COPY_BANK §5: named competitor is the conversion trigger. Paid competitive sect
 
 ---
 
+## P1.5 — Competitive fallback ladder (shipped 2026-06-25)
+
+### Problem
+
+After P0 denylist fix, many paid reports (especially national/SaaS buyers) have **zero** valid service-SERP peer domains. The competitive tab fell back to generic LLM cards with no positions, URLs, or side-by-side table — under-delivering vs COPY_BANK §5.
+
+### Fix
+
+1. **`resolveCompetitorColumns()`** in `lib/research/serp/competitor-resolve.ts` — fallback ladder:
+   - Tier A: service-search peer domains (existing)
+   - Tier B: namesake / brand-confusion domains from brand-name search
+   - Tier C: category-peer organic search (`categoryPeerQuery` from GBP category + market)
+   - Tier D: optional intake `topCompetitorUrl`
+   - Tier E: SERP evidence table with `[directory/platform]` tags when no grid
+2. **`collectPaidEnrichment()`** runs category-peer search when service peers are empty.
+3. **`buildSectionsFromResearch()`** — comparison-type row, business category row, `columnSources` + `comparisonMode` on grid; section label "Category & namesake comparison" when not service-peer mode.
+4. **`normalize-llm-synthesis.ts`** — pin baseline competitive finding #1; block vague LLM labels ("Competitor Landscape").
+5. Optional intake field: `topCompetitorUrl` on `levelstackIntakeSchema`.
+
+### Acceptance criteria
+
+- [x] Paid report with zero service domains still shows **named entity** OR **labeled category/namesake grid**
+- [x] No competitive finding without `detail` containing URLs or positions (primary finding + evidence table)
+- [x] LPD dogfood scenario (`competitive-lpd-dogfood.test.ts`): namesake grid with `levelagency.com`, no google.com column
+- [x] LLM cannot remove baseline `competitiveGrid` or primary SERP finding
+
+### Files
+
+| File | Change |
+|------|--------|
+| `lib/research/serp/competitor-resolve.ts` | Ladder + evidence formatter |
+| `lib/pipeline/collect-research.ts` | Category search + column resolution |
+| `lib/pipeline/serp-backed-sections.ts` | Grid rows, evidence findings |
+| `lib/pipeline/normalize-llm-synthesis.ts` | Preserve competitive evidence |
+| `lib/pipeline/synthesis-prompts.ts` | Forbid vague competitive labels |
+| `lib/intake/schema.ts` | Optional `topCompetitorUrl` |
+
+---
+
 ## P1 — Reputation finding dedup
 
 ### Problem

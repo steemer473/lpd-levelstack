@@ -93,7 +93,21 @@ function compactBundleForPrompt(bundle: ResearchBundle): string {
               })),
           }
         : null,
+      categoryPeerSearch: bundle.competitiveContext.categoryPeerSearch
+        ? {
+            query: bundle.competitiveContext.categoryPeerSearch.query,
+            topResults: bundle.competitiveContext.categoryPeerSearch.results
+              .slice(0, 5)
+              .map((r) => ({
+                position: r.position,
+                title: r.title,
+                link: r.link,
+              })),
+          }
+        : null,
       competitorDomains: bundle.competitiveContext.competitorDomains,
+      competitorColumns: bundle.competitiveContext.competitorColumns,
+      comparisonMode: bundle.competitiveContext.comparisonMode,
       competitorSnapshots: bundle.competitiveContext.competitorSnapshots,
     },
   }

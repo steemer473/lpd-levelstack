@@ -37,6 +37,11 @@ export const levelstackIntakeSchema = z
   reputationSelfAssessment: z.string().min(1, "Required"),
   reputationScale: z.coerce.number().int().min(1).max(10),
   purchaseMotivation: z.string().min(1, "Tell us what prompted your purchase"),
+  /** Optional known competitor website — used when live SERP has no peer domains. */
+  topCompetitorUrl: z.preprocess(
+    normalizeWebsiteUrl,
+    z.union([z.string().url(), z.literal("")]).optional(),
+  ),
 })
   .superRefine((data, ctx) => {
     if (
@@ -73,4 +78,5 @@ export const levelstackIntakeDefaults: LevelstackIntakeFormValues = {
   reputationSelfAssessment: "",
   reputationScale: 5,
   purchaseMotivation: "",
+  topCompetitorUrl: "",
 }

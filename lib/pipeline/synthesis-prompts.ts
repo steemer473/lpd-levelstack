@@ -38,6 +38,8 @@ search_footprint, online_reputation, digital_presence, revenue_funnel, competiti
 - search_footprint: include aiPreview when evidence exists (ChatGPT, Perplexity, Google AI Overview).
 - digital_presence: optional scoreRows from website signals.
 - competitive_context: optional competitiveGrid (you vs competitor domains from research).
+- competitive_context: NEVER replace the first finding — it contains live service-search evidence (query, positions, URLs). Add at most 2 supplemental findings.
+- competitive_context: Do NOT use vague labels like "Competitor Landscape", "Market Differentiation", or "Social Media Competition". Every finding must cite a domain, position (#N), or query from research.
 
 ACTION PLAN (required — derived ONLY from findings above)
 - thisWeek: max 4 items, highest revenue/trust urgency first (pause ads before SEO projects when ads active).

@@ -5,6 +5,12 @@ import {
   findOwnSiteReputationResult,
   formatReputationQueryLabel,
 } from "@/lib/research/reputation-parse"
+import type { CompetitiveComparisonMode } from "@/lib/research/serp/competitor-resolve"
+import {
+  COMPARISON_SOURCE_LABELS,
+  competitiveSectionLabel,
+  formatSerpEvidenceTable,
+} from "@/lib/research/serp/competitor-resolve"
 import type { SerpOrganicResult } from "@/lib/research/serp"
 import {
   filterCompetitorDomains,
@@ -44,6 +50,20 @@ function formatTopResults(results: SerpOrganicResult[], limit = 3): string {
     .slice(0, limit)
     .map((r) => `#${r.position} ${r.title} (${r.link})`)
     .join("; ")
+}
+
+function titleForDomain(
+  results: SerpOrganicResult[],
+  domain: string,
+): string | undefined {
+  const hit = results.find((r) => {
+    try {
+      return hostnameFromUrl(r.link) === domain
+    } catch {
+      return false
+    }
+  })
+  return hit?.title
 }
 
 function hasSerpData(bundle: ResearchBundle): boolean {
@@ -305,10 +325,22 @@ export function buildSectionsFromResearch(
       : []),
   ]
 
-  const compDomains = filterCompetitorDomains(
-    bundle.competitiveContext.competitorDomains,
-    buyerHost,
-  )
+  const legacyDomains = bundle.competitiveContext.competitorDomains
+  const compColumns =
+    bundle.competitiveContext.competitorColumns.length > 0
+      ? bundle.competitiveContext.competitorColumns
+      : filterCompetitorDomains(legacyDomains, buyerHost).map((domain) => ({
+          domain,
+          source: "service_peer" as const,
+          title: titleForDomain(serviceSearch?.results ?? [], domain),
+        }))
+  const compDomains = compColumns.map((c) => c.domain)
+  const comparisonMode: CompetitiveComparisonMode =
+    compColumns.length > 0
+      ? bundle.competitiveContext.comparisonMode === "evidence_only"
+        ? "service_peer"
+        : bundle.competitiveContext.comparisonMode
+      : "evidence_only"
 
   const youLabel = intake.primaryBusinessName.slice(0, 20)
   const yourPosition = serviceSearch
@@ -322,12 +354,34 @@ export function buildSectionsFromResearch(
       : bundle.digitalPresence.gbp.found
         ? "Listed"
         : "—"
+  const yourCategory = bundle.digitalPresence.gbp.category ?? "—"
+
+  const columnHeaders =
+    compDomains.length > 0
+      ? [
+          `You (${youLabel})`,
+          ...compColumns.map((c) => c.title?.slice(0, 28) ?? c.domain),
+        ]
+      : []
 
   const competitiveGrid =
     compDomains.length > 0
       ? {
-          columnHeaders: [`You (${youLabel})`, ...compDomains],
+          comparisonMode,
+          columnSources: [
+            "you" as const,
+            ...compColumns.map((c) => c.source),
+          ],
+          columnHeaders,
           rows: [
+            {
+              label: "Comparison type",
+              cells: [
+                "Your business",
+                ...compColumns.map((c) => COMPARISON_SOURCE_LABELS[c.source]),
+              ],
+              youColumnIndex: 0,
+            },
             {
               label: "Page 1 on service search",
               cells: [
@@ -338,6 +392,14 @@ export function buildSectionsFromResearch(
                   )
                   return hit ? `#${hit.position}` : "—"
                 }),
+              ],
+              youColumnIndex: 0,
+            },
+            {
+              label: "Business category",
+              cells: [
+                yourCategory,
+                ...compDomains.map(() => "—"),
               ],
               youColumnIndex: 0,
             },
@@ -376,19 +438,37 @@ export function buildSectionsFromResearch(
         }
       : undefined
 
+  const primaryCompetitorName =
+    compColumns[0]?.title ?? compColumns[0]?.domain ?? null
+
   const competitiveFindings = [
     {
       label: `Service search — "${serviceSearch?.query ?? intake.primaryService}"`,
       value:
         compDomains.length > 0
-          ? `Top domains on page 1 include: ${compDomains.join(", ")}`
-          : "No direct competitor domains on page 1 for this query — see Search footprint for brand confusion signals.",
+          ? comparisonMode === "service_peer"
+            ? `Top domains on page 1 include: ${compDomains.join(", ")}`
+            : primaryCompetitorName
+              ? `No direct service-search peers on page 1 — comparing to ${primaryCompetitorName} (${compDomains[0]}) via ${COMPARISON_SOURCE_LABELS[compColumns[0]!.source].toLowerCase()}`
+              : `Comparable entities: ${compDomains.join(", ")}`
+          : "No direct competitor domains on page 1 for this query — see page-1 evidence below.",
       detail: serviceSearch?.results.length
-        ? formatTopResults(serviceSearch.results)
+        ? formatSerpEvidenceTable(serviceSearch.results)
         : (serviceSearch?.limitation ??
           "Run a service-market search with identifiable business competitors to populate this section."),
       severity: "medium" as const,
     },
+    ...(compDomains.length === 0 && serviceSearch?.results.length
+      ? [
+          {
+            label: "Page 1 evidence (service search)",
+            value:
+              "Directories and platforms dominate page 1 — no peer business domains qualified for side-by-side comparison.",
+            detail: formatSerpEvidenceTable(serviceSearch.results),
+            severity: "medium" as const,
+          },
+        ]
+      : []),
   ]
 
   const aiOverview = bundle.searchFootprint.searches.find((s) => s.aiOverview)?.aiOverview
@@ -434,7 +514,7 @@ export function buildSectionsFromResearch(
     },
     {
       id: "competitive_context",
-      label: "Competitive context snapshot",
+      label: competitiveSectionLabel(comparisonMode),
       ...scoreFromFindings(competitiveFindings),
       findings: competitiveFindings,
       competitiveGrid,
