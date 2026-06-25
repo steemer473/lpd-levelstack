@@ -98,18 +98,38 @@ function normalizeSection(raw: unknown, baseline: ReportSection): ReportSection 
   if (!o) return baseline
 
   const rawFindings = Array.isArray(o.findings) ? o.findings : []
-  const findings =
-    rawFindings.length > 0
-      ? [
-          ...rawFindings.map((f, i) =>
-            normalizeFinding(
-              f,
-              baseline.findings[i] ?? baseline.findings[0]!,
+
+  let findings: ReportFinding[]
+  if (baseline.id === "competitive_context" && baseline.findings[0]) {
+    const primaryFinding = baseline.findings[0]
+    const supplemental = rawFindings
+      .slice(0, 2)
+      .map((f, i) =>
+        normalizeFinding(f, baseline.findings[i + 1] ?? primaryFinding),
+      )
+      .filter(
+        (f) =>
+          f.label !== primaryFinding.label &&
+          !f.label.toLowerCase().includes("competitor landscape") &&
+          !f.label.toLowerCase().includes("market differentiation"),
+      )
+    findings = [primaryFinding, ...supplemental, ...baseline.findings.slice(1 + supplemental.length)]
+  } else {
+    findings =
+      rawFindings.length > 0
+        ? [
+            ...rawFindings.map((f, i) =>
+              normalizeFinding(
+                f,
+                baseline.findings[i] ?? baseline.findings[0]!,
+              ),
             ),
-          ),
-          ...baseline.findings.slice(rawFindings.length),
-        ]
-      : baseline.findings
+            ...baseline.findings.slice(rawFindings.length),
+          ]
+        : baseline.findings
+  }
+
+  if (findings.length === 0) findings = baseline.findings
 
   return {
     id: baseline.id,

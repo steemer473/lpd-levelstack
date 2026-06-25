@@ -24,6 +24,20 @@ export const scoreRowSchema = z.object({
 
 export const competitiveGridSchema = z.object({
   columnHeaders: z.array(z.string()),
+  columnSources: z
+    .array(
+      z.enum(["you", "service_peer", "namesake", "category_peer", "intake"]),
+    )
+    .optional(),
+  comparisonMode: z
+    .enum([
+      "service_peer",
+      "namesake",
+      "category_peer",
+      "mixed",
+      "evidence_only",
+    ])
+    .optional(),
   rows: z.array(
     z.object({
       label: z.string(),

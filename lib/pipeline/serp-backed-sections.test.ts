@@ -210,6 +210,8 @@ describe("buildSectionsFromResearch competitive grid", () => {
     expect(competitive.findings[0]?.value).toContain(
       "No direct competitor domains on page 1",
     )
+    expect(competitive.findings[1]?.label).toContain("Page 1 evidence")
+    expect(competitive.findings[1]?.detail).toContain("[directory/platform]")
   })
 
   it("builds competitive grid with real competitor domains only", () => {
@@ -244,8 +246,41 @@ describe("buildSectionsFromResearch competitive grid", () => {
 
     expect(competitive.competitiveGrid?.columnHeaders).toEqual([
       "You (Level Play Digital)",
-      "rival-agency.com",
+      "Rival Agency",
     ])
     expect(competitive.competitiveGrid?.columnHeaders).not.toContain("google.com")
+    expect(competitive.competitiveGrid?.rows[0]?.label).toBe("Comparison type")
+  })
+
+  it("builds namesake fallback grid when service SERP has only platforms", () => {
+    const bundle = emptyResearchBundle()
+    bundle.competitiveContext.competitorDomains = []
+    bundle.competitiveContext.competitorColumns = [
+      { domain: "levelagency.com", source: "namesake", title: "Level Agency" },
+    ]
+    bundle.competitiveContext.comparisonMode = "namesake"
+    bundle.competitiveContext.serviceSearch = {
+      query: "marketing automation platform",
+      results: [
+        {
+          query: "marketing automation platform",
+          position: 1,
+          title: "Google",
+          link: "https://www.google.com/",
+          snippet: "",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+    bundle.digitalPresence.website.url = intake.websiteUrl
+    bundle.digitalPresence.gbp.category = "Marketing agency"
+
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const competitive = sections.find((s) => s.id === "competitive_context")!
+
+    expect(competitive.label).toBe("Category & namesake comparison")
+    expect(competitive.competitiveGrid?.columnHeaders[1]).toContain("Level Agency")
+    expect(competitive.findings[0]?.value).toContain("levelagency.com")
   })
 })

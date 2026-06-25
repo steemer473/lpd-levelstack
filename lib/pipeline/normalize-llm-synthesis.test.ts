@@ -129,6 +129,49 @@ describe("normalizeSynthesisPayload", () => {
     expect(payload.sections[0]?.findings[0]?.value).toBe("Strong rank")
   })
 
+  it("preserves baseline competitive primary finding when LLM rewrites section", () => {
+    const payload = normalizeSynthesisPayload(
+      {
+        sections: [
+          {
+            id: "competitive_context",
+            status: "attention",
+            score: 50,
+            findings: [
+              {
+                label: "Competitor Landscape",
+                value: "Generic prose",
+                detail: "No evidence",
+                severity: "medium",
+              },
+              {
+                label: "Market Differentiation",
+                value: "More generic prose",
+                detail: "Still no evidence",
+                severity: "low",
+              },
+            ],
+          },
+        ],
+        executiveSummary: {
+          paragraphs: ["One", "Two"],
+          criticalIssue: "Issue",
+          firstSteps: ["Step"],
+        },
+      },
+      baseline,
+      intake,
+      null,
+    )
+
+    const competitive = payload.sections.find((s) => s.id === "competitive_context")!
+    expect(competitive.findings[0]?.label).toBe("Service search")
+    expect(competitive.findings[0]?.value).toBe("Competitors ahead")
+    expect(competitive.findings.some((f) => f.label === "Competitor Landscape")).toBe(
+      false,
+    )
+  })
+
   it("normalizes structured executive summary fields", () => {
     const payload = normalizeSynthesisPayload(
       {

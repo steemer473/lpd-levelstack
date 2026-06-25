@@ -5,6 +5,10 @@ import type { CompetitorSnapshot } from "@/lib/research/competitor"
 import type { GbpSignals } from "@/lib/research/gbp"
 import type { PageSpeedSignals } from "@/lib/research/pagespeed"
 import type { SocialProfileSignal } from "@/lib/research/social"
+import type {
+  CompetitiveComparisonMode,
+  CompetitorColumn,
+} from "@/lib/research/serp/competitor-resolve"
 import type { SerpSearchResponse } from "@/lib/research/serp"
 import type { WebsiteExtendedSignals, WebsiteSignals } from "@/lib/research/website"
 import type { InsightSeverity } from "@/lib/audit/types"
@@ -66,7 +70,10 @@ export type ResearchBundle = {
   }
   competitiveContext: {
     serviceSearch: SerpSearchResponse | null
+    categoryPeerSearch: SerpSearchResponse | null
     competitorDomains: string[]
+    competitorColumns: CompetitorColumn[]
+    comparisonMode: CompetitiveComparisonMode
     buyerHostname: string | null
     competitorSnapshots: CompetitorSnapshot[]
   }
@@ -146,7 +153,10 @@ export function emptyResearchBundle(): ResearchBundle {
     },
     competitiveContext: {
       serviceSearch: null,
+      categoryPeerSearch: null,
       competitorDomains: [],
+      competitorColumns: [],
+      comparisonMode: "evidence_only",
       buyerHostname: null,
       competitorSnapshots: [],
     },

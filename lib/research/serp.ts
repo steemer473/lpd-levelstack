@@ -15,3 +15,14 @@ export {
   isNonCompetitorHost,
   topCompetitorDomains,
 } from "@/lib/research/serp/competitor-domains"
+export {
+  categoryPeerQuery,
+  COMPARISON_SOURCE_LABELS,
+  competitiveSectionLabel,
+  extractNamesakeDomainsFromBrandSearch,
+  formatSerpEvidenceTable,
+  resolveCompetitorColumns,
+  type CompetitiveComparisonMode,
+  type CompetitorColumn,
+  type CompetitorComparisonSource,
+} from "@/lib/research/serp/competitor-resolve"

@@ -18,6 +18,8 @@ import {
   hostnameFromUrl,
   runSerpQueries,
   topCompetitorDomains,
+  categoryPeerQuery,
+  resolveCompetitorColumns,
 } from "@/lib/research/serp"
 import { searchSocialPlatforms } from "@/lib/research/social-search"
 import { fetchSocialProfileSignals } from "@/lib/research/social"
@@ -164,18 +166,39 @@ export async function collectPaidEnrichment(
   const q = serviceMarketQuery(intake)
   const serviceSearch = await googleOrganicSearch(q)
   const buyerHost = hostnameFromUrl(intake.websiteUrl)
-  const competitorDomains = topCompetitorDomains(
+
+  const servicePeerDomains = topCompetitorDomains(
     serviceSearch.results,
     buyerHost,
     3,
   )
 
+  let categoryPeerSearch = null
+  if (servicePeerDomains.length === 0) {
+    const categoryQuery = categoryPeerQuery(intake, gbp)
+    categoryPeerSearch = await googleOrganicSearch(categoryQuery)
+  }
+
+  const { columns, mode, servicePeerDomains: filteredServicePeers } =
+    resolveCompetitorColumns({
+      intake,
+      buyerHost,
+      serviceSearch,
+      brandSearches: bundle.searchFootprint.searches,
+      categoryPeerSearch,
+    })
+
+  const snapshotDomains = columns.map((c) => c.domain)
+
   bundle.competitiveContext.serviceSearch = serviceSearch
+  bundle.competitiveContext.categoryPeerSearch = categoryPeerSearch
   bundle.competitiveContext.buyerHostname = buyerHost
-  bundle.competitiveContext.competitorDomains = competitorDomains
+  bundle.competitiveContext.competitorDomains = filteredServicePeers
+  bundle.competitiveContext.competitorColumns = columns
+  bundle.competitiveContext.comparisonMode = mode
   bundle.competitiveContext.competitorSnapshots =
-    competitorDomains.length > 0
-      ? await fetchCompetitorSnapshots(competitorDomains)
+    snapshotDomains.length > 0
+      ? await fetchCompetitorSnapshots(snapshotDomains)
       : []
 }
 
