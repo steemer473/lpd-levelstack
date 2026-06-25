@@ -16,8 +16,8 @@ import { fetchPageSpeedSignals } from "@/lib/research/pagespeed"
 import {
   googleOrganicSearch,
   hostnameFromUrl,
+  qualifiedPeerDomains,
   runSerpQueries,
-  topCompetitorDomains,
   categoryPeerQuery,
   resolveCompetitorColumns,
 } from "@/lib/research/serp"
@@ -167,7 +167,10 @@ export async function collectPaidEnrichment(
   const serviceSearch = await googleOrganicSearch(q)
   const buyerHost = hostnameFromUrl(intake.websiteUrl)
 
-  const servicePeerDomains = topCompetitorDomains(
+  // P1.7: gate on *qualified* peers (directories/listicles excluded) so the
+  // category fallback fires whenever page 1 is all aggregators, not just when
+  // it is empty.
+  const servicePeerDomains = qualifiedPeerDomains(
     serviceSearch.results,
     buyerHost,
     3,

@@ -51,6 +51,7 @@ Separately, the report URL requires sign-in before first view, which burns the p
 | **P0** | Executive summary completeness | 0.5 day | `criticalIssue` always populated in UI resolve path |
 | **P1** | First-view access (magic link) | 1–2 days | Report opens without password on valid token |
 | **P1** | Named competitor in paid grid | 1 day | ≥1 real competitor column on service search |
+| **P1.7** | Directory/listicle filter + Tier A quality gate | 0.5 day | Shipped 2026-06-25 — directories never become grid columns |
 | **P1** | Finding dedup (reputation) | 0.5 day | Clutch/G2/Capterra merged to one finding |
 | **P2** | Action plan specificity | 2–3 days | Tasks include copy-paste artifacts |
 | **P2** | SERP evidence links | 1 day | Findings link to search URL used |
@@ -291,6 +292,44 @@ P1.5 fallback shipped but the namesake grid named the wrong entities. gstack reg
 | `lib/pipeline/collect-research.ts` | Pass name collisions into resolver |
 | `lib/research/competitor.ts` | Review snapshot domain-match guard |
 | `lib/pipeline/research-queries.ts` | `normalizeServiceQuery` |
+
+---
+
+## P1.7 — Directory / listicle filter + Tier A quality gate (shipped 2026-06-25)
+
+### Problem
+
+P1.6 regen of `031e84ed…` shifted the failure rather than fixing the experience. The normalized service query returned a page 1 that was **entirely software directories and "best-of" listicles** (`gregslist.com`, `f6s.com`, `getlatka.com`, `solidfuture.com`). None are in the host denylist, so Tier A (`service_peer`) fired and the grid compared the buyer to three directory pages — confidently labeled **Service peer** with `#1/#2/#3` rankings. The namesake ladder (P1.6) never ran for the grid, so the grid (directories) and the prose (Unity LevelPlay, Level Agency) disagreed.
+
+Secondary leaks: snapshot homepage titles showed bot walls ("Checking your browser" from Cloudflare) and a review cell showed an unrelated entity ("Solid Future HR Consulting | Kathmandu").
+
+### Fix
+
+1. **Directory/aggregator host denylist** — extend `NON_COMPETITOR_HOSTS` in `lib/research/serp/competitor-domains.ts` with software/startup directories and "best-of" aggregators (`gregslist.com`, `f6s.com`, `getlatka.com`, `builtin.com`, `crunchbase.com`, `goodfirms.co`, `designrush.com`, `producthunt.com`, `softwareadvice.com`, `trustradius.com`, `indeed.com`, `thumbtack.com`, etc.). Applies everywhere (Tier A/category/intake/namesake) since all paths route through `isCompetitorCandidate`.
+2. **Listicle title heuristic** — `isDirectoryListingTitle()` flags list-page titles ("72 top SaaS companies…", "…Companies in Atlanta, GA", "Best agencies near you", "Top 10…") so a non-denylisted host serving a list page is rejected as a peer.
+3. **Bot interstitial heuristic** — `isBotInterstitialTitle()` flags "Checking your browser", "Just a moment", captchas, "Access denied".
+4. **Tier A quality gate** — `isQualifiedPeerResult()` / `qualifiedPeerDomains()` combine host-candidate + not-listicle + not-interstitial. `resolveCompetitorColumns()` Tier A and category now use `qualifiedPeerDomains`; when zero qualify it **falls through** to namesake/category/intake instead of showing directories.
+5. **Category gate parity** — `collectPaidEnrichment()` decides whether to run the category-peer search using `qualifiedPeerDomains` (fires when page 1 is all aggregators, not only when empty).
+6. **Snapshot hygiene** — `cleanCompetitorHomepageTitle()` in `lib/research/competitor.ts` nulls interstitial/listicle homepage titles so the grid shows `—`.
+7. **Evidence honesty** — `formatSerpEvidenceTable()` tags listicle-by-title rows with `[directory/platform]`, not just denylisted hosts.
+
+### Acceptance criteria
+
+- [x] Page 1 of all directories/listicles yields **zero** service peers → ladder falls to namesake (`competitor-resolve.test.ts`, `competitor-domains.test.ts`)
+- [x] Directory hosts (`gregslist.com`, `f6s.com`, `getlatka.com`, `builtin.com`, `crunchbase.com`) treated as non-competitors
+- [x] Listicle titles never become grid columns; bot-wall homepage titles suppressed (`competitor.test.ts`)
+- [x] Grid and prose name the same entities for thin-SERP buyers
+- [ ] LPD production regen: grid shows Level Agency / Level Workforce (namesake), no directory columns, no "Checking your browser"
+
+### Files
+
+| File | Change |
+|------|--------|
+| `lib/research/serp/competitor-domains.ts` | Directory hosts, listicle/interstitial heuristics, `qualifiedPeerDomains` |
+| `lib/research/serp/competitor-resolve.ts` | Tier A + category use quality gate; evidence tagging |
+| `lib/pipeline/collect-research.ts` | Category fallback gated on qualified peers |
+| `lib/research/competitor.ts` | `cleanCompetitorHomepageTitle` snapshot hygiene |
+| `lib/research/serp.ts` | Re-export new helpers |
 
 ---
 

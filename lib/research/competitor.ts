@@ -2,6 +2,24 @@ import { googleOrganicSearch } from "@/lib/research/serp"
 import { bestReputationHit } from "@/lib/research/reputation-parse"
 import { fetchWebsiteSignals } from "@/lib/research/website"
 import type { SerpOrganicResult } from "@/lib/research/serp"
+import {
+  isBotInterstitialTitle,
+  isDirectoryListingTitle,
+} from "@/lib/research/serp/competitor-domains"
+
+/**
+ * A competitor homepage title is only trustworthy when it reads like a real
+ * business homepage — not a bot wall ("Checking your browser") or a directory
+ * listicle. Suppress junk so the grid shows a dash instead (P1.7).
+ */
+export function cleanCompetitorHomepageTitle(
+  title: string | null | undefined,
+): string | null {
+  if (!title) return null
+  if (isBotInterstitialTitle(title)) return null
+  if (isDirectoryListingTitle(title)) return null
+  return title
+}
 
 export type CompetitorSnapshot = {
   domain: string
@@ -56,7 +74,7 @@ export async function fetchCompetitorSnapshots(
 
       return {
         domain,
-        homepageTitle: site?.title ?? null,
+        homepageTitle: cleanCompetitorHomepageTitle(site?.title),
         reviewSnippet: hit
           ? `${hit.result.title}: ${hit.result.snippet}`.slice(0, 220)
           : null,

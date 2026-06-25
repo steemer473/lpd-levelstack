@@ -5,9 +5,10 @@ import type { GbpSignals } from "@/lib/research/gbp"
 import type { NameCollision } from "@/lib/pipeline/research-types"
 import type { SerpOrganicResult, SerpSearchResponse } from "@/lib/research/serp/types"
 import {
-  filterCompetitorDomains,
   isCompetitorCandidate,
+  isDirectoryListingTitle,
   isNonCompetitorHost,
+  qualifiedPeerDomains,
   topCompetitorDomains,
 } from "@/lib/research/serp/competitor-domains"
 import { hostnameFromUrl } from "@/lib/research/serp/router"
@@ -256,12 +257,9 @@ export function resolveCompetitorColumns(input: {
   } = input
   const limit = 3
 
-  const servicePeerDomains = filterCompetitorDomains(
-    serviceSearch
-      ? topCompetitorDomains(serviceSearch.results, buyerHost, limit)
-      : [],
-    buyerHost,
-  )
+  const servicePeerDomains = serviceSearch
+    ? qualifiedPeerDomains(serviceSearch.results, buyerHost, limit)
+    : []
 
   if (servicePeerDomains.length > 0) {
     const allResults = serviceSearch?.results ?? []
@@ -293,12 +291,9 @@ export function resolveCompetitorColumns(input: {
     }
   }
 
-  const categoryDomains = filterCompetitorDomains(
-    categoryPeerSearch
-      ? topCompetitorDomains(categoryPeerSearch.results, buyerHost, limit)
-      : [],
-    buyerHost,
-  )
+  const categoryDomains = categoryPeerSearch
+    ? qualifiedPeerDomains(categoryPeerSearch.results, buyerHost, limit)
+    : []
 
   if (categoryDomains.length > 0) {
     const allResults = categoryPeerSearch?.results ?? []
@@ -335,7 +330,12 @@ export function formatSerpEvidenceTable(
       let tag = ""
       try {
         const host = hostnameFromUrl(r.link)
-        if (host && isNonCompetitorHost(host)) tag = " [directory/platform]"
+        if (
+          (host && isNonCompetitorHost(host)) ||
+          isDirectoryListingTitle(r.title)
+        ) {
+          tag = " [directory/platform]"
+        }
       } catch {
         // ignore
       }
