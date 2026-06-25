@@ -100,4 +100,65 @@ describe("LPD dogfood competitive section", () => {
     expect(competitive.competitiveGrid?.columnHeaders).not.toContain("google.com")
     expect(competitive.competitiveGrid?.rows[0]?.cells[1]).toContain("Namesake")
   })
+
+  it("excludes buyer squat and prefers collision brands (production failure case)", () => {
+    const serviceSearch = {
+      query: "SAAS and stand alone products Atlanta, GA",
+      results: [
+        {
+          query: "q",
+          position: 1,
+          title: "B2B SaaS Software Companies in Atlanta, GA",
+          link: "https://www.google.com/goto?url=abc",
+          snippet: "",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+
+    // Production brand search surfaced the buyer's own .cloud squat and an
+    // unrelated Unity product before any real namesake.
+    const brandSearches = [
+      {
+        query: "Level Play Digital",
+        results: [
+          {
+            query: "Level Play Digital",
+            position: 1,
+            title: "Level Play Digital Cloud",
+            link: "https://levelplaydigital.cloud/index.php",
+            snippet: "",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+
+    const resolved = resolveCompetitorColumns({
+      intake: lpdIntake,
+      buyerHost: "levelplaydigital.com",
+      serviceSearch,
+      brandSearches,
+      categoryPeerSearch: null,
+      nameCollisions: [
+        {
+          title: "Level Agency",
+          link: "https://levelagency.com/",
+          type: "direct_competitor",
+        },
+        {
+          title: "Level Workforce",
+          link: "https://levelworkforce.com/",
+          type: "direct_competitor",
+        },
+      ],
+    })
+
+    const domains = resolved.columns.map((c) => c.domain)
+    expect(domains).not.toContain("levelplaydigital.cloud")
+    expect(domains).toContain("levelagency.com")
+    expect(domains).toContain("levelworkforce.com")
+  })
 })

@@ -5,12 +5,48 @@ import {
   priorNamesForSearch,
   brandNameSearchQueries,
   directoryReviewQueries,
+  normalizeServiceQuery,
   reputationQueries,
   searchFootprintQueries,
   serviceMarketQuery,
 } from "@/lib/pipeline/research-queries"
 
+describe("normalizeServiceQuery", () => {
+  it("keeps short service phrases unchanged", () => {
+    expect(normalizeServiceQuery("Real estate agent")).toBe("Real estate agent")
+  })
+
+  it("takes the first clause of a multi-clause service description", () => {
+    expect(
+      normalizeServiceQuery(
+        "SAAS and stand alone products, operational efficiency products",
+      ),
+    ).toBe("SAAS and stand alone products")
+  })
+
+  it("caps very long single clauses to six words", () => {
+    expect(
+      normalizeServiceQuery("one two three four five six seven eight"),
+    ).toBe("one two three four five six")
+  })
+})
+
 describe("research-queries", () => {
+  it("normalizes verbose primary service in market query", () => {
+    const intake = {
+      ...levelstackIntakeDefaults,
+      primaryService:
+        "SAAS and stand alone products, operational efficiency products",
+      marketCity: "Atlanta",
+      marketState: "GA",
+      geoMarket: "local" as const,
+      priorBusinessNames: ["None"],
+    }
+    expect(serviceMarketQuery(intake)).toBe(
+      "SAAS and stand alone products Atlanta, GA",
+    )
+  })
+
   it("filters None from prior name searches", () => {
     const intake = {
       ...levelstackIntakeDefaults,
