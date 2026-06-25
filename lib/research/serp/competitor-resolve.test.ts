@@ -179,6 +179,148 @@ describe("resolveCompetitorColumns", () => {
     expect(resolved.columns[0]?.source).toBe("namesake")
   })
 
+  it("prefers local category peers over namesakes (P1.8 — ICP value ordering)", () => {
+    // Service SERP is thin, but BOTH a namesake (levelagency.com from brand
+    // search) AND a local category peer are available. For LevelStack's local
+    // service ICP, the locally-relevant rival is the conversion trigger — it
+    // must win the grid over the brand-string name-twin.
+    const serviceSearch = {
+      query: "marketing automation platform Atlanta, GA",
+      results: [
+        {
+          query: "q",
+          position: 1,
+          title: "Google",
+          link: "https://google.com/",
+          snippet: "",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+
+    const brandSearches = [
+      {
+        query: "Level Play Digital",
+        results: [
+          {
+            query: "Level Play Digital",
+            position: 1,
+            title: "Level Play Digital",
+            link: "https://levelplaydigital.com/",
+            snippet: "",
+          },
+          {
+            query: "Level Play Digital",
+            position: 2,
+            title: "Level Agency",
+            link: "https://levelagency.com/",
+            snippet: "",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+
+    const categoryPeerSearch = {
+      query: "Marketing agency Atlanta, GA",
+      results: [
+        {
+          query: "Marketing agency Atlanta, GA",
+          position: 1,
+          title: "Peachtree Marketing Group — Atlanta",
+          link: "https://peachtreemarketing.com/",
+          snippet: "Full-service marketing agency in Atlanta",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+
+    const resolved = resolveCompetitorColumns({
+      intake,
+      buyerHost: "levelplaydigital.com",
+      serviceSearch,
+      brandSearches,
+      categoryPeerSearch,
+      buyerCategory: "Marketing agency",
+    })
+
+    expect(resolved.mode).toBe("category_peer")
+    expect(resolved.columns[0]?.domain).toBe("peachtreemarketing.com")
+    expect(resolved.columns.map((c) => c.domain)).not.toContain("levelagency.com")
+  })
+
+  it("falls back to namesake only when no category peer exists (P1.8)", () => {
+    const serviceSearch = {
+      query: "marketing automation platform Atlanta, GA",
+      results: [
+        {
+          query: "q",
+          position: 1,
+          title: "Google",
+          link: "https://google.com/",
+          snippet: "",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+
+    const brandSearches = [
+      {
+        query: "Level Play Digital",
+        results: [
+          {
+            query: "Level Play Digital",
+            position: 1,
+            title: "Level Play Digital",
+            link: "https://levelplaydigital.com/",
+            snippet: "",
+          },
+          {
+            query: "Level Play Digital",
+            position: 2,
+            title: "Level Agency",
+            link: "https://levelagency.com/",
+            snippet: "",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+
+    // Category search ran but produced no qualified peers (all directories).
+    const categoryPeerSearch = {
+      query: "Marketing agency Atlanta, GA",
+      results: [
+        {
+          query: "Marketing agency Atlanta, GA",
+          position: 1,
+          title: "15 Best Marketing Agencies in Atlanta (2026)",
+          link: "https://clutch.co/agencies/atlanta",
+          snippet: "",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+
+    const resolved = resolveCompetitorColumns({
+      intake,
+      buyerHost: "levelplaydigital.com",
+      serviceSearch,
+      brandSearches,
+      categoryPeerSearch,
+      buyerCategory: "Marketing agency",
+    })
+
+    expect(resolved.mode).toBe("namesake")
+    expect(resolved.columns[0]?.domain).toBe("levelagency.com")
+  })
+
   it("falls back to category peer search when service and brand are thin", () => {
     const serviceSearch = {
       query: "marketing automation platform Atlanta, GA",
