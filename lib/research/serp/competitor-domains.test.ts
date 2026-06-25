@@ -155,10 +155,18 @@ describe("isDirectoryListingTitle", () => {
     expect(isDirectoryListingTitle("Best digital agencies near you")).toBe(true)
   })
 
+  it("flags SEO service-landing shapes (P1.7.1)", () => {
+    expect(isDirectoryListingTitle("Professional SaaS Development Services in Atlanta")).toBe(true)
+    expect(isDirectoryListingTitle("Enterprise SaaS Development Services")).toBe(true)
+    expect(isDirectoryListingTitle("IT Consulting Services in Dallas")).toBe(true)
+  })
+
   it("allows real business homepage titles", () => {
     expect(isDirectoryListingTitle("Level Agency: Full-service digital marketing")).toBe(false)
     expect(isDirectoryListingTitle("Operational Systems for Agencies & Marketers")).toBe(false)
     expect(isDirectoryListingTitle("Acme Plumbing — Atlanta Emergency Plumber")).toBe(false)
+    // Real local competitor titles that legitimately end in a city must NOT be flagged.
+    expect(isDirectoryListingTitle("Bob's Plumbing in Dallas")).toBe(false)
     expect(isDirectoryListingTitle(null)).toBe(false)
   })
 })

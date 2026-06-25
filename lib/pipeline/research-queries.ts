@@ -30,8 +30,19 @@ export function normalizeServiceQuery(service: string): string {
   return firstClause
 }
 
+/**
+ * The phrase used for service/competitive SERPs. Prefers the buyer's concise
+ * `primaryServiceKeywords` (what prospects actually Google) and falls back to a
+ * normalized slice of the verbose `primaryService` free-text.
+ */
+export function serviceSearchTerm(intake: LevelstackIntakeFormValues): string {
+  const keywords = intake.primaryServiceKeywords?.trim()
+  if (keywords) return normalizeServiceQuery(keywords)
+  return normalizeServiceQuery(intake.primaryService)
+}
+
 export function serviceMarketQuery(intake: LevelstackIntakeFormValues): string {
-  const service = normalizeServiceQuery(intake.primaryService)
+  const service = serviceSearchTerm(intake)
   const location = marketLocationLabel(intake)
 
   if (location && intake.geoMarket === "local") {

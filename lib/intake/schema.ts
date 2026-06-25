@@ -22,6 +22,12 @@ export const levelstackIntakeSchema = z
     .min(1, "Add at least one prior name entry (use “None” if not applicable)"),
   ownerName: z.string().min(1, "Owner / personal brand name is required"),
   primaryService: z.string().min(1, "Primary service or offer is required"),
+  /**
+   * Optional concise search phrase (2–5 words) prospects would actually Google,
+   * e.g. "marketing operations software". Used for the competitive/service SERP
+   * when the verbose `primaryService` would return a low-signal page.
+   */
+  primaryServiceKeywords: z.string().optional(),
   pricePoint: z.string().min(1, "Current price point is required"),
   hasActiveAdSpend: z.enum(["yes", "no"]),
   adPlatforms: z.string().optional(),
@@ -66,6 +72,7 @@ export const levelstackIntakeDefaults: LevelstackIntakeFormValues = {
   priorBusinessNames: [""],
   ownerName: "",
   primaryService: "",
+  primaryServiceKeywords: "",
   pricePoint: "",
   hasActiveAdSpend: "no",
   adPlatforms: "",

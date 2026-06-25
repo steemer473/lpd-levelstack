@@ -1,6 +1,6 @@
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
 import { businessNameForSearch, marketLocationLabel } from "@/lib/intake/location"
-import { normalizeServiceQuery } from "@/lib/pipeline/research-queries"
+import { serviceSearchTerm } from "@/lib/pipeline/research-queries"
 import type { GbpSignals } from "@/lib/research/gbp"
 import type { NameCollision } from "@/lib/pipeline/research-types"
 import type { SerpOrganicResult, SerpSearchResponse } from "@/lib/research/serp/types"
@@ -8,6 +8,7 @@ import {
   isCompetitorCandidate,
   isDirectoryListingTitle,
   isNonCompetitorHost,
+  isQualifiedPeerResult,
   qualifiedPeerDomains,
   topCompetitorDomains,
 } from "@/lib/research/serp/competitor-domains"
@@ -46,13 +47,121 @@ export function categoryPeerQuery(
 ): string {
   const location = marketLocationLabel(intake)
   const category = gbp.category?.trim()
-  const service = normalizeServiceQuery(intake.primaryService)
+  const service = serviceSearchTerm(intake)
 
   if (category && location) return `${category} ${location}`
   if (service && location) return `${service} ${location}`
   if (category) return category
   if (intake.geoMarket === "national") return `${service} platform`
   return service
+}
+
+/**
+ * Generic descriptors that do not establish what a business actually does — used
+ * when deriving relevance tokens from a GBP category or service phrase.
+ */
+const RELEVANCE_STOPWORDS = new Set([
+  "the",
+  "and",
+  "for",
+  "of",
+  "a",
+  "an",
+  "in",
+  "near",
+  "services",
+  "service",
+  "solutions",
+  "solution",
+  "company",
+  "companies",
+  "co",
+  "llc",
+  "inc",
+  "corp",
+  "group",
+  "based",
+  "local",
+  "best",
+  "top",
+  "professional",
+  "products",
+  "product",
+])
+
+function significantRelevanceTokens(text: string): string[] {
+  const out = new Set<string>()
+  for (const word of text.toLowerCase().split(/[\s,./&-]+/)) {
+    if (word.length >= 4 && !RELEVANCE_STOPWORDS.has(word)) out.add(word)
+  }
+  return [...out]
+}
+
+/**
+ * Tokens describing what the buyer actually does, used to keep only on-vertical
+ * service peers. Derived from the GBP category only — Google's authoritative
+ * classification of the real business. This is what stops a marketing-ops
+ * product (GBP "Marketing agency") from being compared to generic
+ * SaaS-development vendors that merely rank for "SaaS …".
+ *
+ * We deliberately do NOT derive relevance from the buyer's own service phrase: a
+ * real competitor's SERP title rarely echoes your service wording, so filtering
+ * on it would prune legitimate peers. With no category we have no authoritative
+ * signal, so the gate is disabled (returns []) and the host/title gates stand.
+ */
+export function buyerRelevanceTokens(
+  category: string | null | undefined,
+): string[] {
+  return category ? significantRelevanceTokens(category) : []
+}
+
+function resultMatchesRelevance(
+  result: SerpOrganicResult,
+  tokens: string[],
+): boolean {
+  // No basis to judge relevance → don't over-prune.
+  if (tokens.length === 0) return true
+  const host = hostnameFromUrl(result.link) ?? ""
+  const haystack = `${result.title} ${result.snippet} ${host}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+  return tokens.some(
+    (token) =>
+      haystack.includes(token) ||
+      (token.length >= 6 && haystack.includes(token.slice(0, 5))),
+  )
+}
+
+/**
+ * Qualified (host + title gate) AND on-vertical (relevance gate) service-peer
+ * columns from a service SERP. Empty when page 1 has no real, relevant peers —
+ * the caller then falls through to namesake/category.
+ */
+export function relevantServicePeerColumns(input: {
+  serviceSearch: SerpSearchResponse | null
+  buyerHost: string | null
+  relevanceTokens: string[]
+  limit?: number
+}): CompetitorColumn[] {
+  const { serviceSearch, buyerHost, relevanceTokens, limit = 3 } = input
+  if (!serviceSearch) return []
+
+  const columns: CompetitorColumn[] = []
+  const seen = new Set<string>()
+
+  for (const result of serviceSearch.results) {
+    if (!isQualifiedPeerResult(result, buyerHost)) continue
+    if (!resultMatchesRelevance(result, relevanceTokens)) continue
+    const host = hostnameFromUrl(result.link)
+    if (!host) continue
+    const norm = host.toLowerCase().replace(/^www\./, "")
+    if (seen.has(norm)) continue
+    seen.add(norm)
+    columns.push({ domain: norm, source: "service_peer", title: result.title })
+    if (columns.length >= limit) break
+  }
+
+  return columns
 }
 
 export function extractNamesakeDomainsFromBrandSearch(
@@ -242,6 +351,8 @@ export function resolveCompetitorColumns(input: {
   brandSearches: SerpSearchResponse[]
   categoryPeerSearch: SerpSearchResponse | null
   nameCollisions?: NameCollision[]
+  /** GBP category — authoritative signal for service-peer relevance (P1.7.1). */
+  buyerCategory?: string | null
 }): {
   columns: CompetitorColumn[]
   mode: CompetitiveComparisonMode
@@ -254,21 +365,23 @@ export function resolveCompetitorColumns(input: {
     brandSearches,
     categoryPeerSearch,
     nameCollisions = [],
+    buyerCategory = null,
   } = input
   const limit = 3
 
-  const servicePeerDomains = serviceSearch
-    ? qualifiedPeerDomains(serviceSearch.results, buyerHost, limit)
-    : []
+  const relevanceTokens = buyerRelevanceTokens(buyerCategory)
 
-  if (servicePeerDomains.length > 0) {
-    const allResults = serviceSearch?.results ?? []
+  const serviceColumns = relevantServicePeerColumns({
+    serviceSearch,
+    buyerHost,
+    relevanceTokens,
+    limit,
+  })
+  const servicePeerDomains = serviceColumns.map((c) => c.domain)
+
+  if (serviceColumns.length > 0) {
     return {
-      columns: servicePeerDomains.map((domain) => ({
-        domain,
-        source: "service_peer" as const,
-        title: titleForDomain(allResults, domain),
-      })),
+      columns: serviceColumns,
       mode: "service_peer",
       servicePeerDomains,
     }

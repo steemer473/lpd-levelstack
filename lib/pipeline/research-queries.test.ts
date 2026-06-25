@@ -9,6 +9,7 @@ import {
   reputationQueries,
   searchFootprintQueries,
   serviceMarketQuery,
+  serviceSearchTerm,
 } from "@/lib/pipeline/research-queries"
 
 describe("normalizeServiceQuery", () => {
@@ -28,6 +29,43 @@ describe("normalizeServiceQuery", () => {
     expect(
       normalizeServiceQuery("one two three four five six seven eight"),
     ).toBe("one two three four five six")
+  })
+})
+
+describe("serviceSearchTerm", () => {
+  it("prefers concise primaryServiceKeywords when provided", () => {
+    const intake = {
+      ...levelstackIntakeDefaults,
+      primaryService:
+        "SAAS and stand alone products, operational efficiency products",
+      primaryServiceKeywords: "marketing operations software",
+    }
+    expect(serviceSearchTerm(intake)).toBe("marketing operations software")
+  })
+
+  it("falls back to normalized primaryService when keywords are blank", () => {
+    const intake = {
+      ...levelstackIntakeDefaults,
+      primaryService:
+        "SAAS and stand alone products, operational efficiency products",
+      primaryServiceKeywords: "",
+    }
+    expect(serviceSearchTerm(intake)).toBe("SAAS and stand alone products")
+  })
+
+  it("drives the service market query from keywords", () => {
+    const intake = {
+      ...levelstackIntakeDefaults,
+      primaryService: "long verbose offer description that is not searchable",
+      primaryServiceKeywords: "marketing operations software",
+      marketCity: "Atlanta",
+      marketState: "GA",
+      geoMarket: "local" as const,
+      priorBusinessNames: ["None"],
+    }
+    expect(serviceMarketQuery(intake)).toBe(
+      "marketing operations software Atlanta, GA",
+    )
   })
 })
 

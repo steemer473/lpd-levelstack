@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest"
 
 import { levelstackIntakeDefaults } from "@/lib/intake/schema"
 import {
+  buyerRelevanceTokens,
   categoryPeerQuery,
   formatSerpEvidenceTable,
+  relevantServicePeerColumns,
   resolveCompetitorColumns,
 } from "@/lib/research/serp/competitor-resolve"
 
@@ -383,6 +385,137 @@ describe("resolveCompetitorColumns", () => {
     })
 
     expect(resolved.columns.map((c) => c.domain)).not.toContain("acme-widgets.com")
+  })
+})
+
+describe("buyerRelevanceTokens", () => {
+  it("derives significant tokens from the GBP category", () => {
+    expect(buyerRelevanceTokens("Marketing agency")).toEqual(["marketing", "agency"])
+  })
+
+  it("drops generic descriptors", () => {
+    expect(buyerRelevanceTokens("Software Company")).toEqual(["software"])
+  })
+
+  it("returns empty (gate disabled) when no category", () => {
+    expect(buyerRelevanceTokens(null)).toEqual([])
+    expect(buyerRelevanceTokens(undefined)).toEqual([])
+  })
+})
+
+describe("relevantServicePeerColumns", () => {
+  const serviceSearch = {
+    query: "SAAS and stand alone products Atlanta, GA",
+    results: [
+      {
+        query: "q",
+        position: 4,
+        title: "Software as a Service (SaaS) in Atlanta",
+        link: "https://centurygroup.net/cloud-computing/software-as-a-service/",
+        snippet: "Managed IT support services Atlanta",
+      },
+      {
+        query: "q",
+        position: 9,
+        title: "Enterprise SaaS Development Services",
+        link: "https://www.charterglobal.com/services/saas-development/",
+        snippet: "AI product engineering",
+      },
+      {
+        query: "q",
+        position: 10,
+        title: "Acme Marketing Automation Agency",
+        link: "https://acme-marketing.com/",
+        snippet: "Marketing agency for B2B",
+      },
+    ],
+    aiOverview: null,
+    limitation: null,
+  }
+
+  it("keeps only on-vertical peers when a category is known", () => {
+    const cols = relevantServicePeerColumns({
+      serviceSearch,
+      buyerHost: "levelplaydigital.com",
+      relevanceTokens: buyerRelevanceTokens("Marketing agency"),
+    })
+    expect(cols.map((c) => c.domain)).toEqual(["acme-marketing.com"])
+  })
+
+  it("keeps all qualified peers when relevance gate is disabled (no tokens)", () => {
+    const cols = relevantServicePeerColumns({
+      serviceSearch,
+      buyerHost: "levelplaydigital.com",
+      relevanceTokens: [],
+    })
+    // charterglobal's "Development Services" title is a directory listicle shape;
+    // centurygroup + acme remain.
+    expect(cols.map((c) => c.domain)).toContain("centurygroup.net")
+    expect(cols.map((c) => c.domain)).toContain("acme-marketing.com")
+    expect(cols.map((c) => c.domain)).not.toContain("charterglobal.com")
+  })
+})
+
+describe("resolveCompetitorColumns with buyer category (P1.7.1)", () => {
+  it("drops off-vertical SaaS vendors and falls through to namesake", () => {
+    const serviceSearch = {
+      query: "SAAS and stand alone products Atlanta, GA",
+      results: [
+        {
+          query: "q",
+          position: 4,
+          title: "Software as a Service (SaaS) in Atlanta",
+          link: "https://centurygroup.net/cloud-computing/software-as-a-service/",
+          snippet: "Managed IT support",
+        },
+        {
+          query: "q",
+          position: 6,
+          title: "Professional SaaS Development Services in Atlanta",
+          link: "https://www.ideapeel.com/blogs/saas-development-services",
+          snippet: "Webflow development agency",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+
+    const resolved = resolveCompetitorColumns({
+      intake,
+      buyerHost: "levelplaydigital.com",
+      serviceSearch,
+      brandSearches: [
+        {
+          query: "Level Play Digital",
+          results: [
+            {
+              query: "Level Play Digital",
+              position: 1,
+              title: "Level Play Digital",
+              link: "https://levelplaydigital.com/",
+              snippet: "",
+            },
+            {
+              query: "Level Play Digital",
+              position: 2,
+              title: "Level Agency",
+              link: "https://levelagency.com/",
+              snippet: "",
+            },
+          ],
+          aiOverview: null,
+          limitation: null,
+        },
+      ],
+      categoryPeerSearch: null,
+      buyerCategory: "Marketing agency",
+    })
+
+    expect(resolved.servicePeerDomains).toEqual([])
+    expect(resolved.mode).toBe("namesake")
+    expect(resolved.columns.map((c) => c.domain)).toContain("levelagency.com")
+    expect(resolved.columns.map((c) => c.domain)).not.toContain("centurygroup.net")
+    expect(resolved.columns.map((c) => c.domain)).not.toContain("ideapeel.com")
   })
 })
 
