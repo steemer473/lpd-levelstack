@@ -387,23 +387,13 @@ export function resolveCompetitorColumns(input: {
     }
   }
 
-  const brandResults = brandSearchResults(brandSearches, intake)
-  const namesakeColumns = resolveNamesakeColumns({
-    businessName: intake.primaryBusinessName,
-    buyerHost,
-    brandResults,
-    collisions: nameCollisions,
-    limit,
-  })
-
-  if (namesakeColumns.length > 0) {
-    return {
-      columns: namesakeColumns,
-      mode: "namesake",
-      servicePeerDomains,
-    }
-  }
-
+  // P1.8 — ICP value ordering. LevelStack's buyers are local service
+  // businesses, and the funnel's core conversion trigger is "a real competitor
+  // ranking above you" (FUNNELS_AND_MARKETING §2; nurture Email 3 names the
+  // rival). A locally-relevant category peer (e.g. another agency in the buyer's
+  // market) is far more valuable and conversion-driving than a brand-string
+  // name-twin. So category peers outrank namesakes here; namesake / brand
+  // confusion is demoted to the next tier (and still surfaces in LLM prose).
   const categoryDomains = categoryPeerSearch
     ? qualifiedPeerDomains(categoryPeerSearch.results, buyerHost, limit)
     : []
@@ -417,6 +407,23 @@ export function resolveCompetitorColumns(input: {
         title: titleForDomain(allResults, domain),
       })),
       mode: "category_peer",
+      servicePeerDomains,
+    }
+  }
+
+  const brandResults = brandSearchResults(brandSearches, intake)
+  const namesakeColumns = resolveNamesakeColumns({
+    businessName: intake.primaryBusinessName,
+    buyerHost,
+    brandResults,
+    collisions: nameCollisions,
+    limit,
+  })
+
+  if (namesakeColumns.length > 0) {
+    return {
+      columns: namesakeColumns,
+      mode: "namesake",
       servicePeerDomains,
     }
   }

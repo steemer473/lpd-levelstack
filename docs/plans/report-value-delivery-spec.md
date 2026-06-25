@@ -360,7 +360,7 @@ The P1.7 regen of `031e84ed…` confirmed directories were gone, but the grid th
 - [x] SEO service-landing titles flagged; local "… in <City>" business titles not flagged (`competitor-domains.test.ts`)
 - [x] `serviceSearchTerm` prefers `primaryServiceKeywords` (`research-queries.test.ts`)
 - [x] Regen: grid and prose name the same entity; no directory/vendor columns
-- [ ] Namesake entity quality (Level Agency over Unity sports/levelplay) — deferred to P1.6.x
+- [x] Namesake entity quality (local rivals over Unity sports/levelplay) — **resolved by P1.8** (category peers now outrank namesakes)
 
 ### Files
 
@@ -372,6 +372,50 @@ The P1.7 regen of `031e84ed…` confirmed directories were gone, but the grid th
 | `lib/intake/schema.ts` | Optional `primaryServiceKeywords` |
 | `components/intake/levelstack-intake-form.tsx` | Keywords field + guidance |
 | `lib/pipeline/collect-research.ts` | Relevance-gated category fallback; pass category |
+
+---
+
+## P1.8 — Local rivals outrank namesakes (ICP value ordering) (shipped 2026-06-25)
+
+### Problem
+
+After P1.7.1 the grid and prose agreed, but the **fallback ladder put brand-string namesakes above local category rivals**: `service_peer → namesake → category_peer → intake`. For the LPD dogfood that meant the grid led with Unity LevelPlay (a sports-streaming / ad-mediation name-twin) instead of real Atlanta marketing agencies — and the review row leaked "Unity Reviews 451".
+
+This is backwards for LevelStack's ICP. Per `lpd-planning/FUNNELS_AND_MARKETING.md` §1–2, the buyers are **local service businesses** (real estate, HVAC, legal, dental, medical spa) and the funnel's core conversion trigger is **"a real competitor ranking above you"** — surfaced in the free snapshot, nurture Email 3 ("Who's ranking above you right now"), and the GHL `top_competitor` merge field. A locally-relevant category peer is far more valuable and conversion-driving than a name-twin in an unrelated vertical. The "Unity LevelPlay is ranking above you" example in `COPY_BANK.md` §5 was an artifact of this very bug, not a design choice.
+
+### Fix
+
+1. **Reorder the ladder** in `resolveCompetitorColumns` (`competitor-resolve.ts`): `service_peer → category_peer → namesake → intake → evidence`. A real local rival now wins the grid; namesake / brand-confusion drops to the next tier and still surfaces in the LLM prose supplementals.
+2. No collection change needed — `collectPaidEnrichment` already fetches the category-peer search whenever no *relevant* service peer exists (P1.7.1), so the local-rival tier is available exactly when it is needed.
+
+### Decision: why category over namesake (not a relevance heuristic on namesakes)
+
+Forcing "local relevance" into the *pure-namesake* fallback was considered and rejected: in that branch there is, by definition, no category/market signal to score against, so any heuristic would be low-signal and prone to misfire (dropping a legitimate same-name direct competitor). The principled fix is ordering: prefer the tier that *is* locally relevant (category peers) over the tier that is about name collision.
+
+### Result (regen `031e84ed…`, 2026-06-25 ~11:10)
+
+- Grid mode = `category_peer`. Columns are real Atlanta agencies: **Modo Modo Agency** (modomodoagency.com), **Brown Bag Marketing**, **Nebo**.
+- Finding value: *"No direct service-search peers on page 1 — comparing to Modo Modo Agency - Atlanta (modomodoagency.com) via category peer."*
+- Namesakes (Level Agency, Level Workforce) moved to the prose supplemental "Competitor Search Results" as brand-confusion context.
+- "Unity Reviews 451" leak gone; review row shows real Atlanta agency snippets.
+
+### Acceptance criteria
+
+- [x] When service peers are thin but a local category peer exists, grid = `category_peer` and excludes namesakes (`competitor-resolve.test.ts`)
+- [x] Namesake remains the fallback only when no category peer qualifies (`competitor-resolve.test.ts`)
+- [x] Regen: LPD grid shows local agencies, not Unity LevelPlay; review row clean
+- [x] Full unit suite + type-check pass
+
+### Follow-up (recommended next slice) — P1.8.1: align the conversion trigger
+
+The free-tier `previewCompetitor` (→ executive-summary tease, free snapshot, and the GHL `top_competitor` merge field) is still extracted from the raw service-SERP #1 (`extractPreviewCompetitor`), which can diverge from the now-smart grid. It should name the **same resolved local rival** shown in the grid. This is the still-open item at "P1 — Named competitor in paid section" (GHL merge field) and the preview-path alignment note in P0 §5.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `lib/research/serp/competitor-resolve.ts` | Reorder ladder: category peer before namesake |
+| `lib/research/serp/competitor-resolve.test.ts` | Tests encoding category-over-namesake + namesake-only fallback |
 
 ---
 
