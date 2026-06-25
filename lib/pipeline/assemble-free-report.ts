@@ -15,7 +15,10 @@ import {
   buildExecutiveSummaryFromResearch,
   buildSectionsFromResearch,
 } from "@/lib/pipeline/serp-backed-sections"
-import { extractPreviewCompetitor } from "@/lib/report/parse-serp-rows"
+import {
+  extractPreviewCompetitor,
+  parseSerpRowsFromDetail,
+} from "@/lib/report/parse-serp-rows"
 import { hostnameFromUrl } from "@/lib/research/serp"
 
 function signalRows(signals: AuditScoreBundle["signals"]) {
@@ -78,9 +81,29 @@ export function extractUpgradeTeasers(
     search?.findings.find((f) => f.detail.includes("http"))?.detail ||
     ""
 
-  const previewCompetitor = detailSource
-    ? extractPreviewCompetitor(detailSource, buyerHost)
-    : undefined
+  // P1.8.1 — align the conversion trigger to the resolved grid rival.
+  // The free-tier tease and GHL top_competitor merge field must name the same
+  // competitor shown in the grid, not raw SERP #1 (which can be a directory or
+  // unrelated brand after P1.7–P1.8 filtering).
+  const resolvedColumn = bundle.competitiveContext.competitorColumns[0]
+  let previewCompetitor: ReturnType<typeof extractPreviewCompetitor>
+
+  if (resolvedColumn) {
+    // Try to find the resolved rival's SERP position in the stored detail string
+    // (service SERP). Category peers won't appear there, so rank defaults to 1
+    // — they are #1 for the category + market query, which is what the tease copy conveys.
+    const serpRows = parseSerpRowsFromDetail(detailSource, 20)
+    const matched = serpRows.find((r) => r.domain === resolvedColumn.domain)
+    previewCompetitor = {
+      rank: matched?.serpPosition ?? 1,
+      domain: resolvedColumn.domain,
+      title: resolvedColumn.title,
+    }
+  } else {
+    previewCompetitor = detailSource
+      ? extractPreviewCompetitor(detailSource, buyerHost)
+      : undefined
+  }
 
   return {
     competitivePositionAlert,

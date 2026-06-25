@@ -10,6 +10,8 @@ build
 # env
 .env
 .env*.local
+.env.local.bak
+.env.vercel.production
 
 # debug
 npm-debug.log*
