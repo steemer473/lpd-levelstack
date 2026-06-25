@@ -53,6 +53,35 @@ function hasStructuredInsights(
   )
 }
 
+function ensureCriticalIssue(
+  report: LevelstackReportJson,
+  distinct: ReturnType<typeof resolveDistinctHighlights>,
+): string {
+  const trimmed = distinct.criticalIssue?.trim()
+  const isGeneric = !trimmed || trimmed === "Review search footprint first."
+
+  if (!isGeneric) return trimmed
+
+  const urgent = report.sections
+    .flatMap((section) =>
+      section.findings.map((finding) => ({ ...finding, sectionId: section.id })),
+    )
+    .filter((f) => f.severity === "critical" || f.severity === "high")
+    .sort((a, b) => {
+      const rank = (s: string) =>
+        s === "critical" ? 0 : s === "high" ? 1 : 2
+      return rank(a.severity) - rank(b.severity)
+    })
+
+  const fromFinding = urgent.find((f) => f.value.trim())?.value.trim()
+  if (fromFinding) return fromFinding
+
+  const anyFinding = report.sections.flatMap((s) => s.findings).find((f) => f.value.trim())
+  if (anyFinding) return anyFinding.value.trim()
+
+  return trimmed || "Review search footprint first."
+}
+
 export function resolveExecutiveContent(
   report: LevelstackReportJson,
 ): ResolvedExecutiveContent {
@@ -77,12 +106,13 @@ export function resolveExecutiveContent(
   )
 
   const distinct = resolveDistinctHighlights(report)
+  const criticalIssue = ensureCriticalIssue(report, distinct)
 
   return {
     insights,
     structuredInsights: buildFreeTierStructuredExecutiveInsights(report) ?? undefined,
     highlights: {
-      criticalIssue: distinct.criticalIssue,
+      criticalIssue,
       businessImpact: distinct.businessImpact,
       highestLeverageOpportunity: distinct.highestLeverageOpportunity,
     },

@@ -129,6 +129,90 @@ describe("resolveExecutiveContent", () => {
     expect(content.insights.whatProspectsSee).toBe("Para 1")
     expect(content.insights.reputationGap).toBe("Para 2")
   })
+
+  it("falls back to urgent section finding when deduped criticalIssue is generic", () => {
+    const report: LevelstackReportJson = {
+      ...baseReport,
+      executiveSummary: {
+        paragraphs: ["Prospects see X", "Reputation gap Y", "Revenue Z"],
+        criticalIssue: "Review search footprint first.",
+        firstSteps: [],
+      },
+      sections: [
+        {
+          id: "search_footprint",
+          label: "Search",
+          status: "good",
+          score: 85,
+          findings: [
+            {
+              label: "Brand search",
+              value: "Position #1 for Test Co",
+              detail: "Site ranks first.",
+              severity: "good",
+            },
+          ],
+        },
+        {
+          id: "online_reputation",
+          label: "Reputation",
+          status: "critical",
+          score: 30,
+          findings: [
+            {
+              label: "Reviews",
+              value: "No reviews found on major platforms",
+              detail: "Trust gap for new prospects.",
+              severity: "high",
+            },
+          ],
+        },
+        ...baseReport.sections.filter(
+          (s) => s.id !== "search_footprint" && s.id !== "online_reputation",
+        ),
+      ],
+    }
+
+    const content = resolveExecutiveContent(report)
+    expect(content.highlights.criticalIssue).toBe("No reviews found on major platforms")
+  })
+
+  it("uses section finding when dedup returns generic but urgent findings exist", () => {
+    const report: LevelstackReportJson = {
+      ...baseReport,
+      executiveSummary: {
+        paragraphs: ["A", "B", "C"],
+        criticalIssue: "Review search footprint first.",
+        firstSteps: [],
+      },
+      sections: [
+        {
+          id: "digital_presence",
+          label: "Presence",
+          status: "attention",
+          score: 40,
+          findings: [
+            {
+              label: "GBP",
+              value: "Not fetched yet",
+              detail: "Internal pipeline note.",
+              severity: "high",
+            },
+          ],
+        },
+        {
+          id: "action_plan",
+          label: "Action plan",
+          status: "attention",
+          score: 55,
+          findings: [],
+        },
+      ],
+    }
+
+    const content = resolveExecutiveContent(report)
+    expect(content.highlights.criticalIssue).toBe("Not fetched yet")
+  })
 })
 
 describe("resolveCompetitiveSnapshot", () => {

@@ -182,3 +182,70 @@ describe("buildSectionsFromResearch search and digital copy", () => {
     expect(search.findings[1]?.value).toContain("When someone searches your name")
   })
 })
+
+describe("buildSectionsFromResearch competitive grid", () => {
+  it("omits competitive grid when only platform domains are present", () => {
+    const bundle = emptyResearchBundle()
+    bundle.competitiveContext.competitorDomains = ["google.com"]
+    bundle.competitiveContext.serviceSearch = {
+      query: "digital marketing agency Atlanta",
+      results: [
+        {
+          query: "digital marketing agency Atlanta",
+          position: 1,
+          title: "Google",
+          link: "https://www.google.com/search",
+          snippet: "",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+    bundle.digitalPresence.website.url = intake.websiteUrl
+
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const competitive = sections.find((s) => s.id === "competitive_context")!
+
+    expect(competitive.competitiveGrid).toBeUndefined()
+    expect(competitive.findings[0]?.value).toContain(
+      "No direct competitor domains on page 1",
+    )
+  })
+
+  it("builds competitive grid with real competitor domains only", () => {
+    const bundle = emptyResearchBundle()
+    bundle.competitiveContext.competitorDomains = ["google.com", "rival-agency.com"]
+    bundle.competitiveContext.serviceSearch = {
+      query: "digital marketing agency Atlanta",
+      results: [
+        {
+          query: "digital marketing agency Atlanta",
+          position: 1,
+          title: "Google",
+          link: "https://www.google.com/",
+          snippet: "",
+        },
+        {
+          query: "digital marketing agency Atlanta",
+          position: 2,
+          title: "Rival Agency",
+          link: "https://rival-agency.com/",
+          snippet: "",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+    bundle.digitalPresence.website.url = intake.websiteUrl
+    bundle.digitalPresence.website.title = "Level Play Digital"
+
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const competitive = sections.find((s) => s.id === "competitive_context")!
+
+    expect(competitive.competitiveGrid?.columnHeaders).toEqual([
+      "You (Level Play Digital)",
+      "rival-agency.com",
+    ])
+    expect(competitive.competitiveGrid?.columnHeaders).not.toContain("google.com")
+  })
+})

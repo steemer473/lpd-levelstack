@@ -113,6 +113,10 @@ describe("extractUpgradeTeasers", () => {
   it("skips own domain when picking preview competitor", () => {
     const bundle = emptyResearchBundle()
     const sections = buildSectionsFromResearch(intake, bundle)
+    const competitive = sections.find((s) => s.id === "competitive_context")
+    if (competitive?.findings[0]) {
+      competitive.findings[0].detail = ""
+    }
     const search = sections.find((s) => s.id === "search_footprint")
     if (search?.findings[0]) {
       search.findings[0].detail =

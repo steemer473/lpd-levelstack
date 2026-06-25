@@ -18,7 +18,7 @@ import {
 import { TERMS } from "@/lib/report/customer-terms"
 import { SNIPPET_COMPARE_SUCCESS, SNIPPET_COMPARE_UNAVAILABLE } from "@/lib/report/customer-copy"
 import type { SerpOrganicResult } from "@/lib/research/serp"
-import { hostnameFromUrl, resultsMentionDomain } from "@/lib/research/serp"
+import { hostnameFromUrl, resultsMentionDomain, topCompetitorDomains } from "@/lib/research/serp"
 
 const SEARCH_SIGNAL_IDS = new Set([
   "google_indexing",
@@ -36,20 +36,6 @@ function formatTopResults(results: SerpOrganicResult[], limit = 3): string {
     .slice(0, limit)
     .map((r) => `#${r.position} ${r.title} (${r.link})`)
     .join("; ")
-}
-
-function competitorDomains(results: SerpOrganicResult[], excludeHost: string | null): string[] {
-  const domains: string[] = []
-  for (const row of results.slice(0, 5)) {
-    try {
-      const host = new URL(row.link).hostname.replace(/^www\./, "")
-      if (!host || host === excludeHost?.toLowerCase()) continue
-      if (!domains.includes(host)) domains.push(host)
-    } catch {
-      continue
-    }
-  }
-  return domains.slice(0, 3)
 }
 
 function sectionStatusFromSignals(signals: { status: string }[]) {
@@ -164,7 +150,7 @@ export function buildDeterministicSearchFootprintSection(
     })
   } else {
     const bareCompetitors = bareSearch?.results.length
-      ? competitorDomains(bareSearch.results, buyerHost)
+      ? topCompetitorDomains(bareSearch.results, buyerHost)
       : []
 
     findings.push({
