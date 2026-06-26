@@ -175,4 +175,34 @@ describe("extractUpgradeTeasers", () => {
     const teasers = extractUpgradeTeasers(sections, bundle, "example.com")
     expect(teasers.previewCompetitor?.domain).toBe("rival-example.com")
   })
+
+  it("uses brand SERP rival when competitive section has only limitation text (free tier)", () => {
+    const bundle = emptyResearchBundle()
+    bundle.searchFootprint.searches = [
+      {
+        query: "Level Play Digital",
+        results: [
+          {
+            query: "Level Play Digital",
+            position: 1,
+            title: "Level Play Digital",
+            link: "https://levelplaydigital.com/",
+            snippet: "",
+          },
+          {
+            query: "Level Play Digital",
+            position: 3,
+            title: "Level Agency",
+            link: "https://levelagency.com/",
+            snippet: "",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const teasers = extractUpgradeTeasers(sections, bundle, "levelplaydigital.com")
+    expect(teasers.previewCompetitor?.domain).toBe("levelagency.com")
+  })
 })

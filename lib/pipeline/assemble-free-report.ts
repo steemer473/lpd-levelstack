@@ -18,6 +18,8 @@ import {
 import {
   extractPreviewCompetitor,
   parseSerpRowsFromDetail,
+  resolvePreviewCompetitorFromBundle,
+  serpDetailFromSections,
 } from "@/lib/report/parse-serp-rows"
 import { hostnameFromUrl } from "@/lib/research/serp"
 
@@ -75,14 +77,9 @@ export function extractUpgradeTeasers(
   const rawCount = Math.max(serpDomainCount, hashCount)
   const competitorCount = rawCount > 0 ? Math.min(rawCount, 10) : undefined
 
-  const competitiveDetail = serviceFinding?.detail?.trim()
-  const detailSource =
-    competitiveDetail ||
-    search?.findings.find((f) => f.detail.includes("http"))?.detail ||
-    ""
+  const detailSource = serpDetailFromSections(competitive, search)
 
   // P1.8.1 — align the conversion trigger to the resolved grid rival.
-  // The free-tier tease and GHL top_competitor merge field must name the same
   // competitor shown in the grid, not raw SERP #1 (which can be a directory or
   // unrelated brand after P1.7–P1.8 filtering).
   const resolvedColumn = bundle.competitiveContext.competitorColumns[0]
@@ -100,9 +97,9 @@ export function extractUpgradeTeasers(
       title: resolvedColumn.title,
     }
   } else {
-    previewCompetitor = detailSource
-      ? extractPreviewCompetitor(detailSource, buyerHost)
-      : undefined
+    previewCompetitor =
+      resolvePreviewCompetitorFromBundle(bundle, buyerHost) ??
+      (detailSource ? extractPreviewCompetitor(detailSource, buyerHost) : undefined)
   }
 
   return {

@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest"
 
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
+import type { ReportSection } from "@/lib/pipeline/report-types"
+import { emptyResearchBundle } from "@/lib/pipeline/research-types"
 import {
   buildUpgradeTeaserCopy,
+  deriveBuyerHostFromReport,
   domainsMatch,
   extractPreviewCompetitor,
   parseSerpRowsFromDetail,
   resolvePreviewCompetitorForReport,
+  resolvePreviewCompetitorFromBundle,
+  serpDetailFromSections,
 } from "@/lib/report/parse-serp-rows"
 
 describe("parse-serp-rows", () => {
@@ -85,5 +90,80 @@ describe("buildUpgradeTeaserCopy", () => {
       "These are the top Google results prospects see: #1 Level Play Digital (https://levelplaydigital.com/)"
     expect(buildUpgradeTeaserCopy(baseReport)).toContain("You rank #1 for your business name")
     expect(buildUpgradeTeaserCopy(baseReport)).not.toContain("#1 competitor")
+  })
+
+  it("derives buyer host from your domain (host) in detail copy", () => {
+    const report = {
+      meta: { reportTier: "free_snapshot", upgradeTeasers: {} },
+      sections: [
+        {
+          id: "search_footprint",
+          findings: [
+            {
+              label: 'Brand search — "Level Play Digital"',
+              value: "Your site ranks #1 for this query.",
+              detail:
+                'When someone searches "Level Play Digital", your domain (levelplaydigital.com) appears at position #1. Top results: #1 Level Play Digital (https://levelplaydigital.com/); #2 Level Agency (https://levelagency.com/)',
+              severity: "good",
+            },
+          ],
+        },
+      ],
+    } as unknown as LevelstackReportJson
+
+    expect(deriveBuyerHostFromReport(report)).toBe("levelplaydigital.com")
+    expect(resolvePreviewCompetitorForReport(report)?.domain).toBe("levelagency.com")
+  })
+
+  it("prefers search footprint SERP detail over competitive limitation text", () => {
+    const competitive = {
+      id: "competitive_context",
+      findings: [
+        {
+          label: 'Service search — "marketing"',
+          detail: "Run a service-market search with identifiable business competitors to populate this section.",
+        },
+      ],
+    } as unknown as ReportSection
+    const search = {
+      id: "search_footprint",
+      findings: [
+        {
+          detail:
+            "Top results: #1 Level Play Digital (https://levelplaydigital.com/); #2 Rival Co (https://rival-example.com/)",
+        },
+      ],
+    } as unknown as ReportSection
+    expect(serpDetailFromSections(competitive, search)).toContain("rival-example.com")
+  })
+
+  it("resolves free-tier preview from brand SERP results, skipping own domain", () => {
+    const bundle = emptyResearchBundle()
+    bundle.searchFootprint.searches = [
+      {
+        query: "Level Play Digital",
+        results: [
+          {
+            query: "Level Play Digital",
+            position: 1,
+            title: "Level Play Digital",
+            link: "https://levelplaydigital.com/",
+            snippet: "",
+          },
+          {
+            query: "Level Play Digital",
+            position: 3,
+            title: "Level Agency",
+            link: "https://levelagency.com/",
+            snippet: "",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+    expect(resolvePreviewCompetitorFromBundle(bundle, "levelplaydigital.com")?.domain).toBe(
+      "levelagency.com",
+    )
   })
 })
