@@ -1,6 +1,9 @@
+import type { ReportSection } from "@/lib/pipeline/report-types"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
-import { isNonCompetitorHost } from "@/lib/research/serp/competitor-domains"
+import type { ResearchBundle } from "@/lib/pipeline/research-types"
+import { isNonCompetitorHost, topCompetitorDomains } from "@/lib/research/serp/competitor-domains"
 import { hostnameFromUrl } from "@/lib/research/serp"
+import type { SerpOrganicResult } from "@/lib/research/serp/types"
 
 export type SerpRowFromDetail = {
   rank: number
@@ -76,6 +79,32 @@ export function extractPreviewCompetitor(
   }
 }
 
+/** Prefer finding detail that contains parseable SERP URLs (not limitation-only copy). */
+export function serpDetailFromSections(
+  competitive?: ReportSection | null,
+  search?: ReportSection | null,
+): string {
+  const candidates = [
+    competitive?.findings.find((f) => /service search/i.test(f.label))?.detail,
+    ...((search?.findings ?? []).map((f) => f.detail)),
+    competitive?.findings[0]?.detail,
+  ]
+  return candidates.find((d) => d?.includes("http"))?.trim() ?? ""
+}
+
+function buyerRankFromFindingValue(value: string): number | null {
+  const match = value.match(/(?:position|rank(?:s)?(?:\s+at)?)\s*#(\d+)/i)
+  if (!match?.[1]) return null
+  const rank = Number.parseInt(match[1], 10)
+  return Number.isFinite(rank) ? rank : null
+}
+
+function buyerHostFromFindingDetail(detail: string): string | null {
+  const domainMatch = detail.match(/your domain \(([^)]+)\)/i)
+  if (!domainMatch?.[1]) return null
+  return hostnameFromUrl(domainMatch[1].trim()) ?? domainMatch[1].trim().toLowerCase()
+}
+
 /** Domain where the business site ranks on branded search (if detectable). */
 export function deriveBuyerHostFromReport(
   report: LevelstackReportJson,
@@ -84,15 +113,69 @@ export function deriveBuyerHostFromReport(
   if (!search) return null
 
   for (const finding of search.findings) {
-    const rankMatch = finding.value.match(/position\s*#(\d+)/i)
-    if (!rankMatch?.[1]) continue
-    const targetPos = Number.parseInt(rankMatch[1], 10)
+    const fromDetail = buyerHostFromFindingDetail(finding.detail)
+    if (fromDetail) return fromDetail
+  }
+
+  for (const finding of search.findings) {
+    const targetPos = buyerRankFromFindingValue(finding.value)
+    if (targetPos == null) continue
     const rows = parseSerpRowsFromDetail(finding.detail, 10)
     const ownRow = rows.find((r) => r.serpPosition === targetPos)
     if (ownRow) return ownRow.domain
   }
 
   return null
+}
+
+function previewFromSerpResults(
+  results: SerpOrganicResult[],
+  excludeHost: string | null | undefined,
+): PreviewCompetitor | undefined {
+  const domain = topCompetitorDomains(results, excludeHost ?? null, 1)[0]
+  if (!domain) return undefined
+
+  const row = results.find((r) => {
+    try {
+      const host = new URL(r.link).hostname.replace(/^www\./, "").toLowerCase()
+      return host === domain
+    } catch {
+      return false
+    }
+  })
+
+  return {
+    rank: row?.position ?? 1,
+    domain,
+    title: row?.title,
+  }
+}
+
+function previewFromNameCollisions(
+  bundle: ResearchBundle,
+  excludeHost: string | null | undefined,
+): PreviewCompetitor | undefined {
+  const collisions = bundle.nameCollisions.collisions
+  const preferred =
+    collisions.find((c) => c.type === "direct_competitor") ?? collisions[0]
+  if (!preferred) return undefined
+
+  const domain = hostnameFromUrl(preferred.link)
+  if (!domain || isExcludedSerpDomain(domain, excludeHost)) return undefined
+
+  return { rank: 1, domain, title: preferred.title }
+}
+
+/** Free-tier preview rival from raw brand SERP (not stored detail text). */
+export function resolvePreviewCompetitorFromBundle(
+  bundle: ResearchBundle,
+  excludeHost?: string | null,
+): PreviewCompetitor | undefined {
+  const brandResults = bundle.searchFootprint.searches.flatMap((s) => s.results)
+  const fromSerp = previewFromSerpResults(brandResults, excludeHost)
+  if (fromSerp) return fromSerp
+
+  return previewFromNameCollisions(bundle, excludeHost)
 }
 
 export function resolvePreviewCompetitorForReport(
@@ -105,7 +188,8 @@ export function resolvePreviewCompetitorForReport(
   }
 
   const search = report.sections.find((s) => s.id === "search_footprint")
-  const detail = search?.findings.find((f) => f.detail.includes("http"))?.detail
+  const competitive = report.sections.find((s) => s.id === "competitive_context")
+  const detail = serpDetailFromSections(competitive, search)
   if (!detail) return undefined
 
   return extractPreviewCompetitor(detail, buyerHost)
@@ -117,10 +201,7 @@ export function extractBusinessSearchRank(report: LevelstackReportJson): number 
     /your site appears around position|your domain.*appears at position/i.test(f.value),
   )
   if (!finding) return null
-  const match = finding.value.match(/position\s*#(\d+)/i)
-  if (!match?.[1]) return null
-  const rank = Number.parseInt(match[1], 10)
-  return Number.isFinite(rank) ? rank : null
+  return buyerRankFromFindingValue(finding.value)
 }
 
 export function buildUpgradeTeaserCopy(report: LevelstackReportJson): string {

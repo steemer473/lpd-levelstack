@@ -223,6 +223,41 @@ describe("resolveCompetitiveSnapshot", () => {
     expect(snap?.rows[0]?.serpPosition).toBe(1)
   })
 
+  it("rejects own domain stored in meta when buyer host is known", () => {
+    const freeReport: LevelstackReportJson = {
+      ...baseReport,
+      meta: {
+        ...baseReport.meta,
+        reportTier: "free_snapshot",
+        upgradeTeasers: {
+          previewCompetitor: {
+            rank: 1,
+            domain: "levelplaydigital.com",
+          },
+        },
+      },
+      sections: [
+        {
+          id: "search_footprint",
+          label: "Search",
+          status: "good",
+          score: 80,
+          findings: [
+            {
+              label: 'Brand search — "Level Play Digital"',
+              value: "Your site appears around position #1",
+              detail:
+                'your domain (levelplaydigital.com) appears at position #1. Top results: #1 Level Play Digital (https://levelplaydigital.com/); #2 Rival (https://rival-example.com/)',
+              severity: "good",
+            },
+          ],
+        },
+      ],
+    }
+    const snap = resolveCompetitiveSnapshot(freeReport)
+    expect(snap?.rows[0]?.domain).toBe("rival-example.com")
+  })
+
   it("uses upgradeTeasers on free tier and exposes one preview competitor row", () => {
     const freeReport: LevelstackReportJson = {
       ...baseReport,

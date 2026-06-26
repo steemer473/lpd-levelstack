@@ -8,8 +8,9 @@ import {
 import {
   deriveBuyerHostFromReport,
   extractBusinessSearchRank,
-  isExcludedSerpDomain,
   parseSerpRowsFromDetail,
+  resolvePreviewCompetitorForReport,
+  serpDetailFromSections,
 } from "@/lib/report/parse-serp-rows"
 
 export type ResolvedExecutiveContent = {
@@ -160,32 +161,22 @@ export function resolveCompetitiveSnapshot(
 
   const buyerHost = deriveBuyerHostFromReport(report)
 
-  const competitiveDetail = serviceFinding?.detail?.trim()
-  const detailSource =
-    competitiveDetail ||
-    search?.findings.find((f) => f.detail.includes("http"))?.detail ||
-    ""
-
+  const detailSource = serpDetailFromSections(competitive, search)
   const rows = parseSerpRowsFromDetail(detailSource, 3, buyerHost)
   const competitorCount = teasers?.competitorCount ?? rows.length
 
-  const previewFromMeta = teasers?.previewCompetitor
-  const previewFromMetaValid =
-    previewFromMeta && !isExcludedSerpDomain(previewFromMeta.domain, buyerHost)
-      ? previewFromMeta
-      : undefined
-
-  const previewRow: CompetitiveSnapshotRow | undefined = previewFromMetaValid
+  const previewCompetitor = resolvePreviewCompetitorForReport(report)
+  const previewRow: CompetitiveSnapshotRow | undefined = previewCompetitor
     ? {
         rank: 1,
-        domain: previewFromMetaValid.domain,
-        serpPosition: previewFromMetaValid.rank,
+        domain: previewCompetitor.domain,
+        serpPosition: previewCompetitor.rank,
       }
     : rows[0]
       ? { rank: 1, domain: rows[0].domain, serpPosition: rows[0].serpPosition }
       : undefined
 
-  const previewTitle = previewFromMetaValid?.title ?? rows[0]?.title
+  const previewTitle = previewCompetitor?.title ?? rows[0]?.title
   const businessRank = extractBusinessSearchRank(report)
 
   return {
