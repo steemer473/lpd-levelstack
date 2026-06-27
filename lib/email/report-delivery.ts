@@ -2,6 +2,7 @@ import {
   renderEmailGreetingHtml,
   resolveRecipientFirstName,
 } from "@/lib/email/email-greeting"
+import { env } from "@/env.mjs"
 import { buildReportResendSignInUrl, MAGIC_LINK_EXPIRY_LABEL } from "@/lib/auth/magic-link-callback"
 import {
   emailCtaButton,
