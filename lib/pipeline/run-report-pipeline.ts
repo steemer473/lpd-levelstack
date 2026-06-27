@@ -29,6 +29,7 @@ import {
 import { buildReportResendSignInUrl } from "@/lib/auth/magic-link-callback"
 import { REPORT_ACCESS_TOKEN_TTL_LABEL } from "@/lib/auth/report-access-token"
 import { sendReportReadyEmail } from "@/lib/email/report-delivery"
+import { syncReportCompleteEnrichment } from "@/lib/ghl/sync-levelstack-lead"
 import { planIdToReportTier, type ReportTier } from "@/lib/levelstack-plans"
 import { resolveReportPlanId } from "@/lib/pipeline/resolve-report-plan-id"
 import { validateResearchQuality } from "@/lib/pipeline/research-quality"
@@ -354,6 +355,15 @@ export async function runReportPipeline({
         resendUrl: buildReportResendSignInUrl(reportId),
         expirationLabel: REPORT_ACCESS_TOKEN_TTL_LABEL,
       })
+
+      await syncReportCompleteEnrichment({
+        email,
+        reportId,
+        reportTier,
+        reportJson: validated.data,
+        topFinding,
+        accessUrl,
+      }).catch((err) => console.error("[ghl] report-complete enrichment failed:", err))
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : "Pipeline failed"

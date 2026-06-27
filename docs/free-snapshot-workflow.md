@@ -96,11 +96,20 @@ Failed runs do **not** write to `levelstack_serp_cache`. Cache only stores succe
 | Form submit | Admin (`LEVELSTACK_ADMIN_NOTIFY_EMAIL`, default `admin@levelplaydigital.com`) | New submission + contact info |
 | Pipeline complete | User (submitter) | Report ready + magic link (24 hours) |
 
-Nurture / upgrade sequences (D1, D3, D7, D14) are **not** sent from the app — wire in GHL using tag `levelstack_free_snapshot`.
+Nurture / upgrade sequences (Emails 2–5) are **not** sent from the app — build in GHL per [operations/ghl-nurture-workflow.md](./operations/ghl-nurture-workflow.md).
 
-## GHL sync
+## GHL sync (two phases)
 
-On submit, `syncFreeSnapshotLead` pushes contact with tags `levelstack`, `levelstack_free_snapshot`, plus report URL custom field.
+| Phase | When | Tags | Key fields |
+|-------|------|------|------------|
+| **Intake** | Form submit | `levelstack`, `levelstack_free_snapshot` (or `levelstack_paid_intake`) | `website_url`, `intake_source`, `levelstack_report_url`, optional `market_city` |
+| **Report complete** | Pipeline `status = ready` | `levelstack`, `levelstack_report_ready`, `levelstack_report_ready_{tier}` | `top_competitor`, `top_finding`, `report_tier`, signed `levelstack_report_url` |
+
+Functions: `syncFreeSnapshotLead` / `syncPaidIntakeLead` (intake), `syncReportCompleteEnrichment` (report ready).
+
+**Finish nurture in GHL:** [operations/ghl-nurture-workflow.md](./operations/ghl-nurture-workflow.md) — custom fields, workflow trigger on `levelstack_report_ready`, Emails 2–5 copy, exit tags.
+
+Setup custom fields: `pnpm setup:ghl-fields`
 
 ## Key files
 

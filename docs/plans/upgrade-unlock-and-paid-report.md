@@ -145,10 +145,11 @@ Use data already built at pipeline time instead of generic `LockedSectionPanel` 
 ### A5 — Email + GHL alignment (product ops)
 
 - Free ready email: primary CTA = open report; secondary = unlock with `reportId` in URL
-- Document GHL workflow tags: `levelstack_free_snapshot` → D1/D3 nurture with same deep link pattern
+- Report-complete GHL sync: tag `levelstack_report_ready` + fields `top_competitor`, `top_finding`, `report_tier` — **shipped** in app
+- Nurture workflow (Emails 2–5): build in GHL UI — [operations/ghl-nurture-workflow.md](../operations/ghl-nurture-workflow.md)
 - Paid ready email: distinct template (no upgrade pitch)
 
-**Out of app scope:** GHL sequence build; document in `docs/free-snapshot-workflow.md`.
+**Out of app scope:** GHL sequence build; documented in [operations/ghl-nurture-workflow.md](../operations/ghl-nurture-workflow.md) and [free-snapshot-workflow.md](../free-snapshot-workflow.md).
 
 ### A — NOT in scope (defer)
 
@@ -359,7 +360,7 @@ Ship **1→2→3** as "unlock flows" PR; **4→7** as "paid report" PR. Can over
 - [ ] **P1** — Intake upgrade mode (`/intake?from=upgrade&reportId=`)
 - [ ] **P2** — Report page generating/unlock banner states
 - [ ] **P2** — Email templates with contextual unlock URLs
-- [ ] **P3** — GHL nurture doc update
+- [x] **P3** — GHL nurture doc — [operations/ghl-nurture-workflow.md](../operations/ghl-nurture-workflow.md)
 
 ### Epic 2: Paid report
 
