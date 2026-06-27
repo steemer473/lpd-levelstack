@@ -151,6 +151,7 @@ pnpm generate:ghl-emails
 3. Copy the **full HTML document** and paste into GHL
 4. Set the subject line from the table below
 5. Confirm merge tokens via GHL picker (syntax may vary by location):
+   - `{{ contact.first_name }}`
    - `{{ contact.levelstack_report_url }}`
    - `{{ contact.top_competitor }}`
    - `{{ contact.top_finding }}`
@@ -161,7 +162,7 @@ pnpm generate:ghl-emails
 
 | Asset | Production URL |
 |-------|----------------|
-| White logo | `https://levelplaydigital.com/images/email/level-play-digital-logo-white-400.png` |
+| Logo | `https://levelplaydigital.com/images/logo.png` |
 | Gradient accent bar | `https://levelplaydigital.com/images/email/gradient-accent-bar.png` |
 | Unlock $97 CTA button | `https://levelplaydigital.com/images/email/cta-unlock-97.png` |
 | SAP waitlist CTA button | `https://levelplaydigital.com/images/email/cta-sap-waitlist.png` |

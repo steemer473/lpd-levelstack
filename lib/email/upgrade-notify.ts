@@ -6,6 +6,10 @@ import {
   MAGIC_LINK_EXPIRY_LABEL,
 } from "@/lib/auth/magic-link-callback"
 import {
+  renderEmailGreetingHtml,
+  resolveRecipientFirstName,
+} from "@/lib/email/email-greeting"
+import {
   emailCtaButton,
   emailCtaLink,
   emailLayout,
@@ -45,6 +49,8 @@ export type UpgradeNotifyParams = {
   reportId: string
   planId: string
   signInUrl?: string
+  recipientFirstName?: string
+  ownerName?: string
 }
 
 function buildPaymentReceivedBody(params: UpgradeNotifyParams): string {
@@ -56,9 +62,12 @@ function buildPaymentReceivedBody(params: UpgradeNotifyParams): string {
   const planLabel = planDisplayName(params.planId)
   const price = planPriceLabel(params.planId)
   const safeBusiness = escapeHtml(params.businessName)
+  const greeting = renderEmailGreetingHtml(
+    resolveRecipientFirstName(params.recipientFirstName, params.ownerName),
+  )
 
   return `
-    <p style="margin:0 0 16px;">Hi there,</p>
+    ${greeting}
     <p style="margin:0 0 16px;">
       Payment received — thank you for upgrading to the <strong>${escapeHtml(planLabel)} (${price})</strong>
       for <strong>${safeBusiness}</strong>.
@@ -144,6 +153,8 @@ export async function sendUpgradeNotifyEmailsIfNeeded(params: {
   email: string
   planId: string
   businessName: string
+  recipientFirstName?: string
+  ownerName?: string
 }): Promise<boolean> {
   const admin = createAdminClient()
   if (!admin) return false
@@ -166,6 +177,8 @@ export async function sendUpgradeNotifyEmailsIfNeeded(params: {
     reportId: params.reportId,
     planId: params.planId,
     signInUrl: signInUrl ?? undefined,
+    recipientFirstName: params.recipientFirstName,
+    ownerName: params.ownerName,
   })
 
   await sendPaidUpgradeAdminNotificationEmail({

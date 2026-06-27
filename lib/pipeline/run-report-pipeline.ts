@@ -29,6 +29,7 @@ import {
 import { buildReportResendSignInUrl } from "@/lib/auth/magic-link-callback"
 import { REPORT_ACCESS_TOKEN_TTL_LABEL } from "@/lib/auth/report-access-token"
 import { sendReportReadyEmail } from "@/lib/email/report-delivery"
+import { splitFullName } from "@/lib/ghl/split-name"
 import { syncReportCompleteEnrichment } from "@/lib/ghl/sync-levelstack-lead"
 import { planIdToReportTier, type ReportTier } from "@/lib/levelstack-plans"
 import { resolveReportPlanId } from "@/lib/pipeline/resolve-report-plan-id"
@@ -354,6 +355,8 @@ export async function runReportPipeline({
         accessPrintUrl,
         resendUrl: buildReportResendSignInUrl(reportId),
         expirationLabel: REPORT_ACCESS_TOKEN_TTL_LABEL,
+        recipientFirstName: splitFullName(parsed.data.ownerName).firstName,
+        ownerName: parsed.data.ownerName,
       })
 
       await syncReportCompleteEnrichment({

@@ -1,4 +1,7 @@
-import { env } from "@/env.mjs"
+import {
+  renderEmailGreetingHtml,
+  resolveRecipientFirstName,
+} from "@/lib/email/email-greeting"
 import { buildReportResendSignInUrl, MAGIC_LINK_EXPIRY_LABEL } from "@/lib/auth/magic-link-callback"
 import {
   emailCtaButton,
@@ -16,6 +19,8 @@ type ReportReadyParams = {
   reportId: string
   reportTier: ReportTier
   topFinding?: string
+  recipientFirstName?: string
+  ownerName?: string
   /** Token access link (opens the report from any device, no sign-in). */
   accessUrl?: string
   /** Token access link that lands on the PDF/print view. */
@@ -63,13 +68,16 @@ function buildFreeSnapshotReadyBody(params: ReportReadyParams): string {
     params.resendUrl ?? buildReportResendSignInUrl(params.reportId)
   const expirationLabel = params.expirationLabel ?? MAGIC_LINK_EXPIRY_LABEL
   const safeBusiness = escapeHtml(params.businessName)
+  const greeting = renderEmailGreetingHtml(
+    resolveRecipientFirstName(params.recipientFirstName, params.ownerName),
+  )
 
   const findingBlock = params.topFinding
     ? `<p style="margin:0 0 16px;"><strong>Key finding:</strong> ${escapeHtml(params.topFinding)}</p>`
     : `<p style="margin:0 0 16px;">Your audit covers 12 areas of your public presence.</p>`
 
   return `
-    <p style="margin:0 0 16px;">Hi there,</p>
+    ${greeting}
     <p style="margin:0 0 16px;">
       Your LevelStack snapshot for <strong>${safeBusiness}</strong> is ready.
     </p>
@@ -120,9 +128,12 @@ export async function sendReportReadyEmail(params: ReportReadyParams): Promise<v
   const safeBusiness = escapeHtml(params.businessName)
   const openUrl = params.accessUrl ?? reportUrl
   const pdfUrl = params.accessPrintUrl ?? printUrl
+  const greeting = renderEmailGreetingHtml(
+    resolveRecipientFirstName(params.recipientFirstName, params.ownerName),
+  )
 
   const body = `
-    <p style="margin:0 0 16px;">Hi,</p>
+    ${greeting}
     <p style="margin:0 0 16px;">
       Your LevelStack report for <strong>${safeBusiness}</strong> is ready — all six sections
       are now unlocked.
@@ -199,9 +210,13 @@ export async function scheduleNurtureEmails(params: NurtureParams): Promise<void
     planId: "levelstack-full-report",
     source: "levelstack_email",
   })
+  const greeting = renderEmailGreetingHtml(
+    resolveRecipientFirstName(params.recipientFirstName, params.ownerName),
+  )
 
   if (params.reportTier !== "free_snapshot") {
     const body = `
+      ${greeting}
       <p style="margin:0 0 16px;">
         Your full LevelStack report includes findings SEO Automator Pro is designed to monitor continuously.
       </p>
@@ -227,6 +242,7 @@ export async function scheduleNurtureEmails(params: NurtureParams): Promise<void
     : "Your public presence gaps"
 
   const body = `
+    ${greeting}
     <p style="margin:0 0 16px;">
       Yesterday we delivered your free snapshot for <strong>${params.businessName}</strong>.
     </p>
@@ -260,10 +276,14 @@ export async function sendNurtureDayEmail(
     source: "levelstack_email",
   })
 
+  const greeting = renderEmailGreetingHtml(
+    resolveRecipientFirstName(params.recipientFirstName, params.ownerName),
+  )
+
   const bodies: Record<number, string> = {
-    3: `<p style="margin:0 0 16px;">LevelStack finds gaps once. SEO Automator Pro is designed to keep them closed — traditional SEO, local SEO, and AI search visibility.</p><p style="margin:0;">${emailCtaLink(seoUrl, "Join the waitlist →")}</p>`,
-    7: `<p style="margin:0 0 16px;">Still thinking about your snapshot? The full report ranks every finding by cost to fix and revenue impact.</p><p style="margin:0;">${emailCtaLink(upgradeUrl, "Get the Full Report — $97 →")}</p>`,
-    14: `<p style="margin:0 0 16px;">Your competitors aren't waiting. SEO Automator Pro monitors search visibility across your network continuously.</p><p style="margin:0;">${emailCtaLink(seoUrl, "Explore SEO Automator Pro →")}</p>`,
+    3: `${greeting}<p style="margin:0 0 16px;">LevelStack finds gaps once. SEO Automator Pro is designed to keep them closed — traditional SEO, local SEO, and AI search visibility.</p><p style="margin:0;">${emailCtaLink(seoUrl, "Join the waitlist →")}</p>`,
+    7: `${greeting}<p style="margin:0 0 16px;">Still thinking about your snapshot? The full report ranks every finding by cost to fix and revenue impact.</p><p style="margin:0;">${emailCtaLink(upgradeUrl, "Get the Full Report — $97 →")}</p>`,
+    14: `${greeting}<p style="margin:0 0 16px;">Your competitors aren't waiting. SEO Automator Pro monitors search visibility across your network continuously.</p><p style="margin:0;">${emailCtaLink(seoUrl, "Explore SEO Automator Pro →")}</p>`,
   }
 
   await sendEmail({

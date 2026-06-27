@@ -163,10 +163,12 @@ export default async function IntakePage({ searchParams }: PageProps) {
       existing.form_data as Partial<LevelstackIntakeFormValues>,
     )
 
+    const formData = existing.form_data as
+      | { primaryBusinessName?: string; ownerName?: string }
+      | null
     const bannerReportId = queryReportId ?? existingReport?.id
-    const businessName =
-      (existing.form_data as { primaryBusinessName?: string } | null)?.primaryBusinessName ??
-      "your business"
+    const businessName = formData?.primaryBusinessName ?? "your business"
+    const ownerName = formData?.ownerName
 
     if (fromUpgrade && bannerReportId && user.email) {
       const planId = (await getLevelStackPlanId(supabase, user.id)) ?? "levelstack-full-report"
@@ -177,6 +179,7 @@ export default async function IntakePage({ searchParams }: PageProps) {
           email: user.email!,
           planId,
           businessName,
+          ownerName,
         }).catch((err) => console.error("[upgrade-notify]", err)),
       )
     }

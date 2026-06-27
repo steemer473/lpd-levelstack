@@ -69,9 +69,11 @@ export async function POST(request: Request) {
     .eq("id", report.intake_id)
     .maybeSingle()
 
-  const businessName =
-    (intake?.form_data as { primaryBusinessName?: string } | null)?.primaryBusinessName ??
-    "your business"
+  const formData = intake?.form_data as
+    | { primaryBusinessName?: string; ownerName?: string }
+    | null
+  const businessName = formData?.primaryBusinessName ?? "your business"
+  const ownerName = formData?.ownerName
 
   const sent = await sendUpgradeNotifyEmailsIfNeeded({
     reportId: parsed.data.reportId,
@@ -79,6 +81,7 @@ export async function POST(request: Request) {
     email: parsed.data.email,
     planId: parsed.data.planId,
     businessName,
+    ownerName,
   })
 
   return NextResponse.json({ success: true, sent })

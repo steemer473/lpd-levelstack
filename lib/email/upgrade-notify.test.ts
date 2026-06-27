@@ -22,6 +22,18 @@ describe("buildPaymentReceivedBody", () => {
     expect(html).not.toContain("redirect=%2Freports%2F")
   })
 
+  it("opens with personalized greeting when recipientFirstName is provided", () => {
+    const html = buildPaymentReceivedBody({
+      email: "user@example.com",
+      businessName: "Acme Co",
+      reportId: "report-1",
+      planId: "levelstack-standard",
+      recipientFirstName: "Tanya",
+    })
+
+    expect(html).toContain("Hello, Tanya")
+  })
+
   it("resend link targets upgrade intake sign-in, not report page", () => {
     const html = buildPaymentReceivedBody({
       email: "user@example.com",

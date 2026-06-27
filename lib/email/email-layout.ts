@@ -1,4 +1,4 @@
-import { getAppUrl } from "@/lib/urls"
+import { EMAIL_LOGO } from "./email-branding"
 
 const COMPANY = {
   name: "Level Play Digital",
@@ -17,11 +17,8 @@ const BRAND = {
   footerBg: "#f4f4f5",
   text: "#334155",
   muted: "#64748b",
+  emailHeaderBg: "#000000",
 } as const
-
-const EMAIL_LOGO_PATH = "/images/level-play-digital-logo-email.png"
-const EMAIL_LOGO_WIDTH = 200
-const EMAIL_LOGO_HEIGHT = 52
 
 export type EmailLayoutParams = {
   title: string
@@ -39,17 +36,15 @@ function escapeHtml(value: string): string {
 }
 
 function buildHeader(): string {
-  const logoUrl = getAppUrl(EMAIL_LOGO_PATH)
-
   return `
     <tr>
-      <td align="center" style="background-color:${BRAND.navy};padding:28px 32px 24px;">
+      <td align="center" style="background-color:${BRAND.emailHeaderBg};padding:28px 32px 24px;">
         <img
-          src="${logoUrl}"
-          alt="Level Play Digital"
-          width="${EMAIL_LOGO_WIDTH}"
-          height="${EMAIL_LOGO_HEIGHT}"
-          style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;max-width:${EMAIL_LOGO_WIDTH}px;height:auto;"
+          src="${EMAIL_LOGO.url}"
+          alt="${EMAIL_LOGO.alt}"
+          width="${EMAIL_LOGO.width}"
+          height="${EMAIL_LOGO.height}"
+          style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;max-width:${EMAIL_LOGO.width}px;height:auto;"
         />
         <p style="margin:16px 0 0;font-family:Inter,Arial,sans-serif;font-size:22px;font-weight:700;line-height:1.2;color:#ffffff;letter-spacing:-0.02em;">
           LevelStack
