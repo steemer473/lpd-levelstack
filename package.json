@@ -18,7 +18,8 @@
     "test:unit": "vitest run",
     "verify:env": "node scripts/verify-vercel-env.mjs --from-local",
     "verify:research": "node scripts/verify-research-keys.mjs",
-    "setup:ghl-fields": "node scripts/setup-ghl-levelstack-fields.mjs --from-local"
+    "setup:ghl-fields": "node scripts/setup-ghl-levelstack-fields.mjs --from-local",
+    "generate:ghl-emails": "npx tsx scripts/generate-ghl-email-templates.mjs"
   },
   "pnpm": {
     "onlyBuiltDependencies": ["sharp"]

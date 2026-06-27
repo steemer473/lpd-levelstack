@@ -130,134 +130,113 @@ Timing aligns with [COPY_BANK §4](../../../lpd-planning/COPY_BANK.md): +4h, +2d
 
 ---
 
-## Step 4 — Email templates (paste-ready)
+## Step 4 — Email templates (HTML)
 
 **Email 1 is Resend only** — do not duplicate in GHL.
 
-Replace merge tokens with GHL picker values. Upgrade links must include `reportId` — use `levelstack_report_url` (app sends signed access URL) or build hub upgrade URL: `https://levelplaydigital.com/platform/levelstack?reportId={id}&source=levelstack_email#pricing` if you add a separate merge field later.
+**Design source:** [Figma — GHL Email Templates](https://www.figma.com/design/9cDNeop0FbhNQl5XMVOrQ7/LevelStack-%E2%80%94-Funnel-Audit---Optimized-Layouts?node-id=110-128) (page in LevelStack Funnel Audit file)
 
-### Email 2 — +4 hours
+**HTML source of truth:** [`docs/ghl/email-templates/`](../ghl/email-templates/) — paste-ready files generated from [`lib/email/ghl-email-layout.ts`](../../lib/email/ghl-email-layout.ts)
+
+Regenerate after copy changes:
+
+```bash
+pnpm generate:ghl-emails
+```
+
+### Step 4b — Import HTML into GHL
+
+1. **Marketing → Templates → Create Template** (or paste into workflow email step → Custom HTML)
+2. Open the matching file from [`docs/ghl/email-templates/`](../ghl/email-templates/)
+3. Copy the **full HTML document** and paste into GHL
+4. Set the subject line from the table below
+5. Confirm merge tokens via GHL picker (syntax may vary by location):
+   - `{{ contact.levelstack_report_url }}`
+   - `{{ contact.top_competitor }}`
+   - `{{ contact.top_finding }}`
+   - `{{ unsubscribe_link }}`
+6. Configure CTA click actions in the workflow (see Step 5)
+
+### Hosted assets (hub — deploy `lpd-redesign` first)
+
+| Asset | Production URL |
+|-------|----------------|
+| White logo | `https://levelplaydigital.com/images/email/level-play-digital-logo-white-400.png` |
+| Gradient accent bar | `https://levelplaydigital.com/images/email/gradient-accent-bar.png` |
+| Unlock $97 CTA button | `https://levelplaydigital.com/images/email/cta-unlock-97.png` |
+| SAP waitlist CTA button | `https://levelplaydigital.com/images/email/cta-sap-waitlist.png` |
+
+Source files live in `lpd-redesign/public/images/email/`.
+
+### CTA link pattern
+
+| CTA | href in template | Workflow action on click |
+|-----|------------------|--------------------------|
+| Unlock Full Report — $97 | `https://levelplaydigital.com/platform/levelstack?source=levelstack_email#pricing` | Tag `paid_levelstack`; remove from nurture |
+| Join SAP Waitlist | `https://levelplaydigital.com/platform/seo` | Tag `seo_automator_pro_waitlist` |
+| Report links in body | `{{ contact.levelstack_report_url }}` | Opens signed report access URL |
+
+Upgrade links should include `reportId` when a dedicated merge field exists. Until then, the hub upgrade URL with `source=levelstack_email` is the primary $97 CTA; report body links use `levelstack_report_url`.
+
+### Template map
+
+| # | Timing | Subject | HTML file |
+|---|--------|---------|-----------|
+| 2 | +4h | What your next prospect already found | `email-02-prospect.html` |
+| 3 | +2d | Who's ranking above you right now | `email-03-competitor.html` or `email-03-competitor-fallback.html` |
+| 4 | +4d | I didn't know it was there | `email-04-finding.html` |
+| 5 | +7d | The part your report can't fix for you | `email-05-sap-bridge.html` |
+
+### Email 3 — conditional template
+
+**When `top_competitor` is populated:** use `email-03-competitor.html` (named competitor in highlight callout).
+
+**When `top_competitor` is blank:** use `email-03-competitor-fallback.html` (generic competitor paragraph).
+
+**GHL workflow options:**
+
+- **Branch A:** If custom field `top_competitor` is not empty → send competitor template; else → send fallback template
+- **Branch B:** Single template + manual fallback testing only (not recommended for production)
+
+Test with a contact that has no `top_competitor` before going live.
+
+---
+
+### Email 2 — +4 hours (reference copy)
 
 **Subject:** What your next prospect already found
-
-**Body (draft):**
-
-```
-Before someone calls you, they search your name.
-
-They check reviews, compare options, and decide whether you look credible — often in under a minute.
-
-Your LevelStack snapshot shows what they see. The gaps are not always obvious from inside the business.
-
-Open your snapshot:
-{{ contact.levelstack_report_url }}
-
-If you want the full diagnostic — competitive rankings, reputation depth, and a prioritized action plan — unlock the Full Report for $97.
-
-[Unlock Full Report — $97]
-→ Link: hub upgrade URL with reportId + source=levelstack_email
-
-— LevelStack Team
-```
 
 **On CTA click:** Add tag `paid_levelstack`, remove from workflow, move pipeline stage → Purchased (configure in GHL).
 
 ---
 
-### Email 3 — +2 days
+### Email 3 — +2 days (reference copy)
 
 **Subject:** Who's ranking above you right now
 
-**Body (draft):**
-
-```
-Hi,
-
-One name keeps showing up when prospects compare options in your market:
-
-{{ contact.top_competitor }}
-
-That gap is traffic going somewhere else. Every day it stays that way, someone who could have found you found them instead.
-
-Your snapshot surfaces this pattern. The Full Report breaks down exactly where you stand and what to fix first.
-
-Open your snapshot:
-{{ contact.levelstack_report_url }}
-
-[Unlock Full Report — $97]
-
-— LevelStack Team
-```
-
-**Fallback when `top_competitor` is blank:** Use this paragraph instead of the named block:
-
-```
-A competitor in your market is capturing search visibility you could be earning.
-
-That gap is traffic going somewhere else. Every day it stays that way, someone who could have found you found them instead.
-```
-
-Test with a contact that has no `top_competitor` before going live.
-
 **On CTA click:** Same as Email 2.
 
 ---
 
-### Email 4 — +4 days
+### Email 4 — +4 days (reference copy)
 
 **Subject:** I didn't know it was there
 
-**Body (draft):**
-
-```
-Hi,
-
-A business owner ran a LevelStack report and found something they had not thought about in years — an old partnership page, a former co-listing, or outdated credentials still ranking on page one.
-
-It was not malicious. It was just still indexed — and prospects do not know the backstory.
-
-"I'll deal with it later" is how small issues become expensive ones.
-
-Your snapshot already flagged what matters:
-{{ contact.top_finding }}
-
-See the full picture in your report:
-{{ contact.levelstack_report_url }}
-
-[Unlock Full Report — $97]
-
-— LevelStack Team
-```
-
 **On CTA click:** Same as Email 2.
 
 ---
 
-### Email 5 — +7 days
+### Email 5 — +7 days (reference copy)
 
 **Subject:** The part your report can't fix for you
 
-**Body (draft):**
-
-```
-Hi,
-
-LevelStack gives you a snapshot — what the internet shows about your business today.
-
-Search results change. Technical issues stack up quietly. The work in your action plan takes time; the technical layer does not have to stay manual.
-
-SEO Automator Pro monitors the technical foundation continuously so visibility does not slip between audits.
-
-Join the SEO Automator Pro waitlist at founding member pricing:
-→ https://levelplaydigital.com/platform/seo
-
-Your report (reference):
-{{ contact.levelstack_report_url }}
-
-— LevelStack Team
-```
-
 **On SAP CTA click:** Add tag `seo_automator_pro_waitlist`, enroll SAP waitlist sequence (TBD), remove from this workflow.
+
+---
+
+### Plain-text fallback (archived)
+
+Previous plain-text drafts are superseded by HTML templates above. If a plain-text version is required for a specific client, extract copy from the HTML files or [`COPY_BANK.md`](../../../lpd-planning/COPY_BANK.md) §4.
 
 ---
 
@@ -279,7 +258,8 @@ Before turning the workflow live:
 - [ ] Run one free snapshot end-to-end in production (or staging location)
 - [ ] Confirm contact receives tag `levelstack_report_ready` after report completes
 - [ ] Confirm `top_competitor`, `top_finding`, `report_tier`, `levelstack_report_url` populated on contact record
-- [ ] Email 3 renders correctly with and without `top_competitor`
+- [ ] Email 3 renders correctly with and without `top_competitor` (use both HTML templates)
+- [ ] HTML templates pasted from [`docs/ghl/email-templates/`](../ghl/email-templates/); hosted assets load from hub
 - [ ] Upgrade CTAs resolve to hub with `reportId` and open checkout
 - [ ] `$97` click adds `paid_levelstack` and stops workflow
 - [ ] SAP CTA adds `seo_automator_pro_waitlist`
@@ -326,6 +306,7 @@ See [hub-env.md](../hub-env.md).
 |-----|------|
 | [free-snapshot-workflow.md](../free-snapshot-workflow.md) | End-to-end snapshot flow + GHL summary |
 | [COPY_BANK.md §4](../../../lpd-planning/COPY_BANK.md) | Approved subjects and messaging |
+| [GHL email templates](../ghl/email-templates/README.md) | HTML paste-ready files + asset URLs |
 | [FUNNELS_AND_MARKETING.md §4](../../../lpd-planning/FUNNELS_AND_MARKETING.md) | Funnel + CRM architecture |
 | [STRATEGY.md](../../../lpd-planning/STRATEGY.md) | Cross-product data flow |
 | Hub GHL setup | `lpd-redesign/docs/operations/ghl/ghl-integration.md` |
