@@ -10,7 +10,7 @@ describe("emailLayout", () => {
       body: "<p>Hello</p>",
     })
 
-    expect(html).toContain("/images/level-play-digital-logo-email.png")
+    expect(html).toContain("https://levelplaydigital.com/images/logo.png")
     expect(html).toContain('alt="Level Play Digital"')
     expect(html).toContain("LevelStack")
     expect(html).toContain("by Level Play Digital")

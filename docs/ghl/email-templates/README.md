@@ -26,7 +26,7 @@ After deploying `lpd-redesign`, assets load from:
 
 | Asset | URL |
 |-------|-----|
-| White logo | `https://levelplaydigital.com/images/email/level-play-digital-logo-white-400.png` |
+| Logo | `https://levelplaydigital.com/images/logo.png` |
 | Gradient accent bar | `https://levelplaydigital.com/images/email/gradient-accent-bar.png` |
 | Unlock $97 CTA | `https://levelplaydigital.com/images/email/cta-unlock-97.png` |
 | SAP waitlist CTA | `https://levelplaydigital.com/images/email/cta-sap-waitlist.png` |
@@ -42,6 +42,7 @@ Source files: `lpd-redesign/public/images/email/`
 3. Open the matching `.html` file from this folder
 4. Copy the full document and paste into GHL
 5. Replace merge tokens via GHL picker if syntax differs in your location:
+   - `{{ contact.first_name }}`
    - `{{ contact.levelstack_report_url }}`
    - `{{ contact.top_competitor }}`
    - `{{ contact.top_finding }}`

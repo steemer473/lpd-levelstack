@@ -4,15 +4,18 @@
  */
 
 const HUB_ORIGIN = "https://levelplaydigital.com"
+const EMAIL_LOGO_URL = `${HUB_ORIGIN}/images/logo.png`
+const EMAIL_HEADER_BG = "#000000"
 
 export const GHL_EMAIL_ASSETS = {
-  logoWhite400: `${HUB_ORIGIN}/images/email/level-play-digital-logo-white-400.png`,
+  logo: EMAIL_LOGO_URL,
   gradientAccentBar: `${HUB_ORIGIN}/images/email/gradient-accent-bar.png`,
   ctaUnlock97: `${HUB_ORIGIN}/images/email/cta-unlock-97.png`,
   ctaSapWaitlist: `${HUB_ORIGIN}/images/email/cta-sap-waitlist.png`,
 } as const
 
 export const GHL_MERGE = {
+  firstName: "{{ contact.first_name }}",
   reportUrl: "{{ contact.levelstack_report_url }}",
   topCompetitor: "{{ contact.top_competitor }}",
   topFinding: "{{ contact.top_finding }}",
@@ -56,13 +59,13 @@ export type GhlEmailLayoutParams = {
 function buildHeader(): string {
   return `
     <tr>
-      <td align="center" style="background-color:${BRAND.navy};padding:28px 32px 20px;">
+      <td align="center" style="background-color:${EMAIL_HEADER_BG};padding:28px 32px 20px;">
         <img
-          src="${GHL_EMAIL_ASSETS.logoWhite400}"
+          src="${GHL_EMAIL_ASSETS.logo}"
           alt="Level Play Digital"
-          width="200"
-          height="52"
-          style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;max-width:200px;height:auto;"
+          width="280"
+          height="73"
+          style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;max-width:280px;height:auto;"
         />
         <p style="margin:16px 0 0;font-family:Inter,Arial,sans-serif;font-size:22px;font-weight:700;line-height:1.2;color:#ffffff;letter-spacing:-0.02em;">
           LevelStack
@@ -166,6 +169,10 @@ export function ghlParagraph(html: string): string {
   return `<p style="margin:0 0 16px;font-family:Inter,Arial,sans-serif;font-size:16px;line-height:1.6;color:${BRAND.text};">${html}</p>`
 }
 
+export function ghlGreeting(): string {
+  return ghlParagraph(`Hello, ${GHL_MERGE.firstName}`)
+}
+
 export function ghlLink(href: string, label: string): string {
   return `<a href="${href}" style="color:${BRAND.cyan};font-weight:600;text-decoration:underline;">${label}</a>`
 }
@@ -211,6 +218,7 @@ export function ghlCtaButton(href: string, variant: "primary" | "secondary"): st
 
 export function buildEmail02Body(): string {
   return [
+    ghlGreeting(),
     ghlParagraph("Before someone calls you, they search your name."),
     ghlParagraph(
       "They check reviews, compare options, and decide whether you look credible — often in under a minute.",
@@ -230,7 +238,7 @@ export function buildEmail02Body(): string {
 
 export function buildEmail03Body(): string {
   return [
-    ghlParagraph("Hi,"),
+    ghlGreeting(),
     ghlParagraph("One name keeps showing up when prospects compare options in your market:"),
     ghlCallout("Top competitor", GHL_MERGE.topCompetitor),
     ghlParagraph(
@@ -248,7 +256,7 @@ export function buildEmail03Body(): string {
 
 export function buildEmail03FallbackBody(): string {
   return [
-    ghlParagraph("Hi,"),
+    ghlGreeting(),
     ghlParagraph(
       "A competitor in your market is capturing search visibility you could be earning.",
     ),
@@ -267,7 +275,7 @@ export function buildEmail03FallbackBody(): string {
 
 export function buildEmail04Body(): string {
   return [
-    ghlParagraph("Hi,"),
+    ghlGreeting(),
     ghlParagraph(
       "A business owner ran a LevelStack report and found something they had not thought about in years — an old partnership page, a former co-listing, or outdated credentials still ranking on page one.",
     ),
@@ -288,7 +296,7 @@ export function buildEmail04Body(): string {
 
 export function buildEmail05Body(): string {
   return [
-    ghlParagraph("Hi,"),
+    ghlGreeting(),
     ghlParagraph(
       "LevelStack gives you a snapshot — what the internet shows about your business today.",
     ),
