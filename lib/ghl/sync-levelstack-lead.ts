@@ -2,6 +2,8 @@ import { createGHLContact } from "@/lib/ghl/ghl-api"
 import { getGHLFieldKey } from "@/lib/ghl/field-mapping"
 import { splitFullName } from "@/lib/ghl/split-name"
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
+import type { ReportTier } from "@/lib/levelstack-plans"
+import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
 import { getAppUrl } from "@/lib/urls"
 
 export type GHLSyncResult = {
@@ -102,6 +104,61 @@ export async function syncPaidIntakeLead(params: {
     companyName: formData.primaryBusinessName.trim(),
     source: "LevelStack Paid Intake",
     tags: ["levelstack", "levelstack_paid_intake", planId],
+    customFields,
+  })
+
+  return parseGHLResponse(response)
+}
+
+export type ReportCompleteEnrichmentParams = {
+  email: string
+  reportId: string
+  reportTier: ReportTier
+  reportJson: LevelstackReportJson
+  topFinding?: string
+  accessUrl?: string
+}
+
+export function buildReportCompleteCustomFields(
+  params: ReportCompleteEnrichmentParams,
+): Record<string, string> {
+  const { reportJson, reportTier, reportId, topFinding, accessUrl } = params
+  const customFields: Record<string, string> = {
+    [getGHLFieldKey("LevelStack Report URL")]:
+      accessUrl?.trim() || buildReportUrl(reportId),
+    [getGHLFieldKey("Report Tier")]: reportTier,
+  }
+
+  const topCompetitor = reportJson.meta.upgradeTeasers?.previewCompetitor?.domain?.trim()
+  if (topCompetitor) {
+    customFields[getGHLFieldKey("Top Competitor")] = topCompetitor
+  }
+
+  const resolvedTopFinding =
+    topFinding?.trim() || reportJson.executiveSummary.criticalIssue?.trim()
+  if (resolvedTopFinding) {
+    customFields[getGHLFieldKey("Top Finding")] = resolvedTopFinding
+  }
+
+  return customFields
+}
+
+export function buildReportCompleteTags(reportTier: ReportTier): string[] {
+  return ["levelstack", "levelstack_report_ready", `levelstack_report_ready_${reportTier}`]
+}
+
+export async function syncReportCompleteEnrichment(
+  params: ReportCompleteEnrichmentParams,
+): Promise<GHLSyncResult> {
+  const customFields = buildReportCompleteCustomFields(params)
+  const tags = buildReportCompleteTags(params.reportTier)
+
+  const response = await createGHLContact({
+    firstName: "LevelStack",
+    lastName: "Report Ready",
+    email: params.email.trim().toLowerCase(),
+    source: "LevelStack Report Complete",
+    tags,
     customFields,
   })
 

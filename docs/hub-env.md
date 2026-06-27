@@ -35,6 +35,15 @@ GHL_LOCATION_ID=   # same value as hub
 
 Set in **lpd-levelstack** Vercel → Production and Preview. Without them, intake still succeeds but leads are not synced (logged as `[ghl]` warnings).
 
+### Sync phases
+
+1. **Intake submit** — `syncFreeSnapshotLead` / `syncPaidIntakeLead` creates or updates the contact with intake tags and baseline fields.
+2. **Report complete** — `syncReportCompleteEnrichment` runs after the report-ready email with `top_competitor`, `top_finding`, `report_tier`, signed report URL, and tag `levelstack_report_ready` (workflow trigger for nurture).
+
+Create custom fields: `pnpm setup:ghl-fields` (from repo root with `.env.local`).
+
+**Finish nurture workflow (Emails 2–5) in GHL UI:** [operations/ghl-nurture-workflow.md](./operations/ghl-nurture-workflow.md)
+
 ## Upgrade checkout handoff (lpd-redesign — required for paid unlock loop)
 
 Product upgrade links use `getHubUpgradeUrl` with query params:

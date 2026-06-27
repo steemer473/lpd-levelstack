@@ -9,6 +9,9 @@ const ghlFieldKeyMapping: Record<string, string> = {
   "Primary Service": "primary_service",
   "Purchase Motivation": "purchase_motivation",
   "Market City": "market_city",
+  "Top Competitor": "top_competitor",
+  "Top Finding": "top_finding",
+  "Report Tier": "report_tier",
 }
 
 export function getGHLFieldKey(fieldName: string): string {

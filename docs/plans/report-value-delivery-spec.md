@@ -255,7 +255,7 @@ COPY_BANK §5: named competitor is the conversion trigger. Paid competitive sect
 ### Acceptance criteria
 
 - [ ] Paid report competitive finding names at least one domain or states why none found
-- [ ] GHL merge field `top_competitor` populated from `previewCompetitor.domain` or grid column 2
+- [x] GHL merge field `top_competitor` populated from `previewCompetitor.domain` or grid column 2 — **shipped** via `syncReportCompleteEnrichment` (2026-06-26); nurture Emails 2–5 still require GHL workflow — [ghl-nurture-workflow.md](../operations/ghl-nurture-workflow.md)
 
 ---
 
@@ -493,7 +493,7 @@ Two complementary changes:
 }
 ```
 
-The executive summary tease, teaser copy builder, and future GHL `top_competitor` field all now name the same rival as the grid. The closed item from the P1 spec "GHL merge field top_competitor populated from previewCompetitor.domain or grid column" is now data-ready.
+The executive summary tease, teaser copy builder, and GHL `top_competitor` field all name the same rival as the grid. Report-complete sync (`syncReportCompleteEnrichment`) writes the field on pipeline finish; nurture workflow build: [ghl-nurture-workflow.md](../operations/ghl-nurture-workflow.md).
 
 ### Acceptance criteria
 

@@ -21,7 +21,7 @@ Older `report_json` rows may lack `competitiveGrid` / `scoreRows`. Use **Rebuild
 ## Not in Phase 3 (brief follow-ups)
 
 - PDF export
-- Nurture email sequences (D3/D7/D14 — GHL)
+- Nurture email sequences (Emails 2–5 — GHL UI; app enrichment shipped — [operations/ghl-nurture-workflow.md](./operations/ghl-nurture-workflow.md))
 - Full SEO-audit results page clone as separate route
 
 **Next priority:** analysis quality and $497 launch bar — see [`phase-2.2-analysis-quality.md`](./phase-2.2-analysis-quality.md).
