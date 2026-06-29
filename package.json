@@ -19,7 +19,9 @@
     "verify:env": "node scripts/verify-vercel-env.mjs --from-local",
     "verify:research": "node scripts/verify-research-keys.mjs",
     "setup:ghl-fields": "node scripts/setup-ghl-levelstack-fields.mjs --from-local",
-    "generate:ghl-emails": "npx tsx scripts/generate-ghl-email-templates.mjs"
+    "generate:ghl-emails": "npx tsx scripts/generate-ghl-email-templates.mjs",
+    "import:ghl-emails": "node scripts/import-ghl-email-templates.mjs --from-local",
+    "paste:ghl-emails": "node scripts/ghl-email-paste-helper.mjs"
   },
   "pnpm": {
     "onlyBuiltDependencies": ["sharp"]

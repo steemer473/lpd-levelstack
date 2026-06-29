@@ -62,7 +62,7 @@ function parseContactSearchResponse(responseText: string): GHLContactSummary | n
 
   const parsed = JSON.parse(responseText) as {
     contacts?: GHLContactSummary[]
-    contact?: GHLContactSummary
+    contact?: GHLContactSummary | null
   }
 
   if (parsed.contacts?.length) return parsed.contacts[0]!
@@ -70,6 +70,17 @@ function parseContactSearchResponse(responseText: string): GHLContactSummary | n
   if (parsed.contact) return parsed.contact
 
   return null
+}
+
+function buildContactSearchUrl(email: string, isPIT: boolean, base: string): string {
+  const locationId = env.GHL_LOCATION_ID!.trim()
+  const encodedEmail = encodeURIComponent(email)
+
+  if (isPIT) {
+    return `${base}/contacts/search/duplicate?locationId=${locationId}&email=${encodedEmail}`
+  }
+
+  return `${base}/contacts/search?email=${encodedEmail}`
 }
 
 function applyCustomFields(
@@ -142,7 +153,7 @@ export async function searchGHLContactByEmail(
   const apiKey = env.GHL_API_KEY!.trim()
   const isPIT = apiKey.startsWith("pit-")
   const base = getApiBase(isPIT)
-  const searchUrl = `${base}/contacts/search?email=${encodeURIComponent(email)}`
+  const searchUrl = buildContactSearchUrl(email, isPIT, base)
 
   try {
     const response = await fetch(searchUrl, { method: "GET", headers })
