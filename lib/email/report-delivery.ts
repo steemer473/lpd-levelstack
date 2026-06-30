@@ -13,6 +13,7 @@ import {
 import { sendEmail } from "@/lib/email/send-email"
 import { getAppUrl, getHubUpgradeUrl, getHubSeoWaitlistUrl } from "@/lib/urls"
 import type { ReportTier } from "@/lib/levelstack-plans"
+import { PRODUCT_NAMES } from "@/lib/report/outcome-copy"
 
 type ReportReadyParams = {
   to: string
@@ -80,13 +81,13 @@ function buildFreeSnapshotReadyBody(params: ReportReadyParams): string {
   return `
     ${greeting}
     <p style="margin:0 0 16px;">
-      Your LevelStack snapshot for <strong>${safeBusiness}</strong> is ready.
+      Your ${PRODUCT_NAMES.free} for <strong>${safeBusiness}</strong> is ready.
     </p>
     ${findingBlock}
     <p style="margin:0 0 16px;">
       We found issues in your public presence. Your revenue funnel diagnosis,
-      competitive position, and full prioritized action plan are in your
-      ${emailCtaLink(upgradeUrl, "Full Report ($97)")}.
+      competitive position, and full prioritized fixes unlock in
+      ${emailCtaLink(upgradeUrl, `${PRODUCT_NAMES.paid} ($97)`)}.
     </p>
     ${emailCtaButton(signInUrl, "Open your snapshot →")}
     <p style="margin:0 0 8px;font-size:14px;color:#64748b;">
@@ -114,9 +115,9 @@ export async function sendReportReadyEmail(params: ReportReadyParams): Promise<v
 
     await sendEmail({
       to: params.to,
-      subject: `Your LevelStack snapshot for ${params.businessName} is ready`,
+      subject: `Your ${PRODUCT_NAMES.free} for ${params.businessName} is ready`,
       html: emailLayout({
-        title: "Your LevelStack snapshot is ready",
+        title: `Your ${PRODUCT_NAMES.free} is ready`,
         preheader: "Your snapshot finished — pick up where you left off.",
         body,
       }),
@@ -124,8 +125,8 @@ export async function sendReportReadyEmail(params: ReportReadyParams): Promise<v
     return
   }
 
-  const subject = `Your full LevelStack report for ${params.businessName} is ready`
-  const layoutTitle = "Your full report is ready"
+  const subject = `Your ${PRODUCT_NAMES.paid} for ${params.businessName} is ready`
+  const layoutTitle = `Your ${PRODUCT_NAMES.paid} is ready`
   const safeBusiness = escapeHtml(params.businessName)
   const openUrl = params.accessUrl ?? reportUrl
   const pdfUrl = params.accessPrintUrl ?? printUrl
@@ -136,7 +137,7 @@ export async function sendReportReadyEmail(params: ReportReadyParams): Promise<v
   const body = `
     ${greeting}
     <p style="margin:0 0 16px;">
-      Your LevelStack report for <strong>${safeBusiness}</strong> is ready — all six sections
+      Your ${PRODUCT_NAMES.paid} for <strong>${safeBusiness}</strong> is ready — all six sections
       are now unlocked.
     </p>
     ${
@@ -148,12 +149,15 @@ export async function sendReportReadyEmail(params: ReportReadyParams): Promise<v
     <ul style="margin:0 0 16px;padding-left:20px;">
       <li>Revenue funnel diagnosis</li>
       <li>Full competitive context</li>
-      <li>Prioritized action plan with Who and Time</li>
-      <li>PDF export</li>
+      <li>Prioritized Action Roadmap with Who and Time</li>
+      <li>${PRODUCT_NAMES.pdf}</li>
     </ul>
-    ${emailCtaButton(openUrl, "Open your full report →")}
+    ${emailCtaButton(openUrl, `Open your ${PRODUCT_NAMES.paid} →`)}
     <p style="margin:16px 0 0;">
-      ${emailCtaLink(pdfUrl, "Download PDF →")}
+      ${emailCtaLink(pdfUrl, `Download ${PRODUCT_NAMES.pdf} →`)}
+    </p>
+    <p style="margin:16px 0 0;font-size:14px;color:#64748b;">
+      Joining the SEO Automator Pro waitlist after purchase keeps your $97 assessment fee credit ready for onboarding.
     </p>
   `
 
@@ -162,7 +166,7 @@ export async function sendReportReadyEmail(params: ReportReadyParams): Promise<v
     subject,
     html: emailLayout({
       title: layoutTitle,
-      preheader: `Your LevelStack report for ${params.businessName} is ready to view.`,
+        preheader: `Your ${PRODUCT_NAMES.paid} for ${params.businessName} is ready to view.`,
       body,
     }),
   })
@@ -219,7 +223,7 @@ export async function scheduleNurtureEmails(params: NurtureParams): Promise<void
     const body = `
       ${greeting}
       <p style="margin:0 0 16px;">
-        Your full LevelStack report includes findings SEO Automator Pro is designed to monitor continuously.
+        Your ${PRODUCT_NAMES.paid} includes findings SEO Automator Pro is designed to monitor continuously.
       </p>
       <p style="margin:0;">
         ${emailCtaLink(seoUrl, "Explore SEO Automator Pro →")}
@@ -248,19 +252,19 @@ export async function scheduleNurtureEmails(params: NurtureParams): Promise<void
       Yesterday we delivered your free snapshot for <strong>${params.businessName}</strong>.
     </p>
     <p style="margin:0 0 16px;">
-      Your full report includes revenue funnel diagnosis, competitive context, and a prioritized action plan.
+      Your ${PRODUCT_NAMES.paid} includes revenue funnel diagnosis, competitive context, and prioritized actions.
     </p>
     <p style="margin:0;">
-      ${emailCtaLink(upgradeUrl, "Upgrade to Full Report — $97 →")}
+      ${emailCtaLink(upgradeUrl, `Unlock ${PRODUCT_NAMES.paid} — $97 →`)}
     </p>
   `
 
   await sendEmail({
     to: params.to,
-    subject: `Re: ${findingSubject} — unlock your full LevelStack report`,
+    subject: `Re: ${findingSubject} — unlock your ${PRODUCT_NAMES.paid}`,
     html: emailLayout({
-      title: "Unlock your full LevelStack report",
-      preheader: `Upgrade to the full LevelStack report for ${params.businessName}.`,
+      title: `Unlock your ${PRODUCT_NAMES.paid}`,
+      preheader: `Upgrade to ${PRODUCT_NAMES.paid} for ${params.businessName}.`,
       body,
     }),
   })
@@ -283,7 +287,7 @@ export async function sendNurtureDayEmail(
 
   const bodies: Record<number, string> = {
     3: `${greeting}<p style="margin:0 0 16px;">LevelStack finds gaps once. SEO Automator Pro is designed to keep them closed — traditional SEO, local SEO, and AI search visibility.</p><p style="margin:0;">${emailCtaLink(seoUrl, "Join the waitlist →")}</p>`,
-    7: `${greeting}<p style="margin:0 0 16px;">Still thinking about your snapshot? The full report ranks every finding by cost to fix and revenue impact.</p><p style="margin:0;">${emailCtaLink(upgradeUrl, "Get the Full Report — $97 →")}</p>`,
+    7: `${greeting}<p style="margin:0 0 16px;">Still thinking about your snapshot? ${PRODUCT_NAMES.paid} ranks every finding by cost to fix and revenue impact.</p><p style="margin:0;">${emailCtaLink(upgradeUrl, `Unlock ${PRODUCT_NAMES.paid} — $97 →`)}</p>`,
     14: `${greeting}<p style="margin:0 0 16px;">Your competitors aren't waiting. SEO Automator Pro monitors search visibility across your network continuously.</p><p style="margin:0;">${emailCtaLink(seoUrl, "Explore SEO Automator Pro →")}</p>`,
   }
 

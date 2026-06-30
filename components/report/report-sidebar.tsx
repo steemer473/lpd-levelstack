@@ -22,6 +22,7 @@ type ReportSidebarProps = {
   tabs: ReportSidebarTab[]
   activeTab: string
   onSelectTab: (tabId: string) => void
+  onLockedTabClick?: (tabId: string) => void
   reportId?: string
 }
 
@@ -30,6 +31,7 @@ export function ReportSidebar({
   tabs,
   activeTab,
   onSelectTab,
+  onLockedTabClick,
   reportId,
 }: ReportSidebarProps) {
   return (
@@ -56,7 +58,13 @@ export function ReportSidebar({
             <div key={tab.id} className="rpt-sidebar-nav-item flex shrink-0 items-center md:w-full">
               <button
                 type="button"
-                onClick={() => onSelectTab(tab.id)}
+                onClick={() => {
+                  if (tab.locked) {
+                    onLockedTabClick?.(tab.id)
+                    return
+                  }
+                  onSelectTab(tab.id)
+                }}
                 aria-current={isActive ? "page" : undefined}
                 className="rpt-sidebar-nav-btn"
               >

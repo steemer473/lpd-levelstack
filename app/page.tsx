@@ -46,7 +46,7 @@ export default function Page() {
         heading: "Your six-section business readiness report",
         headingHighlight: "readiness report",
         description:
-          "Start with a free snapshot or purchase the full report on Level Play Digital, then complete intake and view your diagnostic report.",
+          "Start with a free snapshot or purchase the Action Roadmap on Level Play Digital, then complete intake and view your diagnostic report.",
         badges: [
           { icon: CheckCircle2, label: "Free snapshot" },
           { icon: Shield, label: "Research-backed" },
@@ -67,7 +67,7 @@ export default function Page() {
             <Link href="/auth/sign-in?redirect=/intake">Sign in → full intake</Link>
           </Button>
           <Button variant="outline" asChild className="w-full">
-            <Link href={getHubPricingUrl()}>Upgrade — full report $97</Link>
+            <Link href={getHubPricingUrl()}>Upgrade — Action Roadmap $97</Link>
           </Button>
           <Button variant="ghost" asChild className="w-full">
             <a

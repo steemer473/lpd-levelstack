@@ -1,8 +1,9 @@
 "use client"
 
-import Link from "next/link"
+import { useState } from "react"
 import { Lock } from "lucide-react"
 
+import { LockedSectionUnlockModal } from "@/components/report/locked-section-unlock-modal"
 import { SapBridgeBlock } from "@/components/report/sap-bridge-block"
 import { Button } from "@/components/ui/button"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
@@ -11,7 +12,6 @@ import {
   resolveCompetitiveSnapshot,
   resolveExecutiveContent,
 } from "@/lib/report/executive-summary-resolve"
-import { getHubUpgradeUrl } from "@/lib/urls"
 import { cn } from "@/lib/utils"
 
 const LOCKED_SECTION_FALLBACK: Record<string, string> = {
@@ -132,7 +132,7 @@ function ActionPlanPreview({ report }: { report: LevelstackReportJson }) {
   if (count <= 0 && teaserItems.length === 0) {
     return (
       <p className="text-muted-foreground text-sm max-w-md mx-auto">
-        Your prioritized action plan unlocks with the full report.
+        Your prioritized action plan unlocks with the Action Roadmap.
       </p>
     )
   }
@@ -140,7 +140,7 @@ function ActionPlanPreview({ report }: { report: LevelstackReportJson }) {
   const headline =
     count > 0
       ? `${count} prioritized action${count === 1 ? "" : "s"} ready — unlock to see Who, Time, and Impact`
-      : "Your prioritized action plan unlocks with the full report."
+      : "Your prioritized action plan unlocks with the Action Roadmap."
 
   return (
     <div className="space-y-3 max-w-lg mx-auto text-left">
@@ -153,7 +153,7 @@ function ActionPlanPreview({ report }: { report: LevelstackReportJson }) {
                 {item.task}
               </li>
             ))}
-            <li className="text-sm text-muted-foreground">+ more in full report…</li>
+            <li className="text-sm text-muted-foreground">+ more in Action Roadmap…</li>
           </ul>
         </BlurredTeaser>
       ) : null}
@@ -167,7 +167,7 @@ export function LockedSectionPreview({
   reportId,
 }: LockedSectionPreviewProps) {
   const label = LOCKED_SECTION_LABELS[sectionId] ?? "This section"
-  const upgradeUrl = getHubUpgradeUrl({ reportId, source: "levelstack_report" })
+  const [unlockModalOpen, setUnlockModalOpen] = useState(false)
 
   return (
     <div className="px-6 py-8 text-center">
@@ -187,11 +187,16 @@ export function LockedSectionPreview({
         </p>
       )}
 
-      <Button variant="brand" asChild className="mt-6">
-        <Link href={upgradeUrl}>Unlock full report — $97</Link>
+      <Button variant="brand" className="mt-6" onClick={() => setUnlockModalOpen(true)}>
+        Unlock Action Roadmap — $97
       </Button>
 
       <SapBridgeBlock placement="freeLocked" />
+      <LockedSectionUnlockModal
+        open={unlockModalOpen}
+        onOpenChange={setUnlockModalOpen}
+        reportId={reportId}
+      />
     </div>
   )
 }

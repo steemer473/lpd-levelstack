@@ -219,7 +219,7 @@ export function ExecutiveSummaryDashboard({
             ))}
           </ul>
           {hiddenStrengths.length > 0 ? (
-            <UpsellBlurOverlay message="Unlock all strengths in your Full Report">
+            <UpsellBlurOverlay message="Unlock all strengths in your Action Roadmap">
               <ul className="list-none pl-0">
                 {hiddenStrengths.map((s, i) => (
                   <li key={i} className="rpt-list-item">
@@ -235,7 +235,7 @@ export function ExecutiveSummaryDashboard({
             onClick={() => onSelectTab("search_footprint")}
             className="rpt-link-sm"
           >
-            View full report
+            View Action Roadmap
             <ArrowRight className="h-3.5 w-3.5" aria-hidden />
           </button>
         </div>
@@ -255,7 +255,7 @@ export function ExecutiveSummaryDashboard({
             ))}
           </ul>
           {hiddenOpps.length > 0 ? (
-            <UpsellBlurOverlay message="Unlock all opportunities in your Full Report">
+            <UpsellBlurOverlay message="Unlock all opportunities in your Action Roadmap">
               <ul className="list-none pl-0">
                 {hiddenOpps.map((o, i) => (
                   <li key={i} className="rpt-list-item">

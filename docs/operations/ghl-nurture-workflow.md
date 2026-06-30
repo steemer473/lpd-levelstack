@@ -130,6 +130,21 @@ Timing aligns with [COPY_BANK §4](../../../lpd-planning/COPY_BANK.md): +4h, +2d
 
 ---
 
+## Workflow B — SAP waitlist sequence (W1-W4)
+
+Use this sequence for contacts tagged `seo_automator_pro_waitlist` after Email 5 CTA clicks.
+
+| Email | Delay | Subject | Goal |
+|---|---|---|---|
+| W1 | Immediate | You're on the list (and your $97 credit is locked in) | Confirm charter spot and assessment fee credit |
+| W2 | +2 days | The anatomy of a "D" Grade (And the local search leak) | Reinforce visibility leak urgency with local framing |
+| W3 | +5 days | Why local businesses are ditching traditional agencies | Position SAP as continuous system vs episodic audits |
+| W4 | +9 days | Cohort update: preparing the next automation slots | Keep intent warm and prepare onboarding readiness |
+
+Implementation source: `lib/email/ghl-email-layout.ts` builders `buildWaitlistEmailW1Body` through `buildWaitlistEmailW4Body`.
+
+---
+
 ## Step 4 — Email templates (HTML)
 
 **Email 1 is Resend only** — do not duplicate in GHL.

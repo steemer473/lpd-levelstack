@@ -12,6 +12,10 @@ const ghlFieldKeyMapping: Record<string, string> = {
   "Top Competitor": "top_competitor",
   "Top Finding": "top_finding",
   "Report Tier": "report_tier",
+  "Ninety Day Goal": "ninety_day_goal",
+  "Contract Value Tier": "contract_value_tier",
+  "LevelStack SAP Credit Eligible": "levelstack_sap_credit_eligible",
+  "LevelStack Paid Amount": "levelstack_paid_amount",
 }
 
 export function getGHLFieldKey(fieldName: string): string {

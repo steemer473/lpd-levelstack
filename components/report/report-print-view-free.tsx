@@ -225,7 +225,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
             />
             {leverage.rest ? (
               <p className="text-[10px] text-green-900 italic mt-2">
-                Full competitive and funnel analysis included in the Full Report ($97).
+                Full competitive and funnel analysis included in the Action Roadmap ($97).
               </p>
             ) : null}
           </div>
@@ -247,7 +247,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
                 </p>
               ) : null}
               <p className="text-xs text-gray-500 mt-2 italic">
-                Unlock the Full Report ($97) for full competitive rankings and comparison.
+                Unlock the Action Roadmap ($97) for full competitive rankings and comparison.
               </p>
             </div>
           ) : null}
@@ -294,11 +294,11 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
               </ul>
             ) : (
               <p className="text-xs text-gray-600">
-                Prioritized actions appear in the Full Report after funnel and competitive analysis.
+                Prioritized actions appear in the Action Roadmap after funnel and competitive analysis.
               </p>
             )}
             <p className="text-xs text-gray-500 italic mt-2">
-              Full 90-day action plan included in Full Report ($97).
+              Full 90-day action plan included in Action Roadmap ($97).
             </p>
           </div>
 
@@ -330,7 +330,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
             ) : null}
             {content.strengths.length > 1 || content.topOpportunities.length > 1 ? (
               <p className="text-xs text-gray-500 italic">
-                Additional strengths and opportunities in Full Report ($97).
+                Additional strengths and opportunities in Action Roadmap ($97).
               </p>
             ) : null}
             {content.strengths.length === 0 && content.topOpportunities.length === 0 ? (
@@ -358,7 +358,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
       })}
 
       <section className="mb-6 rounded border border-orange-200 bg-orange-50 p-4 break-inside-avoid">
-        <h3 className="font-semibold text-orange-900 mb-1">Upgrade to Full Report — $97</h3>
+        <h3 className="font-semibold text-orange-900 mb-1">Upgrade to Action Roadmap — $97</h3>
         <p className="text-xs text-orange-950 leading-relaxed">
           This free snapshot covers search footprint, reputation, and digital presence. The Full
           Report adds revenue funnel diagnosis, competitive context, a complete prioritized 90-day

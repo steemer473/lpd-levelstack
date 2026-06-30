@@ -1,11 +1,6 @@
 import type { ReportFinding } from "@/lib/pipeline/report-types"
 import { polishCustomerFindingCopy } from "@/lib/report/customer-copy"
-import {
-  DataPanel,
-  DataPanelLabel,
-  FindingDetailContent,
-  FindingValueHeadline,
-} from "@/components/report/finding-detail"
+import { OutcomeAuditCard } from "@/components/report/outcome-audit-card"
 import {
   effectiveFindingSeverity,
   formatFindingLabel,
@@ -13,6 +8,8 @@ import {
   findingSeverityExplanation,
 } from "@/lib/report/finding-context"
 import { flagLabel, severityToFlag } from "@/lib/report/display-helpers"
+import { parseFindingDetail } from "@/lib/report/parse-finding-detail"
+import { type OutcomeLabelKey } from "@/lib/report/outcome-copy"
 import { AlertCircle, AlertTriangle, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -79,22 +76,50 @@ export function FindingCard({
 }) {
   const polishedValue = polishCustomerFindingCopy(finding.value)
   const polishedDetail = polishCustomerFindingCopy(finding.detail)
-  const label = formatFindingLabel(sectionId, finding.label)
   const context = findingContextLine(sectionId, finding)
+  const label = formatFindingLabel(sectionId, finding.label)
+  const severity = effectiveFindingSeverity(sectionId, finding)
+  const detailBullets = extractDetailBullets(polishedDetail)
+  const bullets = [context, ...detailBullets].filter(Boolean).slice(0, 3)
 
   return (
-    <DataPanel
+    <OutcomeAuditCard
       className={cn(
         showSeverityBorder && "border-l-4",
         showSeverityBorder && severityBorderClass(finding.severity),
       )}
-    >
-      <DataPanelLabel subtitle={context}>{label}</DataPanelLabel>
-      <FindingValueHeadline value={polishedValue} />
-      {polishedDetail ? <FindingDetailContent detail={polishedDetail} /> : null}
-      <FindingSeverityBlock sectionId={sectionId} finding={finding} />
-    </DataPanel>
+      headline={`${label}: ${polishedValue}`}
+      bullets={bullets}
+      outcome={outcomeForFinding(sectionId, severity)}
+    />
   )
+}
+
+function outcomeForFinding(
+  sectionId: string,
+  severity: ReportFinding["severity"],
+): OutcomeLabelKey {
+  const kind = severityToFlag(severity)
+  if (kind === "good") return "verifiedAsset"
+  if (sectionId === "revenue_funnel") return "revenueRisk"
+  if (sectionId === "competitive_context") return "competitorAdvantage"
+  if (sectionId === "digital_presence") return "performanceLeak"
+  return "visibilityLeak"
+}
+
+function extractDetailBullets(detail: string): string[] {
+  const parsed = parseFindingDetail(detail)
+  if (!parsed) return []
+
+  if (parsed.kind === "serp") {
+    return parsed.items.slice(0, 3).map((item) => `#${item.position} ${item.title}`)
+  }
+  if (parsed.kind === "keyValue") {
+    return parsed.items.slice(0, 3).map((item) => `${item.key}: ${item.value}`)
+  }
+  if (parsed.kind === "bullets") return parsed.items.slice(0, 3)
+  if (parsed.kind === "paragraphs") return parsed.paragraphs.slice(0, 3)
+  return [parsed.text]
 }
 
 export function FindingPrintBlock({

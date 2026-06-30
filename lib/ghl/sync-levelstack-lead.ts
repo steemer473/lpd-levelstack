@@ -43,6 +43,13 @@ function buildReportUrl(reportId: string): string {
   return getAppUrl(`/reports/${reportId}`)
 }
 
+function paidAmountForPlan(planId: string): string {
+  if (planId === "levelstack-strategy-call" || planId === "levelstack-review-call") {
+    return "297"
+  }
+  return "97"
+}
+
 export async function syncFreeSnapshotLead(params: {
   email: string
   businessName: string
@@ -91,10 +98,20 @@ export async function syncPaidIntakeLead(params: {
     [getGHLFieldKey("Primary Service")]: formData.primaryService,
     [getGHLFieldKey("Purchase Motivation")]: formData.purchaseMotivation,
     [getGHLFieldKey("Geo Focus")]: formData.geoMarket,
+    [getGHLFieldKey("LevelStack Paid Amount")]: paidAmountForPlan(planId),
   }
 
   if (formData.marketCity?.trim()) {
     customFields[getGHLFieldKey("Market City")] = formData.marketCity.trim()
+  }
+  if (formData.ninetyDayGoal) {
+    customFields[getGHLFieldKey("Ninety Day Goal")] = formData.ninetyDayGoal
+  }
+  if (formData.contractValueTier) {
+    customFields[getGHLFieldKey("Contract Value Tier")] = formData.contractValueTier
+  }
+  if (formData.topCompetitorUrl?.trim()) {
+    customFields[getGHLFieldKey("Top Competitor")] = formData.topCompetitorUrl.trim()
   }
 
   const response = await createGHLContact({
@@ -127,6 +144,9 @@ export function buildReportCompleteCustomFields(
     [getGHLFieldKey("LevelStack Report URL")]:
       accessUrl?.trim() || buildReportUrl(reportId),
     [getGHLFieldKey("Report Tier")]: reportTier,
+  }
+  if (reportTier === "full_report") {
+    customFields[getGHLFieldKey("LevelStack SAP Credit Eligible")] = "yes"
   }
 
   const topCompetitor = reportJson.meta.upgradeTeasers?.previewCompetitor?.domain?.trim()

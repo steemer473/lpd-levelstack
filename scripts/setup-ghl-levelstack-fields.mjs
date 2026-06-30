@@ -66,6 +66,14 @@ const LEVELSTACK_FIELDS = [
   { name: "Top Competitor", expectedKey: "top_competitor", dataType: "TEXT" },
   { name: "Top Finding", expectedKey: "top_finding", dataType: "TEXT" },
   { name: "Report Tier", expectedKey: "report_tier", dataType: "TEXT" },
+  { name: "Ninety Day Goal", expectedKey: "ninety_day_goal", dataType: "TEXT" },
+  { name: "Contract Value Tier", expectedKey: "contract_value_tier", dataType: "TEXT" },
+  {
+    name: "LevelStack SAP Credit Eligible",
+    expectedKey: "levelstack_sap_credit_eligible",
+    dataType: "TEXT",
+  },
+  { name: "LevelStack Paid Amount", expectedKey: "levelstack_paid_amount", dataType: "TEXT" },
 ]
 
 function normalizeKey(fieldKey) {

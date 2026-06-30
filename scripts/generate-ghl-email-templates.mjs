@@ -16,11 +16,12 @@ async function main() {
   const {
     ghlEmailLayout,
     GHL_EMAIL_TEMPLATES,
+    GHL_WAITLIST_EMAIL_TEMPLATES,
   } = await import(modPath)
 
   mkdirSync(outDir, { recursive: true })
 
-  for (const template of GHL_EMAIL_TEMPLATES) {
+  for (const template of [...GHL_EMAIL_TEMPLATES, ...GHL_WAITLIST_EMAIL_TEMPLATES]) {
     const html = ghlEmailLayout({
       title: template.subject,
       preheader: template.preheader,

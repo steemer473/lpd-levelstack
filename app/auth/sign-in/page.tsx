@@ -153,12 +153,12 @@ function SignInForm() {
         heading: isReportRedirect
           ? "Sign in to view your snapshot"
           : isUpgradeIntakeRedirect
-            ? "Sign in to complete your full report intake"
+            ? "Sign in to complete your Action Roadmap intake"
             : "Sign in with your hub account",
         headingHighlight: isReportRedirect
           ? "your snapshot"
           : isUpgradeIntakeRedirect
-            ? "full report intake"
+            ? "Action Roadmap intake"
             : "hub account",
         description: isReportRedirect
           ? "Use the email from your free snapshot — we'll send a sign-in link, or use a password if you've set one."

@@ -13,6 +13,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "lint:customer-copy": "node scripts/lint-customer-copy.mjs",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "type-check": "tsc --noEmit",
     "test:unit": "vitest run",

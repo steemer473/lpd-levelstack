@@ -73,7 +73,7 @@ function buildPaymentReceivedBody(params: UpgradeNotifyParams): string {
       for <strong>${safeBusiness}</strong>.
     </p>
     <p style="margin:0 0 16px;">
-      Your full report unlocks <strong>6 diagnostic sections</strong>, a prioritized action plan,
+      your Action Roadmap unlocks <strong>6 diagnostic sections</strong>, a prioritized action plan,
       and a PDF export — once you complete a short intake (~3 minutes).
     </p>
     ${strategyCallNote(params.planId)}
@@ -121,7 +121,7 @@ export async function sendPaymentReceivedEmail(params: UpgradeNotifyParams): Pro
     subject: `You're in — finish your LevelStack intake for ${params.businessName}`,
     html: emailLayout({
       title: "Payment received",
-      preheader: `Complete intake to generate your full report for ${params.businessName}.`,
+      preheader: `Complete intake to generate your Action Roadmap for ${params.businessName}.`,
       body,
     }),
   })

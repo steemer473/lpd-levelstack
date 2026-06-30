@@ -275,7 +275,7 @@ function CompetitiveSnapshotPanel({
         </p>
       ) : !previewCompetitor && !(leadingRank != null && leadingRank <= 3) ? (
         <p className="rpt-muted-text text-xs">
-          Unlock the full report for competitive rankings from live search data.
+          Unlock the Action Roadmap for competitive rankings from live search data.
         </p>
       ) : null}
       <button
@@ -436,7 +436,7 @@ export function ExecutiveSummaryConversion({
             </ul>
           ) : (
             <p className="rpt-muted-text text-sm">
-              Prioritized actions appear in your Full Report after funnel and competitive analysis.
+              Prioritized actions appear in your Action Roadmap after funnel and competitive analysis.
             </p>
           )}
           <button
@@ -478,7 +478,7 @@ export function ExecutiveSummaryConversion({
           {hiddenStrengths.length > 0 || hiddenOpps.length > 0 ? (
             <div className="mt-3">
               <UpsellBlurOverlay
-                message="Unlock all strengths and opportunities in your Full Report — $97"
+                message="Unlock all strengths and opportunities in your Action Roadmap — $97"
                 reportId={reportId}
               >
                 <div className="space-y-2">

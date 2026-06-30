@@ -165,7 +165,7 @@ export function ReportGenerating({ reportId, businessLabel }: ReportGeneratingPr
         <CheckCircle2 className="h-16 w-16 text-green-600 mx-auto" />
         <p className="text-lg font-semibold">Your LevelStack report is ready</p>
         <p className="text-muted-foreground text-sm">
-          Loading full report for {businessLabel}…
+          Loading Action Roadmap for {businessLabel}…
         </p>
         <Loader2 className="h-6 w-6 animate-spin text-brand-orange mx-auto" />
       </div>

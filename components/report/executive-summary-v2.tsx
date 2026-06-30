@@ -149,7 +149,7 @@ function PhaseColumn({
           ))
         ) : (
           <li className="rpt-muted-text text-xs italic">
-            Prioritized tasks in this phase are in the Full Report.
+            Prioritized tasks in this phase are in the Action Roadmap.
           </li>
         )}
       </ul>
@@ -384,7 +384,7 @@ export function ExecutiveSummaryV2({ report, onSelectTab }: ExecutiveSummaryV2Pr
                   </p>
                 ) : !previewCompetitor ? (
                   <p className="rpt-muted-text text-xs">
-                    Unlock the full report for competitive rankings from live search data.
+                    Unlock the Action Roadmap for competitive rankings from live search data.
                   </p>
                 ) : null}
               </>
@@ -427,7 +427,7 @@ export function ExecutiveSummaryV2({ report, onSelectTab }: ExecutiveSummaryV2Pr
               </ul>
               {isFree && content.strengths.length > 1 && (
                 <div className="mt-2">
-                  <UpsellBlurOverlay message="Unlock all strengths in your Full Report">
+                  <UpsellBlurOverlay message="Unlock all strengths in your Action Roadmap">
                     <ul className="space-y-2 list-none pl-0">
                       {content.strengths.slice(1).map((s, i) => (
                         <li key={i} className="flex items-start gap-2">
@@ -464,7 +464,7 @@ export function ExecutiveSummaryV2({ report, onSelectTab }: ExecutiveSummaryV2Pr
               </ul>
               {isFree && content.topOpportunities.length > 1 && (
                 <div className="mt-2">
-                  <UpsellBlurOverlay message="Unlock all opportunities in your Full Report">
+                  <UpsellBlurOverlay message="Unlock all opportunities in your Action Roadmap">
                     <ul className="space-y-2 list-none pl-0">
                       {content.topOpportunities.slice(1).map((o, i) => (
                         <li key={i} className="flex items-start gap-2">

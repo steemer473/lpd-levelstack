@@ -171,9 +171,9 @@ describe("free-tier-insights", () => {
     expect(copy).toContain("public reputation research")
     expect(copy).toContain("From public research: Mixed review signals")
     expect(copy).toContain("Open the Reputation tab")
-    expect(copy).toContain("Upgrade to the Full Report ($97)")
+    expect(copy).toContain("Upgrade to Action Roadmap ($97)")
     expect(copy).not.toContain("From public research so far:")
-    expect(copy).not.toMatch(/From public research:.*Upgrade to the Full Report/)
+    expect(copy).not.toMatch(/From public research:.*Upgrade to the Action Roadmap/)
     expect(copy).not.toContain("Intake note: Not specified")
   })
 
@@ -181,8 +181,8 @@ describe("free-tier-insights", () => {
     const copy = buildFreeTierRevenueRisk(freeReport)
     expect(copy).toContain("From public research:")
     expect(copy).toContain("Search footprint and Digital presence")
-    expect(copy).toContain("Upgrade to the Full Report ($97)")
-    expect(copy).not.toMatch(/From public research:.*Upgrade to the Full Report/)
+    expect(copy).toContain("Upgrade to Action Roadmap ($97)")
+    expect(copy).not.toMatch(/From public research:.*Upgrade to the Action Roadmap/)
   })
 
   it("replaces free-tier what prospects see with structured copy", () => {
