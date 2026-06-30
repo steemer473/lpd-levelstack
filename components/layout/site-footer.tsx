@@ -38,8 +38,7 @@ export function SiteFooter() {
           </div>
         </div>
         <p className="text-xs text-muted-foreground text-center">
-          Diagnostic report — you execute fixes. LevelStack does not guarantee rankings or
-          revenue outcomes.
+          We spot gaps. You fix them. No rank or sales promises.
         </p>
       </div>
     </footer>

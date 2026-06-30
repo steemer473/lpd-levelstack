@@ -12,13 +12,13 @@ export default function FreeSnapshotPage() {
       overlapHero
       hero={{
         tagline: "LevelStack",
-        heading: "Free digital presence snapshot",
-        headingHighlight: "presence snapshot",
+        heading: "What prospects see before they call you.",
+        headingHighlight: "before they call you",
         description:
-          "See what prospects find when they search your business — search footprint, reputation signals, and presence gaps. Email required.",
+          "Tell us your business. We research how you show up online and email you when your Visibility Snapshot is ready.",
         badges: [
-          { icon: CheckCircle2, label: "Free" },
-          { icon: BarChart3, label: "Automated" },
+          { icon: CheckCircle2, label: "Free snapshot" },
+          { icon: BarChart3, label: "Live research" },
           { icon: Shield, label: "No credit card" },
         ],
       }}

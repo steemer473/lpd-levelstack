@@ -56,6 +56,25 @@ See `lib/prompts/levelstackCopyPrompt.ts` and AGENTS.md § LevelStack Data-to-Co
 | W3 | Why [Industry/Niche] businesses are ditching traditional agencies |
 | W4 | Cohort update: preparing the next automation slots |
 
+## App root landing (levelstack.levelplaydigital.com)
+
+Mirror: COPY_BANK §7.2.
+
+**Voice:** Consultant who simplifies — specific observations, diagnosis, honest scope.
+
+| Field | Copy |
+|---|---|
+| Hero | What prospects see before they call you. |
+| Subhead | We look at search, reviews, and gaps rivals use against you. Free snapshot first. Action Roadmap for $97 when you are ready to act. |
+| Section h2 | What you get |
+| Card 1 | **First impression** — Search and presence. Where prospects decide. |
+| Card 2 | **Live research** — Real data from your market. Not a generic checklist. |
+| Card 3 | **Honest scope** — We show priorities. You act. No rank or sales promises. |
+| Footer | We spot gaps. You fix them. No rank or sales promises. |
+| Meta | What prospects see before they call. Free snapshot. Action Roadmap $97. |
+
+**Readability (tiered):** Hero FK ≤ 6; body/card FK ≤ 5; CTAs/footer FK ≤ 4; sentences ≤ 15 words.
+
 ## FAQs
 
 Full canonical list: COPY_BANK §7.1. In-app subset: `data/action-roadmap-faqs.ts`.

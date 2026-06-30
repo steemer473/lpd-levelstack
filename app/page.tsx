@@ -17,18 +17,18 @@ import { getHubPricingUrl } from "@/lib/urls"
 const HIGHLIGHTS = [
   {
     icon: Target,
-    name: "Six readiness sections",
-    description: "Search, reputation, presence, funnel, competitive, action plan",
+    name: "First impression",
+    description: "Search and presence. Where prospects decide.",
   },
   {
     icon: BarChart3,
-    name: "Automated research",
-    description: "SERP, site signals, and synthesis tailored to your intake",
+    name: "Live research",
+    description: "Real data from your market. Not a generic checklist.",
   },
   {
     icon: Shield,
-    name: "Diagnostic only",
-    description: "Clear priorities — no ranking or revenue guarantees",
+    name: "Honest scope",
+    description: "We show priorities. You act. No rank or sales promises.",
   },
 ] as const
 
@@ -43,21 +43,21 @@ export default function Page() {
       overlapHero
       hero={{
         tagline: "LevelStack",
-        heading: "Your six-section business readiness report",
-        headingHighlight: "readiness report",
+        heading: "What prospects see before they call you.",
+        headingHighlight: "before they call you",
         description:
-          "Start with a free snapshot or purchase the Action Roadmap on Level Play Digital, then complete intake and view your diagnostic report.",
+          "We look at search, reviews, and gaps rivals use against you. Free snapshot first. Action Roadmap for $97 when you are ready to act.",
         badges: [
           { icon: CheckCircle2, label: "Free snapshot" },
-          { icon: Shield, label: "Research-backed" },
-          { icon: BarChart3, label: "Action plan" },
+          { icon: BarChart3, label: "Live research" },
+          { icon: Shield, label: "Clear priorities" },
         ],
       }}
     >
       <FormPanel className="max-w-md mx-auto mb-16">
         <h2 className="text-xl font-semibold text-center mb-1">Get started</h2>
         <p className="text-muted-foreground text-sm text-center mb-6">
-          Sign in after purchase to complete intake and open your report.
+          Sign in after you buy. Complete intake. Open your dashboard.
         </p>
         <div className="flex flex-col gap-3">
           <Button variant="brand" asChild className="w-full">
@@ -75,7 +75,7 @@ export default function Page() {
               target="_blank"
               rel="noreferrer"
             >
-              View sample report
+              See a sample
             </a>
           </Button>
         </div>
@@ -93,7 +93,7 @@ export default function Page() {
 
       <section className="max-w-5xl mx-auto px-2 pb-8">
         <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 gradient-text">
-          What LevelStack delivers
+          What you get
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {HIGHLIGHTS.map(({ icon: Icon, name, description }) => (

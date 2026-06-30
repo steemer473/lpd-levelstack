@@ -13,6 +13,9 @@ const EXT = [".ts", ".tsx", ".md"]
 const BANNED = [
   /\bfull[_\s]report\b/i,
   /\bfull report\b/i,
+  /\bsix-section\b/i,
+  /\bbusiness readiness report\b/i,
+  /\bdiagnostic report\b/i,
 ]
 const ALLOWLIST = [
   /reportId/i,

@@ -203,7 +203,7 @@ export function FreeSnapshotForm() {
         </Button>
 
         <p className="text-muted-foreground text-xs text-center">
-          Full six-section report from{" "}
+          Action Roadmap from{" "}
           <Link href={getHubPricingUrl()} className="underline">
             $97
           </Link>

@@ -225,7 +225,7 @@ export default async function IntakePage({ searchParams }: PageProps) {
       <div className="mb-6">
         <h2 className="text-xl font-semibold">Start Your LevelStack Intake</h2>
         <p className="text-muted-foreground text-sm mt-1">
-          All fields are required. We use this only to build your diagnostic report.
+          All fields are required. We use this only to personalize your Action Roadmap.
         </p>
       </div>
       <LevelstackIntakeForm />

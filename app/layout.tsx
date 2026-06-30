@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     template: "%s · LevelStack",
   },
   description:
-    "Six-section business readiness report — intake, research, and delivery by Level Play Digital.",
+    "What prospects see before they call. Free snapshot. Action Roadmap $97.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001",
   ),
