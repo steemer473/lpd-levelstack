@@ -1,6 +1,18 @@
 import { z } from "zod"
 
 export const geoMarketOptions = ["local", "regional", "national"] as const
+export const ninetyDayGoalOptions = [
+  "calls",
+  "reputation",
+  "website",
+  "ads",
+] as const
+export const contractValueTierOptions = [
+  "under_500",
+  "500_2500",
+  "2500_10000",
+  "10000_plus",
+] as const
 
 function normalizeWebsiteUrl(value: unknown): unknown {
   if (typeof value !== "string") return value
@@ -8,6 +20,15 @@ function normalizeWebsiteUrl(value: unknown): unknown {
   if (!trimmed) return trimmed
   if (/^https?:\/\//i.test(trimmed)) return trimmed
   return `https://${trimmed}`
+}
+
+function normalizeCompetitorInput(value: unknown): unknown {
+  if (typeof value !== "string") return value
+  const trimmed = value.trim()
+  if (!trimmed) return ""
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  if (!/\s/.test(trimmed) && /\./.test(trimmed)) return `https://${trimmed}`
+  return trimmed
 }
 
 export const levelstackIntakeSchema = z
@@ -29,6 +50,8 @@ export const levelstackIntakeSchema = z
    */
   primaryServiceKeywords: z.string().optional(),
   pricePoint: z.string().min(1, "Current price point is required"),
+  ninetyDayGoal: z.enum(ninetyDayGoalOptions).optional(),
+  contractValueTier: z.enum(contractValueTierOptions).optional(),
   hasActiveAdSpend: z.enum(["yes", "no"]),
   adPlatforms: z.string().optional(),
   adBudget: z.string().optional(),
@@ -45,8 +68,8 @@ export const levelstackIntakeSchema = z
   purchaseMotivation: z.string().min(1, "Tell us what prompted your purchase"),
   /** Optional known competitor website — used when live SERP has no peer domains. */
   topCompetitorUrl: z.preprocess(
-    normalizeWebsiteUrl,
-    z.union([z.string().url(), z.literal("")]).optional(),
+    normalizeCompetitorInput,
+    z.union([z.string().url(), z.string().min(1), z.literal("")]).optional(),
   ),
 })
   .superRefine((data, ctx) => {
@@ -74,6 +97,8 @@ export const levelstackIntakeDefaults: LevelstackIntakeFormValues = {
   primaryService: "",
   primaryServiceKeywords: "",
   pricePoint: "",
+  ninetyDayGoal: undefined,
+  contractValueTier: undefined,
   hasActiveAdSpend: "no",
   adPlatforms: "",
   adBudget: "",

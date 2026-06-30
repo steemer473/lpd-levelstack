@@ -2,6 +2,7 @@ import { BarChart3, CheckCircle2, Shield } from "lucide-react"
 
 import { FreeSnapshotForm } from "@/components/free/free-snapshot-form"
 import { ProductShell } from "@/components/layout/product-shell"
+import { ReportFaqSection } from "@/components/report/report-faq-section"
 import { FormPanel } from "@/components/ui/form-panel"
 
 export default function FreeSnapshotPage() {
@@ -30,6 +31,9 @@ export default function FreeSnapshotPage() {
         </p>
         <FreeSnapshotForm />
       </FormPanel>
+      <div className="mx-auto mt-6 max-w-2xl">
+        <ReportFaqSection />
+      </div>
     </ProductShell>
   )
 }

@@ -15,12 +15,12 @@ describe("executive-insight-parts", () => {
         text: "Your site was not in the top 10.",
         suffix: "Open Search footprint.",
       },
-      { kind: "muted", text: "Upgrade to the Full Report ($97)." },
+      { kind: "muted", text: "Upgrade to the Action Roadmap ($97)." },
     ])
 
     expect(flat).toContain("Frame paragraph.")
     expect(flat).toContain("From public research: Your site was not in the top 10. Open Search footprint.")
-    expect(flat).toContain("Upgrade to the Full Report ($97).")
+    expect(flat).toContain("Upgrade to the Action Roadmap ($97).")
   })
 
   it("flattens all structured insight keys", () => {

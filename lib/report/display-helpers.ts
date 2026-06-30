@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react"
 import {
+  AlertTriangle,
   ClipboardList,
   Globe,
   LayoutGrid,
@@ -10,6 +11,8 @@ import {
 } from "lucide-react"
 
 import type { LevelstackReportJson, ReportSection } from "@/lib/pipeline/report-types"
+import { PRODUCT_NAMES } from "@/lib/report/outcome-copy"
+import { parseFindingDetail } from "@/lib/report/parse-finding-detail"
 
 /** Report + product brand colors — mirrors tokens/design-tokens.json (--lpd-*) */
 export const LPD = {
@@ -109,12 +112,12 @@ export function sectionScoreAccent(sectionId: string): { bar: string; icon: stri
 
 export function planDisplayName(planId: string | null): string {
   if (planId === "levelstack-strategy-call" || planId === "levelstack-review-call") {
-    return "LevelStack + Strategy Call"
+    return `LevelStack ${PRODUCT_NAMES.premium}`
   }
   if (planId === "levelstack-full-report" || planId === "levelstack-standard") {
-    return "LevelStack Full Report"
+    return `LevelStack ${PRODUCT_NAMES.paid}`
   }
-  if (planId === "levelstack-free-snapshot") return "LevelStack Free Snapshot"
+  if (planId === "levelstack-free-snapshot") return `LevelStack ${PRODUCT_NAMES.free}`
   return "LevelStack Assessment"
 }
 
@@ -143,10 +146,26 @@ export function severityToFlag(severity: string): "critical" | "attention" | "go
 }
 
 export function flagLabel(severity: string): string {
-  const kind = severityToFlag(severity)
-  if (kind === "critical") return severity === "critical" ? "Critical" : "High"
-  if (kind === "attention") return "Attention"
-  return "Good"
+  const normalized = severity.trim().toLowerCase()
+  if (normalized === "critical" || normalized === "high" || normalized === "medium") {
+    const kind = severityToFlag(normalized)
+    if (kind === "critical") return normalized === "critical" ? "Critical" : "High"
+    if (kind === "attention") return "Attention"
+    return "Good"
+  }
+  if (normalized === "revenue risk") return "Revenue Risk"
+  if (normalized === "visibility leak") return "Visibility Leak"
+  if (normalized === "competitor advantage") return "Competitor Advantage"
+  if (normalized === "low" || normalized === "good") return "Good"
+  return severity
+}
+
+export function outcomeIconForCategory(category?: string): LucideIcon {
+  const normalized = category?.trim().toLowerCase()
+  if (normalized === "revenue risk") return AlertTriangle
+  if (normalized === "visibility leak") return Search
+  if (normalized === "competitor advantage") return Shield
+  return Star
 }
 
 export function sectionDotClass(status: ReportSection["status"]): string {
@@ -228,3 +247,24 @@ export const PAID_TAB_IDS = new Set([
   "competitive_context",
   "action_plan",
 ])
+
+type ReportFinding = ReportSection["findings"][number]
+
+export function findingHeadlineForDisplay(finding: ReportFinding): string {
+  return finding.headline?.trim() || finding.value
+}
+
+export function findingBulletsForDisplay(finding: ReportFinding): string[] {
+  if (finding.bullets?.length) return finding.bullets
+
+  const parsed = parseFindingDetail(finding.detail)
+  if (!parsed) return [finding.detail]
+
+  if (parsed.kind === "bullets") return parsed.items
+  if (parsed.kind === "paragraphs") return parsed.paragraphs
+  if (parsed.kind === "keyValue") return parsed.items.map((item) => `${item.key}: ${item.value}`)
+  if (parsed.kind === "serp") {
+    return parsed.items.map((item) => `#${item.position} ${item.title} (${item.url})`)
+  }
+  return [parsed.text]
+}

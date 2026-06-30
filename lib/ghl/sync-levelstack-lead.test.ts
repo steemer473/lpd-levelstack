@@ -29,6 +29,8 @@ const paidFormData: LevelstackIntakeFormValues = {
   ownerName: "Jane Doe",
   primaryService: "Executive coaching",
   pricePoint: "$3,000",
+  ninetyDayGoal: "calls",
+  contractValueTier: "2500_10000",
   hasActiveAdSpend: "no",
   adPlatforms: "",
   adBudget: "",
@@ -40,6 +42,7 @@ const paidFormData: LevelstackIntakeFormValues = {
   reputationSelfAssessment: "Generally positive",
   reputationScale: 7,
   purchaseMotivation: "Low conversion from ads",
+  topCompetitorUrl: "Acme Rival",
 }
 
 afterEach(() => {
@@ -122,6 +125,10 @@ describe("syncPaidIntakeLead", () => {
         purchase_motivation: "Low conversion from ads",
         geo_focus: "local",
         market_city: "Austin",
+        ninety_day_goal: "calls",
+        contract_value_tier: "2500_10000",
+        levelstack_paid_amount: "97",
+        top_competitor: "Acme Rival",
       },
     })
   })
@@ -232,6 +239,7 @@ describe("syncReportCompleteEnrichment", () => {
         customFields: {
           levelstack_report_url: "https://levelstack.test/reports/report-789",
           report_tier: "full_report",
+          levelstack_sap_credit_eligible: "yes",
           top_finding: "Weak homepage CTA",
         },
       }),

@@ -197,7 +197,7 @@ export function ghlCtaButton(href: string, variant: "primary" | "secondary"): st
   const asset =
     variant === "primary" ? GHL_EMAIL_ASSETS.ctaUnlock97 : GHL_EMAIL_ASSETS.ctaSapWaitlist
   const alt =
-    variant === "primary" ? "Unlock Full Report — $97" : "Join SEO Automator Pro Waitlist"
+    variant === "primary" ? "Unlock Action Roadmap — $97" : "Join SEO Automator Pro Waitlist"
 
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 16px;">
     <tr>
@@ -229,7 +229,7 @@ export function buildEmail02Body(): string {
     ghlParagraph("Open your snapshot:"),
     ghlParagraph(ghlLink(GHL_MERGE.reportUrl, GHL_MERGE.reportUrl)),
     ghlParagraph(
-      "If you want the full diagnostic — competitive rankings, reputation depth, and a prioritized action plan — unlock the Full Report for $97.",
+      "If you want the full diagnostic — competitive rankings, reputation depth, and prioritized actions — unlock Action Roadmap for $97.",
     ),
     ghlCtaButton(GHL_LINKS.upgradeHub, "primary"),
     ghlSignoff(),
@@ -245,7 +245,7 @@ export function buildEmail03Body(): string {
       "That gap is traffic going somewhere else. Every day it stays that way, someone who could have found you found them instead.",
     ),
     ghlParagraph(
-      "Your snapshot surfaces this pattern. The Full Report breaks down exactly where you stand and what to fix first.",
+      "Your Visibility Snapshot surfaces this pattern. Action Roadmap breaks down exactly where you stand and what to fix first.",
     ),
     ghlParagraph("Open your snapshot:"),
     ghlParagraph(ghlLink(GHL_MERGE.reportUrl, GHL_MERGE.reportUrl)),
@@ -264,7 +264,7 @@ export function buildEmail03FallbackBody(): string {
       "That gap is traffic going somewhere else. Every day it stays that way, someone who could have found you found them instead.",
     ),
     ghlParagraph(
-      "Your snapshot surfaces this pattern. The Full Report breaks down exactly where you stand and what to fix first.",
+      "Your Visibility Snapshot surfaces this pattern. Action Roadmap breaks down exactly where you stand and what to fix first.",
     ),
     ghlParagraph("Open your snapshot:"),
     ghlParagraph(ghlLink(GHL_MERGE.reportUrl, GHL_MERGE.reportUrl)),
@@ -277,7 +277,7 @@ export function buildEmail04Body(): string {
   return [
     ghlGreeting(),
     ghlParagraph(
-      "A business owner ran a LevelStack report and found something they had not thought about in years — an old partnership page, a former co-listing, or outdated credentials still ranking on page one.",
+      "A business owner opened their Visibility Snapshot and found something they had not thought about in years — an old partnership page, a former co-listing, or outdated credentials still ranking on page one.",
     ),
     ghlParagraph(
       "It was not malicious. It was just still indexed — and prospects do not know the backstory.",
@@ -285,9 +285,9 @@ export function buildEmail04Body(): string {
     ghlParagraph(
       "&ldquo;I&rsquo;ll deal with it later&rdquo; is how small issues become expensive ones.",
     ),
-    ghlParagraph("Your snapshot already flagged what matters:"),
+    ghlParagraph("Your Visibility Snapshot already flagged what matters:"),
     ghlCallout("Top finding", GHL_MERGE.topFinding),
-    ghlParagraph("See the full picture in your report:"),
+    ghlParagraph("See the full picture in your Action Roadmap dashboard:"),
     ghlParagraph(ghlLink(GHL_MERGE.reportUrl, GHL_MERGE.reportUrl)),
     ghlCtaButton(GHL_LINKS.upgradeHub, "primary"),
     ghlSignoff(),
@@ -298,7 +298,7 @@ export function buildEmail05Body(): string {
   return [
     ghlGreeting(),
     ghlParagraph(
-      "LevelStack gives you a snapshot — what the internet shows about your business today.",
+      "LevelStack gives you a Visibility Snapshot — what the internet shows about your business today.",
     ),
     ghlParagraph(
       "Search results change. Technical issues stack up quietly. The work in your action plan takes time; the technical layer does not have to stay manual.",
@@ -307,7 +307,67 @@ export function buildEmail05Body(): string {
       "SEO Automator Pro monitors the technical foundation continuously so visibility does not slip between audits.",
     ),
     ghlCtaButton(GHL_LINKS.sapWaitlist, "secondary"),
-    ghlParagraph(`Your report (reference): ${ghlLink(GHL_MERGE.reportUrl, "Open your snapshot")}`),
+    ghlParagraph(`Your snapshot (reference): ${ghlLink(GHL_MERGE.reportUrl, "Open Visibility Snapshot")}`),
+    ghlSignoff(),
+  ].join("\n")
+}
+
+export function buildWaitlistEmailW1Body(): string {
+  return [
+    ghlGreeting(),
+    ghlParagraph("You're on the list, and your $97 assessment fee credit is locked in."),
+    ghlParagraph(
+      "When your SEO Automator Pro slot opens, we'll apply the full credit to your first month at charter pricing.",
+    ),
+    ghlParagraph(
+      "Until then, keep working your highest-impact Action Roadmap items so automation starts from a cleaner baseline.",
+    ),
+    ghlCtaButton(GHL_LINKS.sapWaitlist, "secondary"),
+    ghlSignoff(),
+  ].join("\n")
+}
+
+export function buildWaitlistEmailW2Body(): string {
+  return [
+    ghlGreeting(),
+    ghlParagraph('The anatomy of a "D" grade is usually one visibility leak, not one dramatic failure.'),
+    ghlParagraph(
+      "A missing local signal, stale metadata, or crawl drift can quietly reduce calls while everything looks normal on the surface.",
+    ),
+    ghlParagraph(
+      "Your Action Roadmap prioritizes what to plug first. SEO Automator Pro is built to keep those gaps from reopening.",
+    ),
+    ghlCtaButton(GHL_LINKS.sapWaitlist, "secondary"),
+    ghlSignoff(),
+  ].join("\n")
+}
+
+export function buildWaitlistEmailW3Body(): string {
+  return [
+    ghlGreeting(),
+    ghlParagraph("More operators are replacing one-off SEO retainers with monitored systems."),
+    ghlParagraph(
+      "The issue is not effort. It is drift: issues return between audits, and visibility leaks grow before anyone catches them.",
+    ),
+    ghlParagraph(
+      "SEO Automator Pro is designed to monitor and correct the technical layer continuously while you execute your Action Roadmap.",
+    ),
+    ghlCtaButton(GHL_LINKS.sapWaitlist, "secondary"),
+    ghlSignoff(),
+  ].join("\n")
+}
+
+export function buildWaitlistEmailW4Body(): string {
+  return [
+    ghlGreeting(),
+    ghlParagraph("Cohort update: we're preparing the next SEO Automator Pro automation slots."),
+    ghlParagraph(
+      "If your operations are still manual, now is the time to complete your highest-priority Action Roadmap items.",
+    ),
+    ghlParagraph(
+      "That gives your account the fastest path from onboarding to stable search visibility once your slot is released.",
+    ),
+    ghlCtaButton(GHL_LINKS.sapWaitlist, "secondary"),
     ghlSignoff(),
   ].join("\n")
 }
@@ -339,8 +399,35 @@ export const GHL_EMAIL_TEMPLATES = [
   },
   {
     filename: "email-05-sap-bridge.html",
-    subject: "The part your report can't fix for you",
+    subject: "The part your Visibility Snapshot can't fix for you",
     preheader: "The technical layer does not have to stay manual",
     buildBody: buildEmail05Body,
+  },
+] as const
+
+export const GHL_WAITLIST_EMAIL_TEMPLATES = [
+  {
+    filename: "waitlist-w1-credit-locked.html",
+    subject: "You're on the list (and your $97 credit is locked in)",
+    preheader: "Your SEO Automator Pro charter credit is secured.",
+    buildBody: buildWaitlistEmailW1Body,
+  },
+  {
+    filename: "waitlist-w2-grade-anatomy.html",
+    subject: 'The anatomy of a "D" Grade (And the local search leak)',
+    preheader: "Small visibility leaks create expensive local gaps.",
+    buildBody: buildWaitlistEmailW2Body,
+  },
+  {
+    filename: "waitlist-w3-ditch-traditional-agencies.html",
+    subject: "Why local businesses are ditching traditional agencies",
+    preheader: "Operators are moving from episodic SEO to monitored systems.",
+    buildBody: buildWaitlistEmailW3Body,
+  },
+  {
+    filename: "waitlist-w4-cohort-update.html",
+    subject: "Cohort update: preparing the next automation slots",
+    preheader: "What to finish now before onboarding opens.",
+    buildBody: buildWaitlistEmailW4Body,
   },
 ] as const

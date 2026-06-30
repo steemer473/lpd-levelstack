@@ -1,10 +1,10 @@
 import { TERMS } from "@/lib/report/customer-terms"
 
 export const REPORT_INTRO = {
-  title: "How to read this report",
+  title: "How to read your dashboard",
   body: [
-    "This is your LevelStack readiness report — a diagnostic of how prospects and customers likely see your business online across search, reputation, digital presence, your funnel, and competitors.",
-    "Start with Executive summary for the big picture and readiness scores. Use the tabs left to right for detail. Each section explains what we measured and why it matters. End on Action plan for prioritized next steps.",
+    "This is your LevelStack Visibility Snapshot — a diagnostic of how prospects likely see your business online across search, reputation, digital presence, your funnel, and competitors.",
+    "Findings use outcome labels like Revenue Risk and Visibility Leak so you see business impact, not jargon. Start with Executive summary, then use the tabs for detail. Unlock your 90-Day Action Blueprint for prioritized fixes with copy-paste assets.",
   ],
   note: "Diagnostic only — you or your team execute the fixes. LevelStack does not guarantee rankings or revenue outcomes.",
 } as const

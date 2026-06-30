@@ -9,10 +9,11 @@ import type {
   StructuredExecutiveInsights,
 } from "@/lib/report/executive-insight-parts"
 import { flattenExecutiveInsight } from "@/lib/report/executive-insight-parts"
+import { PRODUCT_NAMES } from "@/lib/report/outcome-copy"
 
 export { isGenericDirectoryListing } from "@/lib/research/reputation-parse"
 
-/** Intake fields the full report collects but the free snapshot form does not. */
+/** Intake fields the Action Roadmap collects but the free snapshot form does not. */
 export const FREE_SNAPSHOT_INTAKE_GAP = {
   reputation:
     "how you rate your reputation (1–10) and any complaints or negative reviews you're aware of",
@@ -219,7 +220,7 @@ export function buildFreeTierReputationGapParts(
     },
     {
       kind: "muted",
-      text: "Upgrade to the Full Report ($97) to add your self-assessment and get a side-by-side reputation gap analysis.",
+      text: `Upgrade to ${PRODUCT_NAMES.paid} ($97) to add your self-assessment and get a side-by-side reputation gap analysis.`,
     },
   )
 
@@ -259,7 +260,7 @@ export function buildFreeTierRevenueRiskParts(
     },
     {
       kind: "muted",
-      text: "Upgrade to the Full Report ($97) for funnel and ad-spend intake plus a prioritized revenue-risk diagnosis.",
+      text: `Upgrade to ${PRODUCT_NAMES.paid} ($97) for funnel and ad-spend intake plus a prioritized revenue-risk diagnosis.`,
     },
   )
 

@@ -170,9 +170,9 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
         {paidPendingIntake ? (
           <div className="rounded-lg border border-brand-orange/30 bg-brand-orange/5 px-4 py-3 text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <p className="font-medium">Payment received — complete intake to unlock your full report.</p>
+              <p className="font-medium">Payment received — complete intake to unlock your Action Roadmap.</p>
               <p className="text-muted-foreground mt-0.5">
-                Takes about 3 minutes; your full report generates automatically after submit.
+                Takes about 3 minutes; your Action Roadmap generates automatically after submit.
               </p>
             </div>
             <Button variant="brand" asChild className="shrink-0">

@@ -2,6 +2,7 @@
 
 import {
   ArrowUp,
+  ArrowRight,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -20,6 +21,7 @@ import {
 
 import { ExecutiveSummaryConversion } from "@/components/report/executive-summary-conversion"
 import { ExecutiveSummaryDashboard } from "@/components/report/executive-summary-dashboard"
+import { ActionItemMatrixRow } from "@/components/report/action-item-matrix-row"
 import { LockedSectionPreview } from "@/components/report/locked-section-preview"
 import { SapBridgeBlock } from "@/components/report/sap-bridge-block"
 import { FindingCard, FindingSeverityBlock } from "@/components/report/finding-card"
@@ -43,7 +45,7 @@ import {
   SECTION_TAB_ORDER,
 } from "@/lib/report/display-helpers"
 import { REPORT_INTRO } from "@/lib/report/section-guides"
-import { buildUpgradeTeaserCopy } from "@/lib/report/parse-serp-rows"
+import { UPGRADE_BANNER } from "@/lib/report/outcome-copy"
 import { getHubUpgradeUrl, getHubSeoWaitlistUrl, getHubWorkflowWaitlistUrl } from "@/lib/urls"
 import { cn } from "@/lib/utils"
 
@@ -222,20 +224,22 @@ export function UpgradeBanner({
     report.meta.issueCountForUpgrade ??
     report.meta.criticalCount + report.meta.highCount
 
-  const upgradeCopy = buildUpgradeTeaserCopy(report)
   const upgradeUrl = getHubUpgradeUrl({ reportId, source: "levelstack_report" })
 
   return (
     <div className="rpt-upsell flex flex-col gap-3 px-7 py-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="text-sm leading-relaxed">
-        <p className="font-medium text-white">
-          We found {issueCount} issue{issueCount === 1 ? "" : "s"} in your public presence —
-          including gaps that may be costing you leads.
+        <p className="font-medium text-white">{UPGRADE_BANNER.leadLine}</p>
+        <p className="mt-1 text-white/80">
+          We found {issueCount} issue{issueCount === 1 ? "" : "s"} in your public presence.
         </p>
-        <p className="mt-1 text-white/60">{upgradeCopy}</p>
+        <p className="mt-1 text-white/60">{UPGRADE_BANNER.body}</p>
       </div>
       <Button variant="brand" asChild className="shrink-0">
-        <Link href={upgradeUrl}>Upgrade — $97</Link>
+        <Link href={upgradeUrl}>
+          {UPGRADE_BANNER.button}
+          <ArrowRight className="h-4 w-4" aria-hidden />
+        </Link>
       </Button>
     </div>
   )
@@ -398,43 +402,22 @@ export function ActionPlanPanel({ report }: { report: LevelstackReportJson }) {
           >
             {g.label}
           </span>
-          <div className="grid grid-cols-[20px_1fr_80px_64px] gap-2 text-[10px] uppercase text-muted-foreground border-b border-border pb-1 mb-1">
-            <span>#</span>
-            <span>Action</span>
-            <span className="text-right">Who</span>
-            <span className="text-right">Time</span>
-          </div>
-          {items[g.key].map((item) => {
+          <div className="space-y-2">
+            {items[g.key].map((item) => {
             num += 1
             return (
-              <div
-                key={`${g.key}-${num}`}
-                className="grid grid-cols-[20px_1fr_80px_64px] gap-2 py-2 border-b border-border/60 text-sm items-start"
-              >
-                <span className="text-muted-foreground text-xs pt-0.5">{num}</span>
-                <div>
-                  <p className="font-medium leading-snug">{item.task}</p>
-                  {item.sub ? (
-                    <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                      {item.sub}
-                    </p>
-                  ) : null}
-                  {item.findingRef ? (
-                    <p className="text-[10px] text-muted-foreground/80 mt-1">
-                      From: {item.findingRef}
-                    </p>
-                  ) : null}
-                  {item.automatorFlag ? <AutomatorFlagCallout product={item.automatorProduct ?? "seo"} /> : null}
-                </div>
-                <span className="text-xs text-muted-foreground text-right pt-0.5">
-                  {item.who}
-                </span>
-                <span className="text-xs text-muted-foreground text-right pt-0.5">
-                  {item.time}
-                </span>
+              <div key={`${g.key}-${num}`}>
+                <ActionItemMatrixRow item={item} itemNumber={num} />
+                {item.findingRef ? (
+                  <p className="mt-1 text-[10px] text-muted-foreground/80">From: {item.findingRef}</p>
+                ) : null}
+                {item.automatorFlag ? (
+                  <AutomatorFlagCallout product={item.automatorProduct ?? "seo"} />
+                ) : null}
               </div>
             )
-          })}
+            })}
+          </div>
         </div>
       ))}
       {!isFree ? <SapBridgeBlock placement="fullActionPlan" /> : null}

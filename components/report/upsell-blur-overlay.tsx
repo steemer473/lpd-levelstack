@@ -36,7 +36,7 @@ export function UpsellBlurOverlay({
         <Lock className="h-5 w-5 shrink-0 text-brand-orange" aria-hidden />
         <p className="text-sm font-medium text-foreground max-w-xs">{message}</p>
         <Button variant="brand" size="sm" asChild className="shrink-0">
-          <Link href={upgradeUrl}>Unlock Full Report — $97</Link>
+          <Link href={upgradeUrl}>Unlock Action Roadmap — $97</Link>
         </Button>
       </div>
     </div>

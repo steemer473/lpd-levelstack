@@ -4,6 +4,7 @@ import type { ResearchBundle } from "@/lib/pipeline/research-types"
 import { isNonCompetitorHost, topCompetitorDomains } from "@/lib/research/serp/competitor-domains"
 import { hostnameFromUrl } from "@/lib/research/serp"
 import type { SerpOrganicResult } from "@/lib/research/serp/types"
+import { PRODUCT_NAMES } from "@/lib/report/outcome-copy"
 
 export type SerpRowFromDetail = {
   rank: number
@@ -209,12 +210,12 @@ export function buildUpgradeTeaserCopy(report: LevelstackReportJson): string {
   const rank = extractBusinessSearchRank(report)
 
   if (previewCompetitor) {
-    return `#1 organic result for this search: ${previewCompetitor.domain} — unlock Full Report ($97) for full competitive comparison and your prioritized 90-day action plan.`
+    return `#1 organic result for this search: ${previewCompetitor.domain} — unlock ${PRODUCT_NAMES.paid} ($97) for full competitive comparison and your prioritized 90-day action plan.`
   }
 
   if (rank != null && rank <= 3) {
-    return `You rank #${rank} for your business name in Google — unlock Full Report ($97) for service-search competitors, funnel diagnosis, and your prioritized 90-day action plan.`
+    return `You rank #${rank} for your business name in Google — unlock ${PRODUCT_NAMES.paid} ($97) for service-search competitors, funnel diagnosis, and your prioritized 90-day action plan.`
   }
 
-  return "Unlock your Full Report ($97) for revenue funnel diagnosis, full competitive analysis, and your prioritized 90-day action plan."
+  return `Unlock your ${PRODUCT_NAMES.paid} ($97) for revenue funnel diagnosis, full competitive analysis, and your prioritized 90-day action plan.`
 }

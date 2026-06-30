@@ -13,8 +13,11 @@ import {
   UpgradeBanner,
   useReportTabs,
 } from "@/components/report/report-shared"
+import { LockedSectionUnlockModal } from "@/components/report/locked-section-unlock-modal"
+import { ReportFaqSection } from "@/components/report/report-faq-section"
 import { ReportSidebar } from "@/components/report/report-sidebar"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
+import { useState } from "react"
 
 type LevelstackReportViewProps = {
   report: LevelstackReportJson
@@ -25,6 +28,7 @@ export function LevelstackReportView({ report, reportId }: LevelstackReportViewP
   const [nav, reportRef] = useReportTabs(report)
   const { meta } = nav
   const isExecutive = nav.activeTab === "executive_summary"
+  const [unlockModalOpen, setUnlockModalOpen] = useState(false)
 
   return (
     <>
@@ -41,6 +45,7 @@ export function LevelstackReportView({ report, reportId }: LevelstackReportViewP
           }))}
           activeTab={nav.activeTab}
           onSelectTab={nav.selectTab}
+          onLockedTabClick={() => setUnlockModalOpen(true)}
           reportId={reportId}
         />
 
@@ -73,12 +78,22 @@ export function LevelstackReportView({ report, reportId }: LevelstackReportViewP
           ) : null}
 
           <UpgradeBanner report={report} reportId={reportId} />
+          {meta.reportTier === "free_snapshot" ? (
+            <div className="px-6 pb-5">
+              <ReportFaqSection />
+            </div>
+          ) : null}
 
           <ReportFooter meta={meta} />
         </div>
       </div>
 
       <ScrollToTopButton visible={nav.showScrollTop} onClick={nav.scrollToReportTop} />
+      <LockedSectionUnlockModal
+        open={unlockModalOpen}
+        onOpenChange={setUnlockModalOpen}
+        reportId={reportId}
+      />
     </>
   )
 }

@@ -72,7 +72,7 @@ export default async function IntakePage({ searchParams }: PageProps) {
               <CardTitle>Report not found</CardTitle>
               <CardDescription>
                 We couldn&apos;t find that report on your account. You can still complete intake
-                for a new full report.
+                for a new Action Roadmap.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -139,7 +139,7 @@ export default async function IntakePage({ searchParams }: PageProps) {
               <CardTitle>Intake already submitted</CardTitle>
               <CardDescription>
                 {reportGenerating
-                  ? "Your full report is generating — no need to submit again."
+                  ? "your Action Roadmap is generating — no need to submit again."
                   : "Your report is ready to view — no need to submit again."}
               </CardDescription>
             </CardHeader>
@@ -188,7 +188,7 @@ export default async function IntakePage({ searchParams }: PageProps) {
       <FormPanel className="max-w-3xl mx-auto">
         {fromUpgrade && bannerReportId ? (
           <div className="mb-4 rounded-lg border border-brand-orange/30 bg-brand-orange/5 px-4 py-3 text-sm">
-            <p className="font-medium">Payment received — complete intake to unlock your full report.</p>
+            <p className="font-medium">Payment received — complete intake to unlock your Action Roadmap.</p>
             <p className="text-muted-foreground mt-1">
               Your free snapshot is still available while you finish these details (~3 minutes).
             </p>
@@ -201,7 +201,7 @@ export default async function IntakePage({ searchParams }: PageProps) {
           </div>
         ) : null}
         <div className="mb-6">
-          <h2 className="text-xl font-semibold">Complete your full report intake</h2>
+          <h2 className="text-xl font-semibold">Complete your Action Roadmap intake</h2>
           <p className="text-muted-foreground text-sm mt-1">
             You already have a free snapshot. Add the details below so we can generate your full
             LevelStack report.
@@ -216,7 +216,7 @@ export default async function IntakePage({ searchParams }: PageProps) {
     <FormPanel className="max-w-3xl mx-auto">
       {fromUpgrade ? (
         <div className="mb-4 rounded-lg border border-brand-orange/30 bg-brand-orange/5 px-4 py-3 text-sm">
-          <p className="font-medium">Payment received — let&apos;s build your full report.</p>
+          <p className="font-medium">Payment received — let&apos;s build your Action Roadmap.</p>
           <p className="text-muted-foreground mt-1">
             All fields are required. This usually takes about 3 minutes.
           </p>

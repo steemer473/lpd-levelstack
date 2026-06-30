@@ -7,6 +7,11 @@ export const findingSchema = z.object({
   value: z.string(),
   detail: z.string(),
   severity: severitySchema,
+  headline: z.string().optional(),
+  bullets: z.array(z.string()).optional(),
+  riskCategory: z.string().optional(),
+  snippetBefore: z.string().optional(),
+  snippetAfter: z.string().optional(),
 })
 
 export const aiPreviewSchema = z.object({
@@ -66,6 +71,11 @@ export const actionItemSchema = z.object({
   findingRef: z.string().optional(),
   automatorFlag: z.boolean().optional(),
   automatorProduct: z.enum(["seo", "workflow"]).optional(),
+  impactLevel: z.string().optional(),
+  artifact: z.string().optional(),
+  coreMetric: z.string().optional(),
+  leakBadge: z.string().optional(),
+  marketToll: z.string().optional(),
 })
 
 export const insightBlockSchema = z.object({

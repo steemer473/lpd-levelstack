@@ -311,6 +311,60 @@ export function LevelstackIntakeForm({
                 </FormItem>
               )}
             />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="ninetyDayGoal"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Primary 90-day goal</FormLabel>
+                    <FormControl>
+                      <select
+                        className="border-input bg-background flex h-9 w-full rounded-md border px-3 text-sm"
+                        value={field.value ?? ""}
+                        onChange={(e) => field.onChange(e.target.value || undefined)}
+                      >
+                        <option value="">Select goal</option>
+                        <option value="calls">More qualified calls</option>
+                        <option value="reputation">Stronger reputation signals</option>
+                        <option value="website">Better website conversion</option>
+                        <option value="ads">Improve paid ads efficiency</option>
+                      </select>
+                    </FormControl>
+                    <FormDescription>
+                      We prioritize your action plan around this goal first.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="contractValueTier"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Average contract value</FormLabel>
+                    <FormControl>
+                      <select
+                        className="border-input bg-background flex h-9 w-full rounded-md border px-3 text-sm"
+                        value={field.value ?? ""}
+                        onChange={(e) => field.onChange(e.target.value || undefined)}
+                      >
+                        <option value="">Select range</option>
+                        <option value="under_500">Under $500</option>
+                        <option value="500_2500">$500 - $2,500</option>
+                        <option value="2500_10000">$2,500 - $10,000</option>
+                        <option value="10000_plus">$10,000+</option>
+                      </select>
+                    </FormControl>
+                    <FormDescription>
+                      Used for revenue-impact framing in your Action Roadmap.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="hasActiveAdSpend"
@@ -361,6 +415,26 @@ export function LevelstackIntakeForm({
                 />
               </>
             )}
+            <FormField
+              control={form.control}
+              name="topCompetitorUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Top competitor (name or URL)</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      placeholder="e.g. Acme Plumbing or https://acmeplumbing.com"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Helps personalize rival comparison and blueprint ordering.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
 
