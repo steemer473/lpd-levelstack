@@ -95,9 +95,14 @@ https://lpd-levelstack.vercel.app/**
 
 `NEXT_PUBLIC_APP_URL` must match the primary redirect entry or magic-link and email URLs will point at the wrong host.
 
-### Magic-link OTP expiry (24 hours — Supabase max)
+### Report access vs sign-in OTP expiry
 
-Free snapshot report-ready emails state links are valid for **24 hours**. In Supabase (hosted project `lppmbgqsovtfbpbvjvxi`):
+| Mechanism | TTL | Used for |
+|-----------|-----|----------|
+| **Possession token** (`rtoken`) | **30 days** | Report-ready email primary CTA (`generateReportAccessUrl`) |
+| **Supabase email OTP** | **24 hours** (hosted max) | Initial submit redirect, sign-in resend, expired-token recovery |
+
+In Supabase (hosted project `lppmbgqsovtfbpbvjvxi`):
 
 **Authentication → Providers → Email → Email OTP expiration** → set **`86400`** (seconds)
 

@@ -9,7 +9,7 @@ End-to-end flow for the LevelStack free snapshot on `levelstack.levelplaydigital
 3. **Auth** — magic-link redirect to `/reports/{id}` progress screen
 4. **Pipeline** — live SERP research (~7 queries for free tier) + website fetch → report JSON saved
 5. **Report** — progress UI refreshes to full report (~1.5s ready state)
-6. **Email** — one user email when generation completes (magic link, valid 24 hours); admin notified on submit
+6. **Email** — one user email when generation completes; primary CTA uses a **30-day possession token** (`rtoken`). Supabase sign-in links (resend / expired token) use **24-hour OTP**.
 
 ## One snapshot per email (production)
 
@@ -59,7 +59,7 @@ LEVELSTACK_DEV_MOCK_SERP=true
 
 Recommended: `RESEND_API_KEY`, `FROM_EMAIL`, `LEVELSTACK_ADMIN_NOTIFY_EMAIL`, `GHL_API_KEY`, `GHL_LOCATION_ID`
 
-**Supabase Auth:** Set **Email OTP expiration** to **86400 seconds (24 hours)** — the maximum allowed on hosted Supabase (Authentication → Providers → Email). Email copy matches this limit.
+**Supabase Auth:** Set **Email OTP expiration** to **86400 seconds (24 hours)** — the maximum allowed on hosted Supabase (Authentication → Providers → Email). Used for sign-in / resend flows only. Report-ready email CTAs use a separate **30-day** possession token (`REPORT_ACCESS_TOKEN_TTL_SECONDS`).
 
 Verify locally:
 
@@ -94,7 +94,7 @@ Failed runs do **not** write to `levelstack_serp_cache`. Cache only stores succe
 | When | Recipient | Email |
 |---|---|---|
 | Form submit | Admin (`LEVELSTACK_ADMIN_NOTIFY_EMAIL`, default `admin@levelplaydigital.com`) | New submission + contact info |
-| Pipeline complete | User (submitter) | Report ready + magic link (24 hours) |
+| Pipeline complete | User (submitter) | Report ready + possession link (**30 days**); sign-in resend link (**24 hours**) |
 
 Nurture / upgrade sequences (Emails 2–5) are **not** sent from the app — build in GHL per [operations/ghl-nurture-workflow.md](./operations/ghl-nurture-workflow.md).
 

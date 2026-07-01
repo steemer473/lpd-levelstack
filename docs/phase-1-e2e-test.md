@@ -35,7 +35,7 @@ See [free-snapshot-workflow.md](./free-snapshot-workflow.md) for the full refere
 2. **Submit** business name, domain, and email.
 3. **Instant redirect** — Browser follows the magic sign-in link to `/reports/[reportId]` (live progress screen).
 4. **Progress** — Step headline shows "Checking your … N of 6"; page auto-refreshes when the snapshot is ready.
-5. **Email** — Report-ready email when generation completes (includes magic link backup, valid 24 hours).
+5. **Email** — Report-ready email when generation completes (primary link valid **30 days**; sign-in resend links valid **24 hours**).
 
 **Dev:** same email re-submit replaces the prior snapshot automatically (`?replace=1`). **Production:** one snapshot per email — use a new email to test another business.
 
