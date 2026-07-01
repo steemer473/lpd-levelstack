@@ -17,7 +17,10 @@ export function ReportFaqSection({
   className,
 }: ReportFaqSectionProps) {
   return (
-    <section className={cn("rounded-xl border border-border bg-card p-5", className)}>
+    <section
+      id="action-roadmap-faqs"
+      className={cn("scroll-mt-24 rounded-xl border border-border bg-card p-5", className)}
+    >
       <h3 className="text-lg font-semibold text-foreground">{title}</h3>
       <p className="mt-1 text-sm text-muted-foreground">{intro}</p>
       <div className="mt-4 space-y-2">
