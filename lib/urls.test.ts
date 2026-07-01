@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { getHubUpgradeUrl } from "@/lib/urls"
+import { getHubCartUrl, getHubUpgradeUrl } from "@/lib/urls"
 
 describe("getHubUpgradeUrl", () => {
   it("includes reportId, planId, source, and pricing hash", () => {
@@ -19,5 +19,26 @@ describe("getHubUpgradeUrl", () => {
   it("defaults to full report plan when omitted", () => {
     const url = getHubUpgradeUrl({ reportId: "abc" })
     expect(url).toContain("planId=levelstack-full-report")
+  })
+})
+
+describe("getHubCartUrl", () => {
+  it("includes product, plan, reportId, and source", () => {
+    const url = getHubCartUrl({
+      reportId: "11111111-1111-4111-8111-111111111111",
+      plan: "levelstack-standard",
+      source: "levelstack_report",
+    })
+
+    expect(url).toContain("/cart")
+    expect(url).toContain("product=levelstack")
+    expect(url).toContain("plan=levelstack-standard")
+    expect(url).toContain("reportId=11111111-1111-4111-8111-111111111111")
+    expect(url).toContain("source=levelstack_report")
+  })
+
+  it("defaults to levelstack-standard when plan omitted", () => {
+    const url = getHubCartUrl({ reportId: "abc" })
+    expect(url).toContain("plan=levelstack-standard")
   })
 })

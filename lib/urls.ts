@@ -31,6 +31,26 @@ export type GetHubUpgradeUrlParams = {
   source?: HubUpgradeSource
 }
 
+export type HubCartPlan = "levelstack-standard" | "levelstack-review-call"
+
+export type GetHubCartUrlParams = {
+  reportId?: string
+  plan?: HubCartPlan
+  source?: HubUpgradeSource
+}
+
+/** Direct hub cart entry for high-intent in-report unlocks. */
+export function getHubCartUrl(params: GetHubCartUrlParams = {}): string {
+  const { reportId, plan = "levelstack-standard", source } = params
+  const base = env.NEXT_PUBLIC_HUB_URL ?? "https://levelplaydigital.com"
+  const url = new URL("/cart", base)
+  url.searchParams.set("product", "levelstack")
+  url.searchParams.set("plan", plan)
+  if (reportId) url.searchParams.set("reportId", reportId)
+  if (source) url.searchParams.set("source", source)
+  return url.toString()
+}
+
 /** Hub checkout entry with optional report context for Stripe metadata passthrough. */
 export function getHubUpgradeUrl(params: GetHubUpgradeUrlParams = {}): string {
   const { reportId, planId = "levelstack-full-report", source } = params

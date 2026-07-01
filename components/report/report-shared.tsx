@@ -46,7 +46,7 @@ import {
 } from "@/lib/report/display-helpers"
 import { REPORT_INTRO } from "@/lib/report/section-guides"
 import { UPGRADE_BANNER } from "@/lib/report/outcome-copy"
-import { getHubUpgradeUrl, getHubSeoWaitlistUrl, getHubWorkflowWaitlistUrl } from "@/lib/urls"
+import { getHubCartUrl, getHubSeoWaitlistUrl, getHubWorkflowWaitlistUrl } from "@/lib/urls"
 import { cn } from "@/lib/utils"
 
 export type ReportViewProps = {
@@ -224,10 +224,10 @@ export function UpgradeBanner({
     report.meta.issueCountForUpgrade ??
     report.meta.criticalCount + report.meta.highCount
 
-  const upgradeUrl = getHubUpgradeUrl({ reportId, source: "levelstack_report" })
+  const upgradeUrl = getHubCartUrl({ reportId, source: "levelstack_report" })
 
   return (
-    <div className="rpt-upsell flex flex-col gap-3 px-7 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="rpt-upsell flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="text-sm leading-relaxed">
         <p className="font-medium text-white">{UPGRADE_BANNER.leadLine}</p>
         <p className="mt-1 text-white/80">
@@ -235,7 +235,7 @@ export function UpgradeBanner({
         </p>
         <p className="mt-1 text-white/60">{UPGRADE_BANNER.body}</p>
       </div>
-      <Button variant="brand" asChild className="shrink-0">
+      <Button variant="brand" asChild className="min-h-10 shrink-0">
         <Link href={upgradeUrl}>
           {UPGRADE_BANNER.button}
           <ArrowRight className="h-4 w-4" aria-hidden />

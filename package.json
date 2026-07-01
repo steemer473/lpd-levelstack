@@ -17,6 +17,8 @@
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "type-check": "tsc --noEmit",
     "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:mobile": "playwright test e2e/report-mobile.spec.ts",
     "verify:env": "node scripts/verify-vercel-env.mjs --from-local",
     "verify:research": "node scripts/verify-research-keys.mjs",
     "setup:ghl-fields": "node scripts/setup-ghl-levelstack-fields.mjs --from-local",
@@ -25,7 +27,9 @@
     "paste:ghl-emails": "node scripts/ghl-email-paste-helper.mjs"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["sharp"]
+    "onlyBuiltDependencies": [
+      "sharp"
+    ]
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -47,6 +51,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

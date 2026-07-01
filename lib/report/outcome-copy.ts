@@ -29,13 +29,21 @@ export type OutcomeLabelKey = keyof typeof OUTCOME_LABELS
 export const UPGRADE_BANNER = {
   leadLine: "Want us to automate these fixes for you? Apply for early access.",
   body: `SEO Automator Pro is currently at capacity to ensure maximum performance for our charter members. Unlock your ${PRODUCT_NAMES.paid} ($97) today to secure a priority position on our waitlist. When a spot opens up, your $97 assessment fee will be credited 100% toward your first month of service.`,
-  button: `Unlock ${PRODUCT_NAMES.paid} & Join Priority Waitlist`,
+  button: `Unlock ${PRODUCT_NAMES.paid} — $97`,
 } as const
 
 export const LOCKED_SECTION_MODAL = {
   title: `Unlock Your ${PRODUCT_NAMES.lockedModule} & Competitive Analysis`,
-  primaryCta: (price = "$97") =>
-    `Unlock ${PRODUCT_NAMES.paid} — ${price} (100% assessment fee credited if you join the SEO Automator Pro waitlist)`,
+  description:
+    "Your free snapshot found the gaps. The Action Roadmap shows how to close them.",
+  bullets: [
+    "Full 90-day prioritized action plan with Who / Time / Impact",
+    "Reputation, funnel, and competitive modules unlocked",
+    "Dashboard + PDF ready immediately after purchase",
+  ] as const,
+  primaryCta: (price = "$97") => `Unlock ${PRODUCT_NAMES.paid} — ${price}`,
+  creditNote:
+    "100% assessment fee credited if you join the SEO Automator Pro waitlist.",
   secondaryCta: `Return to ${PRODUCT_NAMES.free}`,
 } as const
 
@@ -48,6 +56,8 @@ export const SAP_WAITLIST_MODAL = {
     "Instantly apply your $97 assessment fee to your first month of automation.",
   ] as const,
   cta: "Apply for Early Access & Lock in My $97 Credit",
+  primaryCta: "Apply for Early Access",
+  creditNote: "Lock in your $97 assessment credit when your slot opens.",
   waitlistUrl: "/platform/seo?source=levelstack_report_credit",
 } as const
 

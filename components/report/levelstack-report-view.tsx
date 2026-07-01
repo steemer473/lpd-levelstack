@@ -22,13 +22,18 @@ import { useState } from "react"
 type LevelstackReportViewProps = {
   report: LevelstackReportJson
   reportId?: string
+  defaultUnlockModalOpen?: boolean
 }
 
-export function LevelstackReportView({ report, reportId }: LevelstackReportViewProps) {
+export function LevelstackReportView({
+  report,
+  reportId,
+  defaultUnlockModalOpen = false,
+}: LevelstackReportViewProps) {
   const [nav, reportRef] = useReportTabs(report)
   const { meta } = nav
   const isExecutive = nav.activeTab === "executive_summary"
-  const [unlockModalOpen, setUnlockModalOpen] = useState(false)
+  const [unlockModalOpen, setUnlockModalOpen] = useState(defaultUnlockModalOpen)
 
   return (
     <>
@@ -79,7 +84,7 @@ export function LevelstackReportView({ report, reportId }: LevelstackReportViewP
 
           <UpgradeBanner report={report} reportId={reportId} />
           {meta.reportTier === "free_snapshot" ? (
-            <div className="px-6 pb-5">
+            <div className="px-6 py-5">
               <ReportFaqSection />
             </div>
           ) : null}
