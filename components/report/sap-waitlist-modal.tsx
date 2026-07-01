@@ -24,7 +24,7 @@ export function SapWaitlistModal({ open, onOpenChange }: SapWaitlistModalProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{SAP_WAITLIST_MODAL.title}</DialogTitle>
+          <DialogTitle className="text-balance leading-snug">{SAP_WAITLIST_MODAL.title}</DialogTitle>
           <DialogDescription>{SAP_WAITLIST_MODAL.paidStatusLine}</DialogDescription>
         </DialogHeader>
         <ul className="space-y-2">
@@ -35,16 +35,25 @@ export function SapWaitlistModal({ open, onOpenChange }: SapWaitlistModalProps) 
             </li>
           ))}
         </ul>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="flex-col gap-3 sm:flex-row sm:items-end sm:justify-end">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="w-full sm:w-auto"
+          >
             Close
           </Button>
-          <Button variant="brand" asChild>
-            <Link href={SAP_WAITLIST_MODAL.waitlistUrl}>
-              {SAP_WAITLIST_MODAL.cta}
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-          </Button>
+          <div className="flex w-full flex-col items-stretch gap-1.5 sm:w-auto sm:items-end">
+            <Button variant="brand" size="lg" asChild className="w-full sm:w-auto">
+              <Link href={SAP_WAITLIST_MODAL.waitlistUrl}>
+                {SAP_WAITLIST_MODAL.primaryCta}
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </Button>
+            <p className="text-center text-xs text-muted-foreground sm:text-right">
+              {SAP_WAITLIST_MODAL.creditNote}
+            </p>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

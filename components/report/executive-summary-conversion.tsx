@@ -387,12 +387,6 @@ export function ExecutiveSummaryConversion({
 
       <div className="rpt-conv-means-grid">
         <MeansCard
-          title="Most critical issue"
-          body={content.highlights.criticalIssue}
-          tintClass="rpt-highlight-critical"
-          icon={AlertTriangle}
-        />
-        <MeansCard
           title="Business impact"
           body={content.highlights.businessImpact}
           tintClass="rpt-highlight-blue"

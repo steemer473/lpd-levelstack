@@ -29,12 +29,15 @@ See `lib/prompts/levelstackCopyPrompt.ts` and AGENTS.md § LevelStack Data-to-Co
 
 - Lead: "Want us to automate these fixes for you? Apply for early access."
 - Body: SAP at capacity + Action Roadmap $97 + waitlist + assessment fee credit
-- Button: "Unlock Action Roadmap & Join Priority Waitlist"
+- Button: "Unlock Action Roadmap — $97" (waitlist credit stays in body copy)
 
 ### Locked section modal
 
 - Title: "Unlock Your 90-Day Action Blueprint & Competitive Analysis"
-- CTA: "Unlock Action Roadmap — $97 (100% assessment fee credited if you join the SEO Automator Pro waitlist)"
+- Description: "Your free snapshot found the gaps. The Action Roadmap shows how to close them."
+- Bullets: 90-day plan, unlocked modules, dashboard + PDF
+- Primary CTA: "Unlock Action Roadmap — $97"
+- Credit note (below button): "100% assessment fee credited if you join the SEO Automator Pro waitlist."
 - Secondary: "Return to Visibility Snapshot"
 
 ### SAP waitlist modal

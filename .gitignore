@@ -25,6 +25,10 @@ next-env.d.ts
 .DS_Store
 .vercel
 
+# playwright
+playwright-report/
+test-results/
+
 # supabase
 supabase/.branches
 supabase/.temp

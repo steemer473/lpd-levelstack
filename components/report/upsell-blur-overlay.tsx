@@ -5,7 +5,7 @@ import { Lock } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
-import { getHubUpgradeUrl, type HubUpgradeSource } from "@/lib/urls"
+import { getHubCartUrl, type HubUpgradeSource } from "@/lib/urls"
 import { cn } from "@/lib/utils"
 
 type UpsellBlurOverlayProps = {
@@ -23,7 +23,7 @@ export function UpsellBlurOverlay({
   reportId,
   source = "levelstack_report",
 }: UpsellBlurOverlayProps) {
-  const upgradeUrl = getHubUpgradeUrl({ reportId, source })
+  const upgradeUrl = getHubCartUrl({ reportId, source })
   return (
     <div className={cn("grid overflow-hidden rounded-lg", className)}>
       <div
