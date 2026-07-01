@@ -81,9 +81,16 @@ function DialogTrigger({
   )
 }
 
+function useIsMounted() {
+  return React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
+}
+
 function DialogPortal({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = React.useState(false)
-  React.useEffect(() => setMounted(true), [])
+  const mounted = useIsMounted()
   if (!mounted) return null
   return createPortal(children, document.body)
 }
