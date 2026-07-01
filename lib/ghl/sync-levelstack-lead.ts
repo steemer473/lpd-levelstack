@@ -1,6 +1,7 @@
 import { createGHLContact } from "@/lib/ghl/ghl-api"
 import { getGHLFieldKey } from "@/lib/ghl/field-mapping"
 import { splitFullName } from "@/lib/ghl/split-name"
+import { env } from "@/env.mjs"
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
 import type { ReportTier } from "@/lib/levelstack-plans"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
@@ -163,13 +164,22 @@ export function buildReportCompleteCustomFields(
   return customFields
 }
 
-export function buildReportCompleteTags(reportTier: ReportTier): string[] {
-  return ["levelstack", "levelstack_report_ready", `levelstack_report_ready_${reportTier}`]
+export function buildReportCompleteTags(_reportTier: ReportTier): string[] {
+  // Nurture tags removed — Plunk handles sequences; keep lightweight CRM label only.
+  return ["levelstack"]
+}
+
+function isGhlSyncEnabled(): boolean {
+  return env.GHL_SYNC_ENABLED !== false && Boolean(env.GHL_API_KEY && env.GHL_LOCATION_ID)
 }
 
 export async function syncReportCompleteEnrichment(
   params: ReportCompleteEnrichmentParams,
 ): Promise<GHLSyncResult> {
+  if (!isGhlSyncEnabled()) {
+    return { success: false, error: "GHL sync disabled or not configured" }
+  }
+
   const customFields = buildReportCompleteCustomFields(params)
   const tags = buildReportCompleteTags(params.reportTier)
 

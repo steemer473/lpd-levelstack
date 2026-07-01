@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { env } from "@/env.mjs"
 import { sendUpgradeNotifyEmailsIfNeeded } from "@/lib/email/upgrade-notify"
+import { trackLevelstackPurchased } from "@/lib/plunk/track-event"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 const bodySchema = z.object({
@@ -83,6 +84,12 @@ export async function POST(request: Request) {
     businessName,
     ownerName,
   })
+
+  await trackLevelstackPurchased({
+    email: parsed.data.email,
+    reportId: parsed.data.reportId,
+    planId: parsed.data.planId,
+  }).catch((err) => console.error("[plunk] purchase track failed:", err))
 
   return NextResponse.json({ success: true, sent })
 }

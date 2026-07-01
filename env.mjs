@@ -49,9 +49,22 @@ export const env = createEnv({
     FIRECRAWL_API_KEY: optionalString,
     /** Optional — raises PageSpeed Insights API quota (works without key at low volume) */
     GOOGLE_PAGESPEED_API_KEY: optionalString,
-    /** GoHighLevel — lead sync (same credentials as lpd-redesign) */
+    /** GoHighLevel — optional CRM mirror (chat/SMS inbox; not nurture) */
     GHL_API_KEY: optionalString,
     GHL_LOCATION_ID: optionalString,
+    /** When false, skip GHL contact upsert on report complete (default: sync if keys set) */
+    GHL_SYNC_ENABLED: z
+      .enum(["true", "false"])
+      .optional()
+      .transform((v) => v !== "false"),
+    /** Plunk — nurture email workflows */
+    PLUNK_SECRET_KEY: optionalString,
+    PLUNK_PUBLIC_KEY: optionalString,
+    PLUNK_FROM_EMAIL: z.preprocess(emptyToUndefined, z.string().email().optional()),
+    PLUNK_FROM_NAME: optionalString,
+    PLUNK_API_URL: optionalUrl,
+    PLUNK_WORKFLOW_API_URL: optionalUrl,
+    PLUNK_WEBHOOK_SECRET: optionalString,
     /** Development only — skip hub `orders` entitlement check for /intake */
     LEVELSTACK_DEV_BYPASS_ENTITLEMENT: z
       .enum(["true", "false"])
@@ -96,6 +109,14 @@ export const env = createEnv({
     GOOGLE_PAGESPEED_API_KEY: process.env.GOOGLE_PAGESPEED_API_KEY,
     GHL_API_KEY: process.env.GHL_API_KEY,
     GHL_LOCATION_ID: process.env.GHL_LOCATION_ID,
+    GHL_SYNC_ENABLED: process.env.GHL_SYNC_ENABLED,
+    PLUNK_SECRET_KEY: process.env.PLUNK_SECRET_KEY,
+    PLUNK_PUBLIC_KEY: process.env.PLUNK_PUBLIC_KEY,
+    PLUNK_FROM_EMAIL: process.env.PLUNK_FROM_EMAIL,
+    PLUNK_FROM_NAME: process.env.PLUNK_FROM_NAME,
+    PLUNK_API_URL: process.env.PLUNK_API_URL,
+    PLUNK_WORKFLOW_API_URL: process.env.PLUNK_WORKFLOW_API_URL,
+    PLUNK_WEBHOOK_SECRET: process.env.PLUNK_WEBHOOK_SECRET,
     LEVELSTACK_DEV_BYPASS_ENTITLEMENT: process.env.LEVELSTACK_DEV_BYPASS_ENTITLEMENT,
     LEVELSTACK_DEV_SKIP_WEBSITE_CHECK: process.env.LEVELSTACK_DEV_SKIP_WEBSITE_CHECK,
     LEVELSTACK_DEV_REPLACE_SNAPSHOT: process.env.LEVELSTACK_DEV_REPLACE_SNAPSHOT,

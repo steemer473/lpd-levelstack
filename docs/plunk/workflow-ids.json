@@ -1,0 +1,9 @@
+{
+  "workflow_a": "8ff31129-a57b-4d61-b2e8-16dcd10c40d7",
+  "workflow_b": "4a5e6a98-4df7-42d2-af24-aae9e1f8d0ec",
+  "events": {
+    "report_ready": "levelstack_report_ready",
+    "purchased": "levelstack_purchased",
+    "waitlist_joined": "sap_waitlist_joined"
+  }
+}

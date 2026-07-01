@@ -19,7 +19,7 @@ describe("ghl-email-layout", () => {
     expect(html).toContain("https://levelplaydigital.com/images/email/gradient-accent-bar.png")
     expect(html).toContain("https://levelplaydigital.com/images/email/cta-unlock-97.png")
     expect(html).toContain(GHL_MERGE.firstName)
-    expect(html).toContain("Hello, {{ contact.first_name }}")
+    expect(html).toContain("Hello, {{firstName}}")
     expect(html).toContain(GHL_MERGE.unsubscribe)
     expect(html).toContain("LevelStack")
     expect(html).toContain("#FF6633")

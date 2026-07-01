@@ -6,6 +6,14 @@ vi.mock("@/lib/ghl/ghl-api", () => ({
   createGHLContact: vi.fn(),
 }))
 
+vi.mock("@/env.mjs", () => ({
+  env: {
+    GHL_SYNC_ENABLED: true,
+    GHL_API_KEY: "test-key",
+    GHL_LOCATION_ID: "test-location",
+  },
+}))
+
 vi.mock("@/lib/urls", () => ({
   getAppUrl: (path: string) => `https://levelstack.test${path}`,
 }))
@@ -191,7 +199,7 @@ describe("syncReportCompleteEnrichment", () => {
       lastName: "Report Ready",
       email: "jane@example.com",
       source: "LevelStack Report Complete",
-      tags: ["levelstack", "levelstack_report_ready", "levelstack_report_ready_free_snapshot"],
+      tags: ["levelstack"],
       customFields: {
         levelstack_report_url: "https://levelstack.test/reports/report-789/access?token=abc",
         report_tier: "free_snapshot",

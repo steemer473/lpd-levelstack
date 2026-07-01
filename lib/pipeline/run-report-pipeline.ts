@@ -31,6 +31,7 @@ import { REPORT_ACCESS_TOKEN_TTL_LABEL } from "@/lib/auth/report-access-token"
 import { sendReportReadyEmail } from "@/lib/email/report-delivery"
 import { splitFullName } from "@/lib/ghl/split-name"
 import { syncReportCompleteEnrichment } from "@/lib/ghl/sync-levelstack-lead"
+import { trackReportReadyForNurture } from "@/lib/plunk/track-event"
 import { planIdToReportTier, type ReportTier } from "@/lib/levelstack-plans"
 import { resolveReportPlanId } from "@/lib/pipeline/resolve-report-plan-id"
 import { validateResearchQuality } from "@/lib/pipeline/research-quality"
@@ -367,6 +368,20 @@ export async function runReportPipeline({
         topFinding,
         accessUrl,
       }).catch((err) => console.error("[ghl] report-complete enrichment failed:", err))
+
+      const { firstName } = splitFullName(parsed.data.ownerName)
+      const topCompetitor =
+        validated.data.meta.upgradeTeasers?.previewCompetitor?.domain?.trim() || undefined
+
+      await trackReportReadyForNurture({
+        email,
+        firstName,
+        reportId,
+        reportTier,
+        reportUrl: accessUrl,
+        topCompetitor,
+        topFinding,
+      }).catch((err) => console.error("[plunk] nurture track failed:", err))
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : "Pipeline failed"

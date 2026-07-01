@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Generates GHL-ready HTML files from lib/email/ghl-email-layout.ts
- * Run: node scripts/generate-ghl-email-templates.mjs
+ * Generates nurture HTML files from lib/email/nurture-email-layout.ts
+ * Run: pnpm generate:nurture-emails
  */
 import { mkdirSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = join(__dirname, "..")
-const outDir = join(root, "docs/ghl/email-templates")
+const outDir = join(root, "docs/plunk/email-templates")
 
 async function main() {
   const modPath = pathToFileURL(join(root, "lib/email/ghl-email-layout.ts")).href
