@@ -1,5 +1,7 @@
 # GHL nurture workflow — finish-later runbook
 
+> **OBSOLETE — June 2026.** Nurture moved to Plunk. Use [`plunk-nurture-workflow.md`](./plunk-nurture-workflow.md) instead. **Do not build GHL Workflow A/B.**
+
 **Status:** App-side report-complete enrichment is **shipped**. Custom fields can be created via API. **Emails 2–5 and workflow logic must be built in the GHL UI** (workflows cannot be created via API).
 
 **Copy source of truth:** [`lpd-planning/COPY_BANK.md`](../../../lpd-planning/COPY_BANK.md) §4  

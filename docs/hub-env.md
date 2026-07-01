@@ -38,11 +38,28 @@ Set in **lpd-levelstack** Vercel → Production and Preview. Without them, intak
 ### Sync phases
 
 1. **Intake submit** — `syncFreeSnapshotLead` / `syncPaidIntakeLead` creates or updates the contact with intake tags and baseline fields.
-2. **Report complete** — `syncReportCompleteEnrichment` runs after the report-ready email with `top_competitor`, `top_finding`, `report_tier`, signed report URL, and tag `levelstack_report_ready` (workflow trigger for nurture).
+2. **Report complete** — `syncReportCompleteEnrichment` runs after the report-ready email with `top_competitor`, `top_finding`, `report_tier`, signed report URL, and tag `levelstack` only (no nurture tags — Plunk handles sequences).
 
 Create custom fields: `pnpm setup:ghl-fields` (from repo root with `.env.local`).
 
-**Finish nurture workflow (Emails 2–5) in GHL UI:** [operations/ghl-nurture-workflow.md](./operations/ghl-nurture-workflow.md)
+**Nurture (Emails 2–5, W1–W4):** [operations/plunk-nurture-workflow.md](./operations/plunk-nurture-workflow.md) — runs in **Plunk**, not GHL.
+
+## Plunk events (hub — `lpd-redesign`)
+
+The hub does **not** send nurture emails. It fires Plunk events that start or stop workflows in the shared Plunk project:
+
+| Event | Source | Workflow effect |
+|-------|--------|-----------------|
+| `levelstack_purchased` | `app/api/webhook/route.ts` (Stripe checkout) | Exits Workflow A |
+| `sap_waitlist_joined` | `app/api/sap-waitlist/route.ts` (`/platform/seo` form) | Starts Workflow B |
+
+```bash
+PLUNK_SECRET_KEY=sk_...                    # same value as lpd-levelstack
+PLUNK_API_URL=https://next-api.useplunk.com
+LEVELSTACK_UPGRADE_NOTIFY_SECRET=...       # same value as lpd-levelstack
+```
+
+Supabase (`sap_waitlist_signups` table) is the business source of truth for waitlist signups; Plunk is the email audience.
 
 ## Upgrade checkout handoff (lpd-redesign — required for paid unlock loop)
 
