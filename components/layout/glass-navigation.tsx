@@ -8,7 +8,7 @@ import { SignOutButton } from "@/components/layout/sign-out-button"
 import { buildReportResendSignInUrl } from "@/lib/auth/magic-link-callback"
 import type { NavVariant } from "@/lib/nav-variant"
 import { cn } from "@/lib/utils"
-import { getHubCartUrl, getHubFaqUrl, getHubPricingUrl } from "@/lib/urls"
+import { getHubCartUrl, getHubPricingUrl } from "@/lib/urls"
 
 type GlassNavigationProps = {
   showSignOut?: boolean
@@ -91,7 +91,7 @@ export function GlassNavigation({
                 </a>
               </li>
               <li>
-                <a href={getHubFaqUrl()} className={navLinkClass(false)}>
+                <a href="#action-roadmap-faqs" className={navLinkClass(false)}>
                   Questions
                 </a>
               </li>
