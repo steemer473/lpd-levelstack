@@ -5,17 +5,31 @@ import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 
 import { SignOutButton } from "@/components/layout/sign-out-button"
+import { buildReportResendSignInUrl } from "@/lib/auth/magic-link-callback"
+import type { NavVariant } from "@/lib/nav-variant"
 import { cn } from "@/lib/utils"
-import { getHubPricingUrl } from "@/lib/urls"
+import { getHubCartUrl, getHubFaqUrl, getHubPricingUrl } from "@/lib/urls"
 
 type GlassNavigationProps = {
   showSignOut?: boolean
   productLabel?: string
+  navVariant?: NavVariant
+  reportId?: string
 }
+
+const navLinkClass = (active: boolean) =>
+  cn(
+    "text-sm font-medium transition-colors whitespace-nowrap",
+    active
+      ? "text-brand-blue font-semibold"
+      : "text-muted-foreground hover:text-foreground",
+  )
 
 export function GlassNavigation({
   showSignOut = false,
   productLabel = "LevelStack",
+  navVariant = "default",
+  reportId,
 }: GlassNavigationProps) {
   const pathname = usePathname()
   const [scrollProgress, setScrollProgress] = useState(0)
@@ -34,6 +48,14 @@ export function GlassNavigation({
   const isScrolled = scrollProgress > 0.1
 
   const isIntakeActive = pathname.startsWith("/intake")
+  const unlockUrl = getHubCartUrl({
+    reportId,
+    source: "levelstack_report",
+  })
+  const resendUrl = reportId ? buildReportResendSignInUrl(reportId) : null
+  const intakeUrl = reportId
+    ? `/intake?from=upgrade&reportId=${reportId}`
+    : "/intake"
 
   return (
     <nav
@@ -50,44 +72,66 @@ export function GlassNavigation({
         WebkitBackdropFilter: "blur(16px) saturate(180%)",
       }}
     >
-      <div className="mx-auto flex h-16 max-w-report items-center justify-between px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-report items-center justify-between gap-3 px-4 sm:px-6">
         <a
           href={getHubPricingUrl()}
-          className="gradient-text text-lg sm:text-xl font-bold transition-opacity hover:opacity-80"
+          className="gradient-text shrink-0 text-lg font-bold transition-opacity hover:opacity-80 sm:text-xl"
         >
           Level Play Digital · {productLabel}
         </a>
-        <ul className="flex items-center gap-4 sm:gap-6">
-          <li>
-            <Link
-              href="/"
-              className={cn(
-                "text-sm font-medium transition-colors",
-                pathname === "/"
-                  ? "text-brand-blue font-semibold"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              Home
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/intake"
-              className={cn(
-                "text-sm font-medium transition-colors",
-                isIntakeActive
-                  ? "text-brand-blue font-semibold"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              Intake
-            </Link>
-          </li>
-          {showSignOut && (
-            <li>
-              <SignOutButton />
-            </li>
+        <ul className="flex min-w-0 items-center justify-end gap-3 sm:gap-4">
+          {navVariant === "freeReport" ? (
+            <>
+              <li>
+                <a
+                  href={unlockUrl}
+                  className="inline-flex items-center rounded-md bg-brand-orange px-2.5 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 sm:px-3 sm:text-sm"
+                >
+                  Unlock Action Roadmap — $97
+                </a>
+              </li>
+              <li>
+                <a href={getHubFaqUrl()} className={navLinkClass(false)}>
+                  Questions
+                </a>
+              </li>
+              {resendUrl ? (
+                <li className="hidden sm:list-item">
+                  <Link href={resendUrl} className={navLinkClass(false)}>
+                    Get a new link
+                  </Link>
+                </li>
+              ) : null}
+            </>
+          ) : navVariant === "paidPendingIntake" ? (
+            <>
+              <li>
+                <Link
+                  href={intakeUrl}
+                  className="inline-flex items-center rounded-md bg-brand-orange px-2.5 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 sm:px-3 sm:text-sm"
+                >
+                  Complete intake
+                </Link>
+              </li>
+            </>
+          ) : (
+            <>
+              <li>
+                <Link href="/" className={navLinkClass(pathname === "/")}>
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link href="/intake" className={navLinkClass(isIntakeActive)}>
+                  Intake
+                </Link>
+              </li>
+              {showSignOut ? (
+                <li>
+                  <SignOutButton />
+                </li>
+              ) : null}
+            </>
           )}
         </ul>
       </div>

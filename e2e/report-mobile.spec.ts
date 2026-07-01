@@ -107,6 +107,17 @@ test.describe("Report mobile — dev preview", () => {
     await assertNoHorizontalPageOverflow(page)
   })
 
+  test("free report top nav shows upgrade links, not account nav", async ({ page }) => {
+    const globalNav = page.getByRole("navigation", { name: "LevelStack" })
+    await expect(
+      globalNav.getByRole("link", { name: /Unlock Action Roadmap — \$97/i }),
+    ).toBeVisible()
+    await expect(globalNav.getByRole("link", { name: /Questions/i })).toBeVisible()
+    await expect(globalNav.getByRole("link", { name: /^Home$/i })).toHaveCount(0)
+    await expect(globalNav.getByRole("link", { name: /^Intake$/i })).toHaveCount(0)
+    await expect(globalNav.getByRole("button", { name: /Sign out/i })).toHaveCount(0)
+  })
+
   test("all seven sidebar tabs are reachable without page overflow", async ({ page }) => {
     const lockedTabs = [/Revenue funnel/i, /Competitive context/i, /Action plan/i]
     const tabs = [

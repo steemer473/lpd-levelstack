@@ -12,6 +12,7 @@ import { FormPanel } from "@/components/ui/form-panel"
 import { reportAccessCookieName } from "@/lib/auth/report-access-token"
 import { isDevReportPreviewEnabled } from "@/lib/dev-report-preview"
 import { requirePaidIntakeAccess } from "@/lib/levelstack-access"
+import type { NavVariant } from "@/lib/nav-variant"
 import { isPlaceholderReport } from "@/lib/pipeline/placeholder-report"
 import { levelstackReportJsonSchema } from "@/lib/pipeline/report-types"
 import { resolveReportAccess } from "@/lib/reports/get-report"
@@ -19,6 +20,15 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"
+
+function resolveReportNavVariant(
+  paidPendingIntake: boolean,
+  reportTier: string | undefined,
+): NavVariant {
+  if (paidPendingIntake) return "paidPendingIntake"
+  if (reportTier === "free_snapshot") return "freeReport"
+  return "default"
+}
 
 type PageProps = {
   params: Promise<{ reportId: string }>
@@ -156,8 +166,23 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
     report.status === "ready" &&
     (await requirePaidIntakeAccess(supabase, user.id))
 
+  const navVariant = resolveReportNavVariant(
+    Boolean(paidPendingIntake),
+    parsed.data.meta.reportTier,
+  )
+  const showSignOut = navVariant === "default" && Boolean(user)
+  const navReportId =
+    navVariant === "freeReport" || navVariant === "paidPendingIntake"
+      ? reportId
+      : undefined
+
   return (
-    <ProductShell showSignOut={Boolean(user)} resultsStyle>
+    <ProductShell
+      showSignOut={showSignOut}
+      navVariant={navVariant}
+      reportId={navReportId}
+      resultsStyle
+    >
       <div className="space-y-4 w-full">
         {view === "snapshot" && report.free_snapshot_json ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40 px-4 py-3 text-sm">

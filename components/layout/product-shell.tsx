@@ -3,12 +3,15 @@ import type { ReactNode } from "react"
 import { AuditHero, type HeroBadge } from "@/components/marketing/audit-hero"
 import { GlassNavigation } from "@/components/layout/glass-navigation"
 import { SiteFooter } from "@/components/layout/site-footer"
+import type { NavVariant } from "@/lib/nav-variant"
 import { cn } from "@/lib/utils"
 
 type ProductShellProps = {
   children: ReactNode
   maxWidth?: "md" | "lg" | "xl" | "full"
   showSignOut?: boolean
+  navVariant?: NavVariant
+  reportId?: string
   className?: string
   /** Marketing pages: navy hero band (seo /results/ report hero uses --hero-bg inside report card) */
   hero?: {
@@ -34,6 +37,8 @@ export function ProductShell({
   children,
   maxWidth = "lg",
   showSignOut = false,
+  navVariant = "default",
+  reportId,
   className,
   hero,
   overlapHero = false,
@@ -49,7 +54,11 @@ export function ProductShell({
         className,
       )}
     >
-      <GlassNavigation showSignOut={showSignOut} />
+      <GlassNavigation
+        showSignOut={showSignOut}
+        navVariant={navVariant}
+        reportId={reportId}
+      />
 
       {hero && (
         <AuditHero

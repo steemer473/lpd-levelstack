@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 
+import { ProductShell } from "@/components/layout/product-shell"
 import { LevelstackReportView } from "@/components/report/levelstack-report-view"
 import {
   MOBILE_PREVIEW_FREE_REPORT,
@@ -20,14 +21,19 @@ export default async function DevReportPreviewPage({ searchParams }: PageProps) 
   const { tier, modal } = await searchParams
   const report =
     tier === "paid" ? MOBILE_PREVIEW_PAID_REPORT : MOBILE_PREVIEW_FREE_REPORT
+  const isFreePreview = tier !== "paid"
 
   return (
-    <div className="report-page-bg min-h-svh px-4 py-24 sm:px-6">
+    <ProductShell
+      resultsStyle
+      navVariant={isFreePreview ? "freeReport" : "default"}
+      reportId={isFreePreview ? "mobile-preview" : undefined}
+    >
       <LevelstackReportView
         report={report}
         reportId="mobile-preview"
         defaultUnlockModalOpen={modal === "unlock"}
       />
-    </div>
+    </ProductShell>
   )
 }
