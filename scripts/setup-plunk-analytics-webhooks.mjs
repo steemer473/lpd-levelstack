@@ -56,6 +56,14 @@ const ANALYTICS_EVENTS = [
   "contact.unsubscribed",
 ]
 
+const DEPRECATED_WORKFLOW_IDS = [
+  "d1d85928-fae9-4162-8cc5-67797d3e266f",
+  "e1fa9ee1-af6a-426d-b555-d923e9baa9ae",
+  "e9304375-0a97-45d7-ade6-9972f0b359ab",
+  "d912c6b2-fbf1-4259-9a21-60e98d5a84e3",
+  "0ea1990d-fff8-4417-b968-edf1aebc7081",
+]
+
 function headers() {
   return {
     Authorization: `Bearer ${apiKey}`,
@@ -130,6 +138,62 @@ async function connectSteps(workflowId, fromStepId, toStepId) {
   })
 }
 
+async function getWorkflowSteps(workflowId) {
+  const detail = await api("GET", `/workflows/${workflowId}`)
+  return detail.steps || detail.workflow?.steps || []
+}
+
+async function disableWorkflow(workflowId, label) {
+  await api("PATCH", `/workflows/${workflowId}`, { enabled: false })
+  console.log(`🛑 Disabled ${label} workflow ${workflowId}`)
+}
+
+async function syncWebhookStep(workflowId, eventName) {
+  const steps = await getWorkflowSteps(workflowId)
+  const webhookStep = steps.find((s) => s.type === "WEBHOOK")
+  if (!webhookStep?.id) {
+    console.warn(
+      `⚠️  ${eventName} — no WEBHOOK step on ${workflowId}; delete workflow and re-run to recreate`,
+    )
+    return false
+  }
+
+  const config = webhookConfig()
+  config.body = webhookBody(eventName)
+  await api("PATCH", `/workflows/${workflowId}/steps/${webhookStep.id}`, { config })
+  console.log(`🔄 ${eventName} — synced webhook step (${webhookStep.id})`)
+  return true
+}
+
+async function disableDuplicateWorkflows(matches, preferredId, eventName) {
+  for (const workflow of matches) {
+    if (workflow.id === preferredId || workflow.enabled === false) continue
+    if (dryRun) {
+      console.log(`🔍 Would disable duplicate ${eventName} workflow ${workflow.id}`)
+      continue
+    }
+    await disableWorkflow(workflow.id, `duplicate ${eventName}`)
+  }
+}
+
+async function disableDeprecatedWorkflows(activeIds, extraDeprecated = []) {
+  const activeSet = new Set(Object.values(activeIds))
+  const deprecated = [...new Set([...DEPRECATED_WORKFLOW_IDS, ...extraDeprecated])]
+
+  for (const workflowId of deprecated) {
+    if (!workflowId || activeSet.has(workflowId)) continue
+    if (dryRun) {
+      console.log(`🔍 Would disable deprecated workflow ${workflowId}`)
+      continue
+    }
+    try {
+      await disableWorkflow(workflowId, "deprecated")
+    } catch (err) {
+      console.warn(`⚠️  Could not disable deprecated workflow ${workflowId}: ${err.message}`)
+    }
+  }
+}
+
 function loadExistingWorkflowIds(raw) {
   if (!raw || typeof raw !== "object") return {}
   const bucket = raw.workflows
@@ -150,18 +214,25 @@ async function deployAnalyticsWorkflow(eventName, existingIds) {
   const name = workflowName(eventName)
   const existingId = existingIds[eventName]
 
-  if (dryRun) {
-    console.log(`🔍 Would create analytics workflow: ${eventName} → ${webhookUrl}`)
-    return existingId || null
-  }
-
   const all = await listWorkflows()
   const matches = all.filter((w) => w.name === name || w.eventName === eventName)
   if (matches.length > 0) {
     const preferred =
       (existingId && matches.find((w) => w.id === existingId)) || matches[matches.length - 1]
+    if (dryRun) {
+      console.log(`🔍 ${eventName} — would sync webhook step on ${preferred.id}`)
+      await disableDuplicateWorkflows(matches, preferred.id, eventName)
+      return preferred.id
+    }
     console.log(`⏭️  ${eventName} — already exists (${preferred.id})`)
+    await syncWebhookStep(preferred.id, eventName)
+    await disableDuplicateWorkflows(matches, preferred.id, eventName)
     return preferred.id
+  }
+
+  if (dryRun) {
+    console.log(`🔍 Would create analytics workflow: ${eventName} → ${webhookUrl}`)
+    return existingId || null
   }
 
   const workflow = await api("POST", "/workflows", {
@@ -223,18 +294,14 @@ async function main() {
     if (id) deployed[eventName] = id
   }
 
+  await disableDeprecatedWorkflows(deployed, existing.deprecated_workflows || [])
+
   if (!dryRun) {
     saveJson(workflowIdsPath, {
       webhook_url: webhookUrl,
       updated_at: new Date().toISOString(),
       workflows: deployed,
-      deprecated_workflows: [
-        "d1d85928-fae9-4162-8cc5-67797d3e266f",
-        "e1fa9ee1-af6a-426d-b555-d923e9baa9ae",
-        "e9304375-0a97-45d7-ade6-9972f0b359ab",
-        "d912c6b2-fbf1-4259-9a21-60e98d5a84e3",
-        "0ea1990d-fff8-4417-b968-edf1aebc7081",
-      ],
+      deprecated_workflows: DEPRECATED_WORKFLOW_IDS,
     })
     console.log(`\nSaved → ${workflowIdsPath}`)
     console.log(
