@@ -38,6 +38,10 @@ function verifyPlunkAuth(request: Request, rawBody: string): boolean {
   return verifyPlunkSignature(rawBody, request.headers.get("x-plunk-signature"))
 }
 
+function isBouncePayload(value: Record<string, unknown>): boolean {
+  return "bouncedAt" in value || "bounceType" in value || value.transientBounce === true
+}
+
 function resolveEventType(payload: PlunkWebhookPayload): string {
   if (typeof payload.type === "string" && payload.type.trim()) {
     return payload.type.trim()
@@ -50,9 +54,13 @@ function resolveEventType(payload: PlunkWebhookPayload): string {
     if ("openedAt" in nested) return "email.open"
     if ("clickedAt" in nested) return "email.click"
     if ("deliveredAt" in nested) return "email.delivery"
-    if ("bouncedAt" in nested) return "email.bounce"
+    if (isBouncePayload(nested)) return "email.bounce"
     if ("complainedAt" in nested) return "email.complaint"
     if ("reason" in nested) return PLUNK_EVENTS.unsubscribed
+  }
+  const data = payload.data
+  if (data && typeof data === "object" && isBouncePayload(data)) {
+    return "email.bounce"
   }
   return "unknown"
 }
