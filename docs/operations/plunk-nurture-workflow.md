@@ -157,15 +157,32 @@ After first deploy, open Plunk dashboard and verify step wiring (API may not con
 
 ---
 
-## Step 4 — Webhook for analytics
+## Step 4 — Analytics webhooks (separate workflows)
 
-Point Plunk webhooks to:
+Plunk has **no global Webhook URL setting**. Analytics uses **additional workflows** — one per system event — each with a single **Webhook** step.
+
+Deploy via script (recommended):
+
+```bash
+pnpm setup:plunk-analytics-webhooks
+```
+
+This creates workflows named `LevelStack Analytics — email.open`, etc., each posting to:
 
 ```
 https://levelstack.levelplaydigital.com/api/webhooks/plunk
 ```
 
-Events are stored in Supabase `email_events` (migration `20250630100000_email_events.sql`).
+Set in `.env.local` / Vercel:
+
+```bash
+PLUNK_WEBHOOK_URL=https://levelstack.levelplaydigital.com/api/webhooks/plunk
+PLUNK_WEBHOOK_SECRET=...   # Bearer token sent in webhook step headers
+```
+
+**Manual (Plunk dashboard):** Workflows → **Create workflow** → trigger e.g. `email.open` → **Add step** → **Webhook** → paste URL → add header `Authorization: Bearer <PLUNK_WEBHOOK_SECRET>`. Your nurture workflows (A & B) are separate — do not add webhook steps there.
+
+Events stored in Supabase `email_events` (migration `20250630100000_email_events.sql`).
 
 ---
 
@@ -182,6 +199,8 @@ See [`ghl-downgrade-checklist.md`](./ghl-downgrade-checklist.md) for plan downgr
 ---
 
 ## Verification checklist
+
+Full step-by-step manual test plan: [plunk-manual-test-plan.md](./plunk-manual-test-plan.md)
 
 - [ ] Domain verified in Plunk (`notify.levelplaydigital.com`)
 - [ ] Templates synced (9 files: 5 nurture + 4 waitlist)

@@ -9,16 +9,17 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 type PlunkWebhookPayload = {
-  event?: string
+  event?: string | Record<string, unknown>
   type?: string
   email?: string
   data?: Record<string, unknown>
   timestamp?: string
+  contact?: { email?: string }
 }
 
 function verifyPlunkSignature(rawBody: string, signature: string | null): boolean {
   const secret = env.PLUNK_WEBHOOK_SECRET?.trim()
-  if (!secret || !signature) return !secret
+  if (!secret || !signature) return false
   const expected = createHmac("sha256", secret).update(rawBody).digest("hex")
   try {
     return timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
@@ -27,13 +28,40 @@ function verifyPlunkSignature(rawBody: string, signature: string | null): boolea
   }
 }
 
+function verifyPlunkAuth(request: Request, rawBody: string): boolean {
+  const secret = env.PLUNK_WEBHOOK_SECRET?.trim()
+  if (!secret) return true
+
+  const auth = request.headers.get("authorization")
+  if (auth === `Bearer ${secret}`) return true
+
+  return verifyPlunkSignature(rawBody, request.headers.get("x-plunk-signature"))
+}
+
 function resolveEventType(payload: PlunkWebhookPayload): string {
-  return String(payload.event || payload.type || "unknown")
+  if (typeof payload.type === "string" && payload.type.trim()) {
+    return payload.type.trim()
+  }
+  if (typeof payload.event === "string" && payload.event.trim()) {
+    return payload.event.trim()
+  }
+  const nested = payload.event
+  if (nested && typeof nested === "object") {
+    if ("openedAt" in nested) return "email.open"
+    if ("clickedAt" in nested) return "email.click"
+    if ("deliveredAt" in nested) return "email.delivery"
+    if ("bouncedAt" in nested) return "email.bounce"
+    if ("complainedAt" in nested) return "email.complaint"
+    if ("reason" in nested) return PLUNK_EVENTS.unsubscribed
+  }
+  return "unknown"
 }
 
 function resolveEmail(payload: PlunkWebhookPayload): string | null {
   const direct = payload.email?.trim().toLowerCase()
   if (direct) return direct
+  const contactEmail = payload.contact?.email?.trim().toLowerCase()
+  if (contactEmail) return contactEmail
   const nested = payload.data?.email
   if (typeof nested === "string" && nested.trim()) {
     return nested.trim().toLowerCase()
@@ -43,10 +71,9 @@ function resolveEmail(payload: PlunkWebhookPayload): string | null {
 
 export async function POST(request: Request) {
   const rawBody = await request.text()
-  const signature = request.headers.get("x-plunk-signature")
 
-  if (env.PLUNK_WEBHOOK_SECRET && !verifyPlunkSignature(rawBody, signature)) {
-    return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
+  if (!verifyPlunkAuth(request, rawBody)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   let payload: PlunkWebhookPayload

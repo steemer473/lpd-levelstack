@@ -1,0 +1,11 @@
+{
+  "webhook_url": "https://levelstack.levelplaydigital.com/api/webhooks/plunk",
+  "updated_at": "2026-07-01T15:36:29.775Z",
+  "workflows": {
+    "email.delivery": "760d2398-d0a3-4e07-9f7e-b68b70c2937c",
+    "email.open": "5f4f8664-2d42-44c3-ad2f-7644e64eb0c5",
+    "email.click": "3cc72ae9-928d-4969-b8ed-1d88a098cca6",
+    "email.bounce": "39a910d3-f938-4e3b-853d-781f0619666e",
+    "contact.unsubscribed": "48cad719-e5d9-4365-8876-36c99b772076"
+  }
+}
