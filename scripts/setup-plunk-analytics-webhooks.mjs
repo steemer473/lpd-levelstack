@@ -56,14 +56,6 @@ const ANALYTICS_EVENTS = [
   "contact.unsubscribed",
 ]
 
-const DEPRECATED_WORKFLOW_IDS = [
-  "d1d85928-fae9-4162-8cc5-67797d3e266f",
-  "e1fa9ee1-af6a-426d-b555-d923e9baa9ae",
-  "e9304375-0a97-45d7-ade6-9972f0b359ab",
-  "d912c6b2-fbf1-4259-9a21-60e98d5a84e3",
-  "0ea1990d-fff8-4417-b968-edf1aebc7081",
-]
-
 function headers() {
   return {
     Authorization: `Bearer ${apiKey}`,
@@ -176,22 +168,30 @@ async function disableDuplicateWorkflows(matches, preferredId, eventName) {
   }
 }
 
-async function disableDeprecatedWorkflows(activeIds, extraDeprecated = []) {
+async function disableDeprecatedWorkflows(activeIds, deprecatedIds = []) {
   const activeSet = new Set(Object.values(activeIds))
-  const deprecated = [...new Set([...DEPRECATED_WORKFLOW_IDS, ...extraDeprecated])]
+  const remaining = []
 
-  for (const workflowId of deprecated) {
+  for (const workflowId of [...new Set(deprecatedIds)]) {
     if (!workflowId || activeSet.has(workflowId)) continue
     if (dryRun) {
       console.log(`🔍 Would disable deprecated workflow ${workflowId}`)
+      remaining.push(workflowId)
       continue
     }
     try {
       await disableWorkflow(workflowId, "deprecated")
     } catch (err) {
+      if (String(err.message).includes("failed (404)")) {
+        console.log(`ℹ️  deprecated workflow ${workflowId} already removed`)
+        continue
+      }
       console.warn(`⚠️  Could not disable deprecated workflow ${workflowId}: ${err.message}`)
+      remaining.push(workflowId)
     }
   }
+
+  return remaining
 }
 
 function loadExistingWorkflowIds(raw) {
@@ -294,14 +294,17 @@ async function main() {
     if (id) deployed[eventName] = id
   }
 
-  await disableDeprecatedWorkflows(deployed, existing.deprecated_workflows || [])
+  const remainingDeprecated = await disableDeprecatedWorkflows(
+    deployed,
+    existing.deprecated_workflows || [],
+  )
 
   if (!dryRun) {
     saveJson(workflowIdsPath, {
       webhook_url: webhookUrl,
       updated_at: new Date().toISOString(),
       workflows: deployed,
-      deprecated_workflows: DEPRECATED_WORKFLOW_IDS,
+      deprecated_workflows: remainingDeprecated,
     })
     console.log(`\nSaved → ${workflowIdsPath}`)
     console.log(
