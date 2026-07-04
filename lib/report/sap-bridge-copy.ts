@@ -9,6 +9,6 @@ export const SAP_BRIDGE_COPY = {
   },
   fullActionPlan: {
     body: "Your action plan tells you what to fix. Every item requires your time or someone else's. The technical SEO layer is the one part that doesn't have to be manual. SEO Automator Pro monitors it continuously and corrects issues automatically, so your rankings don't slip while you're focused on everything else your action plan requires.",
-    ctaLabel: "Join the SEO Automator Pro Waitlist — Founding Rate",
+    ctaLabel: "Join the Waitlist — from $49/mo Founding Rate",
   },
 } as const satisfies Record<SapBridgePlacement, { body: string; ctaLabel: string }>
