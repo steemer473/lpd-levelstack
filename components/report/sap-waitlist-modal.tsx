@@ -13,13 +13,20 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { SAP_WAITLIST_MODAL } from "@/lib/report/outcome-copy"
+import { getHubSeoWaitlistUrl } from "@/lib/urls"
 
 type SapWaitlistModalProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  reportId?: string
 }
 
-export function SapWaitlistModal({ open, onOpenChange }: SapWaitlistModalProps) {
+export function SapWaitlistModal({ open, onOpenChange, reportId }: SapWaitlistModalProps) {
+  const waitlistUrl = getHubSeoWaitlistUrl({
+    reportId,
+    source: "levelstack_report_credit",
+  })
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
@@ -45,7 +52,7 @@ export function SapWaitlistModal({ open, onOpenChange }: SapWaitlistModalProps) 
           </Button>
           <div className="flex w-full flex-col items-stretch gap-1.5 sm:w-auto sm:items-end">
             <Button variant="brand" size="lg" asChild className="w-full sm:w-auto">
-              <Link href={SAP_WAITLIST_MODAL.waitlistUrl}>
+              <Link href={waitlistUrl}>
                 {SAP_WAITLIST_MODAL.primaryCta}
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>

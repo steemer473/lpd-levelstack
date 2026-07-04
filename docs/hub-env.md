@@ -80,3 +80,30 @@ Product upgrade links use `getHubUpgradeUrl` with query params:
 5. POST to product `POST /api/upgrade/notify` with shared secret `LEVELSTACK_UPGRADE_NOTIFY_SECRET` (same value on hub + product Vercel) so payment-received email with magic link fires from webhook.
 
 Product interim fallback: entitlement poll on `/intake?from=upgrade` until `orders` row exists.
+
+## SAP waitlist handoff (lpd-redesign — `/platform/seo`)
+
+LevelStack and nurture emails link to the hub waitlist with query params:
+
+| Param | Example | Purpose |
+|-------|---------|---------|
+| `reportId` | UUID | Tie signup to LevelStack report; credit requires email + order match |
+| `source` | `levelstack_report_credit` | Cohort attribution stored in `sap_waitlist_signups.source` |
+
+**URL pattern:** `/platform/seo?reportId={uuid}&source=levelstack_report_credit#waitlist`
+
+**Hub stores on signup** (`POST /api/sap-waitlist` → Supabase `sap_waitlist_signups`):
+
+| Column | Purpose |
+|--------|---------|
+| `email` | Waitlist contact |
+| `report_id` | From URL when present |
+| `sap_credit_eligible` | Server-resolved; email must match completed `levelstack-standard` order |
+| `source` | Attribution (`platform_seo`, `levelstack_report_credit`, etc.) |
+| `intended_tier` | Solo / Agency / Scale at signup |
+| `billing_preference` | monthly / annual |
+| `founding_member` | True if signup before 200-member cap |
+
+**Credit security:** Clients cannot set `sapCreditEligible` via API. Eligibility is resolved server-side in `lib/sap-waitlist.ts`.
+
+**Plunk:** Fires `sap_waitlist_joined` with tier, credit flag, founding status → Workflow B.

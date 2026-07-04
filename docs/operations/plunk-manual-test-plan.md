@@ -158,15 +158,18 @@ LIMIT 5;
 
 | # | Step | Pass criteria | ✓ |
 |---|------|---------------|---|
-| 5.1 | Open `https://levelplaydigital.com/platform/seo` | Waitlist form visible | |
-| 5.2 | Submit with **new test email** (or same email if credit-eligible) | Success message shown | |
-| 5.3 | Supabase → `sap_waitlist_signups` | Row with correct `email`, `sap_credit_eligible` | |
-| 5.4 | Plunk → Contacts → test email | Contact exists | |
-| 5.5 | Plunk → Contact timeline | `sap_waitlist_joined` event | |
-| 5.6 | Plunk → Workflow B → Executions | New execution started | |
-| 5.7 | Hub Vercel logs | No `[sap-waitlist] plunk track failed` | |
+| 5.1 | Open `https://levelplaydigital.com/platform/seo` | Waitlist form visible; tier picker + founding counter | |
+| 5.2 | Submit with **new test email** (no prior $97 order) | Success message; `sap_credit_eligible = false` | |
+| 5.3 | Supabase → `sap_waitlist_signups` | Row with `email`, `intended_tier`, `billing_preference`, `founding_member`, `source` | |
+| 5.4 | Submit from LevelStack report bridge URL with `?reportId={uuid}&source=levelstack_report_credit` | Page shows credit hint; form passes `reportId` | |
+| 5.5 | Submit with **Action Roadmap buyer email** (same as completed $97 order) | `sap_credit_eligible = true` | |
+| 5.6 | Submit with `reportId` but **different email** than order owner | `sap_credit_eligible = false` (credit not stealable) | |
+| 5.7 | Plunk → Contacts → test email | Contact exists | |
+| 5.8 | Plunk → Contact timeline | `sap_waitlist_joined` event with tier + credit flags | |
+| 5.9 | Plunk → Workflow B → Executions | New execution started (when credit-eligible, if branch configured) | |
+| 5.10 | Hub Vercel logs | No `[sap-waitlist] plunk track failed` | |
 
-**Credit eligibility:** If `sapCreditEligible: false`, Workflow B should **not** start (verify branch/condition in Plunk if configured).
+**Credit eligibility:** Resolved server-side only. Workflow B trigger uses `sapCreditEligible: true` from Plunk event payload.
 
 ---
 

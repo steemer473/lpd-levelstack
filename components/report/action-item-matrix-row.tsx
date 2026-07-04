@@ -14,6 +14,7 @@ type ActionItemMatrixRowProps = {
   itemNumber: number
   snippetBefore?: string
   snippetAfter?: string
+  reportId?: string
 }
 
 export function ActionItemMatrixRow({
@@ -21,6 +22,7 @@ export function ActionItemMatrixRow({
   itemNumber,
   snippetBefore,
   snippetAfter,
+  reportId,
 }: ActionItemMatrixRowProps) {
   const [sapModalOpen, setSapModalOpen] = useState(false)
 
@@ -71,7 +73,7 @@ export function ActionItemMatrixRow({
           {ACTION_ITEM_SAP_MICRO_CTA.suffix}
         </p>
       </div>
-      <SapWaitlistModal open={sapModalOpen} onOpenChange={setSapModalOpen} />
+      <SapWaitlistModal open={sapModalOpen} onOpenChange={setSapModalOpen} reportId={reportId} />
     </>
   )
 }

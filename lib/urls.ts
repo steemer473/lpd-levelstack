@@ -63,9 +63,25 @@ export function getHubUpgradeUrl(params: GetHubUpgradeUrlParams = {}): string {
   return url.toString()
 }
 
-export function getHubSeoWaitlistUrl(): string {
+export type HubSeoWaitlistSource =
+  | "levelstack_report_credit"
+  | "levelstack_report"
+  | "levelstack_email"
+  | "levelstack_print"
+
+export type GetHubSeoWaitlistUrlParams = {
+  reportId?: string
+  source?: HubSeoWaitlistSource
+}
+
+export function getHubSeoWaitlistUrl(params: GetHubSeoWaitlistUrlParams = {}): string {
+  const { reportId, source } = params
   const base = env.NEXT_PUBLIC_HUB_URL ?? "https://levelplaydigital.com"
-  return new URL("/platform/seo", base).toString()
+  const url = new URL("/platform/seo", base)
+  if (reportId) url.searchParams.set("reportId", reportId)
+  if (source) url.searchParams.set("source", source)
+  url.hash = "waitlist"
+  return url.toString()
 }
 
 export function getHubWorkflowWaitlistUrl(): string {

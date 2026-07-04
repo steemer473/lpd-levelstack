@@ -191,7 +191,7 @@ export function LockedSectionPreview({
         Unlock Action Roadmap — $97
       </Button>
 
-      <SapBridgeBlock placement="freeLocked" />
+      <SapBridgeBlock placement="freeLocked" reportId={reportId} />
       <LockedSectionUnlockModal
         open={unlockModalOpen}
         onOpenChange={setUnlockModalOpen}

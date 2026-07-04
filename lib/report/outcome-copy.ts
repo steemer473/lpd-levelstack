@@ -58,7 +58,8 @@ export const SAP_WAITLIST_MODAL = {
   cta: "Apply for Early Access & Lock in My $97 Credit",
   primaryCta: "Apply for Early Access",
   creditNote: "Lock in your $97 assessment credit when your slot opens.",
-  waitlistUrl: "/platform/seo?source=levelstack_report_credit",
+  /** Built at runtime via getHubSeoWaitlistUrl({ reportId, source: \"levelstack_report_credit\" }). */
+  waitlistUrl: "/platform/seo?source=levelstack_report_credit#waitlist",
 } as const
 
 export const CHARTER_GUARANTEE = {

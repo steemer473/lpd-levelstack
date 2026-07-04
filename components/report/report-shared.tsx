@@ -247,12 +247,16 @@ export function UpgradeBanner({
 
 export function AutomatorFlagCallout({
   product = "seo",
+  reportId,
 }: {
   product?: "seo" | "workflow"
+  reportId?: string
 }) {
   const isWorkflow = product === "workflow"
   const label = isWorkflow ? "Workflow Automator Pro" : "SEO Automator Pro"
-  const href = isWorkflow ? getHubWorkflowWaitlistUrl() : getHubSeoWaitlistUrl()
+  const href = isWorkflow
+    ? getHubWorkflowWaitlistUrl()
+    : getHubSeoWaitlistUrl({ reportId, source: "levelstack_report" })
   const detail = isWorkflow
     ? "This operational gap is addressed by structured workflows in Workflow Automator Pro."
     : "This issue is monitored and corrected automatically by SEO Automator Pro."
@@ -359,7 +363,13 @@ export function ReportDashboard({ report }: { report: LevelstackReportJson }) {
   )
 }
 
-export function ActionPlanPanel({ report }: { report: LevelstackReportJson }) {
+export function ActionPlanPanel({
+  report,
+  reportId,
+}: {
+  report: LevelstackReportJson
+  reportId?: string
+}) {
   const isFree = report.meta.reportTier === "free_snapshot"
   const groups = [
     {
@@ -407,12 +417,12 @@ export function ActionPlanPanel({ report }: { report: LevelstackReportJson }) {
             num += 1
             return (
               <div key={`${g.key}-${num}`}>
-                <ActionItemMatrixRow item={item} itemNumber={num} />
+                <ActionItemMatrixRow item={item} itemNumber={num} reportId={reportId} />
                 {item.findingRef ? (
                   <p className="mt-1 text-[10px] text-muted-foreground/80">From: {item.findingRef}</p>
                 ) : null}
                 {item.automatorFlag ? (
-                  <AutomatorFlagCallout product={item.automatorProduct ?? "seo"} />
+                  <AutomatorFlagCallout product={item.automatorProduct ?? "seo"} reportId={reportId} />
                 ) : null}
               </div>
             )
@@ -420,12 +430,18 @@ export function ActionPlanPanel({ report }: { report: LevelstackReportJson }) {
           </div>
         </div>
       ))}
-      {!isFree ? <SapBridgeBlock placement="fullActionPlan" /> : null}
+      {!isFree ? <SapBridgeBlock placement="fullActionPlan" reportId={reportId} /> : null}
     </div>
   )
 }
 
-export function ActionPlanKanban({ report }: { report: LevelstackReportJson }) {
+export function ActionPlanKanban({
+  report,
+  reportId,
+}: {
+  report: LevelstackReportJson
+  reportId?: string
+}) {
   const columns = [
     {
       key: "week" as const,
@@ -479,7 +495,7 @@ export function ActionPlanKanban({ report }: { report: LevelstackReportJson }) {
       ))}
       {report.meta.reportTier !== "free_snapshot" ? (
         <div className="lg:col-span-3">
-          <SapBridgeBlock placement="fullActionPlan" />
+          <SapBridgeBlock placement="fullActionPlan" reportId={reportId} />
         </div>
       ) : null}
     </div>
@@ -854,9 +870,9 @@ export function ReportTabContent({
           }
         />
         {actionPlanVariant === "kanban" ? (
-          <ActionPlanKanban report={report} />
+          <ActionPlanKanban report={report} reportId={reportId} />
         ) : (
-          <ActionPlanPanel report={report} />
+          <ActionPlanPanel report={report} reportId={reportId} />
         )}
       </div>
     )

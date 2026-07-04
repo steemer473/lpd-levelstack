@@ -209,7 +209,10 @@ export async function sendFreeSnapshotAdminNotificationEmail(
 
 /** Nurture follow-ups (D1/D3/D7/D14) — reserved for GHL workflow or cron; not sent from the pipeline. */
 export async function scheduleNurtureEmails(params: NurtureParams): Promise<void> {
-  const seoUrl = getHubSeoWaitlistUrl()
+  const seoUrl = getHubSeoWaitlistUrl({
+    reportId: params.reportId,
+    source: "levelstack_email",
+  })
   const upgradeUrl = getHubUpgradeUrl({
     reportId: params.reportId,
     planId: "levelstack-full-report",
@@ -274,7 +277,10 @@ export async function sendNurtureDayEmail(
   day: 3 | 7 | 14,
   params: NurtureParams,
 ): Promise<void> {
-  const seoUrl = getHubSeoWaitlistUrl()
+  const seoUrl = getHubSeoWaitlistUrl({
+    reportId: params.reportId,
+    source: "levelstack_email",
+  })
   const upgradeUrl = getHubUpgradeUrl({
     reportId: params.reportId,
     planId: "levelstack-full-report",

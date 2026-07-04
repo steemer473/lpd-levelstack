@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { getHubCartUrl, getHubUpgradeUrl } from "@/lib/urls"
+import { getHubCartUrl, getHubSeoWaitlistUrl, getHubUpgradeUrl } from "@/lib/urls"
 
 describe("getHubUpgradeUrl", () => {
   it("includes reportId, planId, source, and pricing hash", () => {
@@ -40,5 +40,18 @@ describe("getHubCartUrl", () => {
   it("defaults to levelstack-standard when plan omitted", () => {
     const url = getHubCartUrl({ reportId: "abc" })
     expect(url).toContain("plan=levelstack-standard")
+  })
+})
+
+describe("getHubSeoWaitlistUrl", () => {
+  it("includes reportId, source, and waitlist hash", () => {
+    const url = getHubSeoWaitlistUrl({
+      reportId: "11111111-1111-4111-8111-111111111111",
+      source: "levelstack_report_credit",
+    })
+
+    expect(url).toContain("reportId=11111111-1111-4111-8111-111111111111")
+    expect(url).toContain("source=levelstack_report_credit")
+    expect(url).toContain("#waitlist")
   })
 })

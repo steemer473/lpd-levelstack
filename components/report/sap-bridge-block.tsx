@@ -6,7 +6,12 @@ import { ArrowRight } from "lucide-react"
 import { SapWaitlistModal } from "@/components/report/sap-waitlist-modal"
 import { SAP_BRIDGE_COPY, type SapBridgePlacement } from "@/lib/report/sap-bridge-copy"
 
-export function SapBridgeBlock({ placement }: { placement: SapBridgePlacement }) {
+type SapBridgeBlockProps = {
+  placement: SapBridgePlacement
+  reportId?: string
+}
+
+export function SapBridgeBlock({ placement, reportId }: SapBridgeBlockProps) {
   const copy = SAP_BRIDGE_COPY[placement]
   const [sapModalOpen, setSapModalOpen] = useState(false)
 
@@ -23,7 +28,7 @@ export function SapBridgeBlock({ placement }: { placement: SapBridgePlacement })
           <ArrowRight className="h-3 w-3" aria-hidden />
         </button>
       </div>
-      <SapWaitlistModal open={sapModalOpen} onOpenChange={setSapModalOpen} />
+      <SapWaitlistModal open={sapModalOpen} onOpenChange={setSapModalOpen} reportId={reportId} />
     </>
   )
 }
