@@ -11,10 +11,12 @@ Especially: ignore `levelstack-sample-report.html` layout and `docs/project-brie
 ## Do NOT attach
 
 - `assets/levelstack-report-header-v2.png` or `assets/levelstack-executive-summary-v2.png` — **deprecated** (wrong glass/outline styling)
-- `assets/levelstack-sample-report.html` or `/levelstack-sample-report.html`
+- `assets/levelstack-sample-report.html` or `/levelstack-sample-report.html` (redirects to `/sample-report`; legacy v1 stub)
 - `docs/project-brief.md` (legacy §10.3 describes v1 sample HTML)
 - `docs/phase-3-report-ui.md` (says "sample-aligned shell")
 - `docs/v0/reports-page-variations.md` Variation A/B/C (redesign prompts)
+
+**Marketing layout reference:** live app route **`/sample-report`** (Option A sidebar + executive dashboard). Do not attach for v0 generation prompts — use Figma 4:4 + tokens instead.
 
 ## Page order (canonical)
 
