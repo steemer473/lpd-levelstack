@@ -82,7 +82,7 @@ Defined in hub [`data/levelstackPlans.ts`](../../../data/levelstackPlans.ts), re
 
 ### 0.8 Sample report (reference implementation)
 
-**Canonical UI reference:** [Figma audit-report frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4) — report layout. [`assets/levelstack-sample-report.html`](../assets/levelstack-sample-report.html) — copy tone only (legacy v1 layout). Deprecated: `assets/levelstack-report-header-v2.png`, `assets/levelstack-executive-summary-v2.png`.
+**Canonical UI reference:** [Figma audit-report frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4) — report layout. Live marketing sample: **`/sample-report`** (renders `LevelstackReportView` + `lib/fixtures/sample-report.ts`). Legacy v1 HTML stub: [`assets/levelstack-sample-report.html`](../assets/levelstack-sample-report.html) — copy-tone archive only. Deprecated: `assets/levelstack-report-header-v2.png`, `assets/levelstack-executive-summary-v2.png`.
 
 **Layout reference (scores & summary):** [SEO audit results page](https://seo.levelplaydigital.com/results/cmpxhp9uf0000fw1qynk3qz65) on `seo.levelplaydigital.com` — overall score hero, category breakdown, issue priority counts, executive problem framing.
 
@@ -480,7 +480,7 @@ Zero manual intervention for Standard tier. Per-section scope:
 
 The LevelStack report visual reference is **[Figma audit-report frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4)**. Implementation: `styles/report-final-design.css`, `components/report/report-header.tsx`, `components/report/executive-summary-v2.tsx`. Deprecated PNGs (`levelstack-report-header-v2.png`, `levelstack-executive-summary-v2.png`) must not be used for layout validation.
 
-[`assets/levelstack-sample-report.html`](assets/levelstack-sample-report.html) is **legacy v1** — use for **copy tone / finding depth only**, not layout or header structure.
+[`lib/fixtures/sample-report.ts`](../lib/fixtures/sample-report.ts) and **`/sample-report`** are the live marketing sample. [`assets/levelstack-sample-report.html`](assets/levelstack-sample-report.html) is **legacy v1** — copy-tone archive only, not layout.
 
 Both web view and PDF must present the same content. PDF is a permanent download (no 30-day expiry like the free SEO tool).
 
@@ -561,7 +561,7 @@ Horizontal scroll tabs on mobile; grids collapse or scroll; PDF may layout diffe
 
 Internal/marketing samples use `Sample Report` badge (`.sample-badge`). Paid reports use live meta counts only.
 
-Layout reference: [Figma audit-report frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4). Copy tone: [`assets/levelstack-sample-report.html`](../assets/levelstack-sample-report.html).
+Layout reference: [Figma frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4) + live **`/sample-report`**. Copy tone: [`lib/fixtures/sample-report.ts`](../lib/fixtures/sample-report.ts).
 
 ### 10.4 Review call add-on (`levelstack-review-call` only)
 
@@ -630,7 +630,7 @@ Framing: LevelStack finds gaps; SEO Automator Pro is designed to keep them close
 
 - Business-specific findings only; no generic boilerplate.
 - Actionable action plan only; realistic time estimates.
-- Validate layout against [Figma frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4); validate copy tone against [`assets/levelstack-sample-report.html`](assets/levelstack-sample-report.html) and §10.3 before launch.
+- Validate layout against [Figma frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4) and **`/sample-report`**; validate copy tone against [`lib/fixtures/sample-report.ts`](../lib/fixtures/sample-report.ts) and §10.3 before launch.
 
 ### 12.3 Account and data
 
@@ -710,7 +710,7 @@ Additional rules:
 | Web report + PDF | — | **Build** |
 | Review-call ops | — | **Build** |
 | Report-ready email | — | **Build** |
-| Sample-calibrated synthesis | — | **Validate copy tone against** [`assets/levelstack-sample-report.html`](assets/levelstack-sample-report.html); **layout against Figma 4:4** |
+| Sample-calibrated synthesis | — | **Validate copy tone against** [`lib/fixtures/sample-report.ts`](../lib/fixtures/sample-report.ts); **layout against Figma 4:4** and **`/sample-report`** |
 | Executive summary + SEO-style dashboard | — | **Build** (§10.3.2–10.3.3) |
 
 ---
@@ -729,7 +729,7 @@ Stack detail: §9. Product implementation order: §21.
 | PDF rendering | Product | **Build** (verify; not confirmed in hub for LevelStack) |
 | Review call booking | Ops / product link | Partial (GHL on hub elsewhere) |
 | SEO Automator waitlist page | Hub `/platform/seo` | Live as waitlist positioning |
-| Sample report UI reference | Product owner | **Attached** — [`assets/levelstack-sample-report.html`](assets/levelstack-sample-report.html) |
+| Sample report UI reference | Product owner | **Live** — **`/sample-report`**; fixture [`lib/fixtures/sample-report.ts`](../lib/fixtures/sample-report.ts) |
 | SEO audit results layout reference | External | [seo.levelplaydigital.com results](https://seo.levelplaydigital.com/results/cmpxhp9uf0000fw1qynk3qz65) |
 
 ---
@@ -753,7 +753,9 @@ Stack detail: §9. Product implementation order: §21.
 
 ### 19.1 Sample report UI (section detail)
 
-**File:** [`assets/levelstack-sample-report.html`](assets/levelstack-sample-report.html)
+**Route:** **`/sample-report`** — public marketing preview using `LevelstackReportView`.
+
+**Fixture:** [`lib/fixtures/sample-report.ts`](../lib/fixtures/sample-report.ts) (Marcus Carter / MC Fitness illustrative data).
 
 Defines tabbed six-section layout, finding cards, AI preview row, GBP score bars, competitive comparison grid, prioritized action plan table, upsell strips, and LPD dark header/footer.
 
@@ -850,7 +852,7 @@ pnpm dlx shadcn@latest init
 
 ### 22.4 After scaffold
 
-1. Copy this brief → `docs/project-brief.md` (and `assets/levelstack-sample-report.html` for UI reference).
+1. Copy this brief → `docs/project-brief.md` (and wire **`/sample-report`** for UI reference).
 2. Add Supabase clients, `env.mjs`, entitlement helper per §9.6.
 3. Wire Vercel project + env vars per §9.5 (no `STRIPE_*`).
 4. Prompt Agent: *Bootstrap per docs/project-brief.md §9–§10.1. No Stripe checkout.*

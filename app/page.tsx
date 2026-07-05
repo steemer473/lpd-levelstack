@@ -70,13 +70,7 @@ export default function Page() {
             <Link href={getHubPricingUrl()}>Upgrade — Action Roadmap $97</Link>
           </Button>
           <Button variant="ghost" asChild className="w-full">
-            <a
-              href="/levelstack-sample-report.html"
-              target="_blank"
-              rel="noreferrer"
-            >
-              See a sample
-            </a>
+            <Link href="/sample-report">See a sample</Link>
           </Button>
         </div>
         {process.env.NODE_ENV === "development" && (
