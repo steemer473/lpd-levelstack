@@ -30,7 +30,10 @@ describe("plunkTrack", () => {
 
     expect(result.ok).toBe(true)
     expect(fetchMock).toHaveBeenCalledOnce()
-    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    const call = fetchMock.mock.calls[0]
+    expect(call).toBeDefined()
+    const url = call![0] as string
+    const init = call![1] as RequestInit
     expect(url).toBe("https://next-api.useplunk.com/v1/track")
     expect(init.headers).toMatchObject({
       Authorization: "Bearer pk_test_public",
@@ -76,7 +79,9 @@ describe("plunkApiRequest", () => {
     const result = await plunkApiRequest("/v1/workflows", { workflowApi: true })
 
     expect(result.ok).toBe(true)
-    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    const call = fetchMock.mock.calls[0]
+    expect(call).toBeDefined()
+    const init = call![1] as RequestInit
     expect(init.headers).toMatchObject({
       Authorization: "Bearer sk_test_secret",
     })
