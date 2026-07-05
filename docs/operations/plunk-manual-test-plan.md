@@ -92,6 +92,12 @@ curl -s -X POST https://levelstack.levelplaydigital.com/api/webhooks/plunk \
 
 Expected: `{"received":true}`
 
+**Verified 2026-07-05:** Authenticated production smoke test returned `{"received":true}` using Vercel `PLUNK_WEBHOOK_SECRET`. Supabase `email_events` row confirmed:
+
+| contact_email | event_type | plunk_event_id | occurred_at |
+|---|---|---|---|
+| `manual-test@example.com` | `email.open` | `test-vercel-env-run-001` | `2026-07-05 13:26:52.379+00` |
+
 **Supabase check** (Table Editor → `email_events` or SQL):
 
 ```sql
@@ -104,9 +110,9 @@ LIMIT 5;
 
 | # | Step | Pass criteria | ✓ |
 |---|------|---------------|---|
-| 2.1 | Unauthenticated POST | HTTP `401` | |
-| 2.2 | Authenticated POST | HTTP `200`, `received: true` | |
-| 2.3 | Row in `email_events` | `event_type` = `email.open` | |
+| 2.1 | Unauthenticated POST | HTTP `401` | ✓ |
+| 2.2 | Authenticated POST | HTTP `200`, `received: true` | ✓ |
+| 2.3 | Row in `email_events` | `event_type` = `email.open` | ✓ |
 
 ---
 
@@ -119,10 +125,25 @@ LIMIT 5;
 | 3.1 | Submit free snapshot intake at `https://levelstack.levelplaydigital.com` using **test email** | Intake succeeds | |
 | 3.2 | Wait for report pipeline to complete | Report status = `ready` | |
 | 3.3 | Check test inbox | **Email 1** received (Resend — report ready / magic link) | |
-| 3.4 | Plunk → Contacts → search test email | Contact exists; `subscribed` = true | |
-| 3.5 | Plunk → Contact timeline / Events | `levelstack_report_ready` event logged | |
-| 3.6 | Plunk → Workflows → Workflow A → Executions | New execution for test contact (may be waiting on +4h delay) | |
-| 3.7 | Vercel logs (`lpd-levelstack`) | No `[plunk] nurture track failed` errors | |
+| 3.4 | Plunk → Contacts → search test email | Contact exists; `subscribed` = true | ✓ |
+| 3.5 | Plunk → Contact timeline / Events | `levelstack_report_ready` event logged | ✓ |
+| 3.6 | Plunk → Workflows → Workflow A → Executions | New execution for test contact (may be waiting on +4h delay) | ✓ |
+| 3.7 | Vercel logs (`lpd-levelstack`) | No `[plunk] nurture track failed` errors | ✓ |
+
+**Verified 2026-07-05** — test email `stephanie.ragsdale.2013@gmail.com` (Plunk contact `358e0198-ef69-4224-ac6a-74aaa5a69050`):
+
+| Check | Result |
+|---|---|
+| 3.4 Contact | Exists; `subscribed = true` |
+| 3.5 Events | `levelstack_report_ready` logged (~09:04 CT) after manual track + report `163e2fa8-…` reached `ready` |
+| 3.6 Workflow A executions (`de45a2a4-…`) | **1** execution — status **Waiting** on first step (`Wait 4 hours`) — **expected** |
+| 3.7 Vercel logs (24h) | No `[plunk] nurture track failed` lines |
+
+**Waiting = pass for 3.6.** Workflow A starts with a 4h delay before Email 2 (*What your next prospect already found*). Plunk shows **Waiting** while that timer runs; it is not stuck or failed.
+
+Approximate Email 2 send: **~4 hours after** the `levelstack_report_ready` event (event ~09:04 CT → Email 2 ~**13:04 CT** same day, if the contact stays subscribed).
+
+Report: `163e2fa8-a112-4c73-b577-7cacc5d5f054` — `ready` at https://levelstack.levelplaydigital.com/reports/163e2fa8-a112-4c73-b577-7cacc5d5f054
 
 **Personalization check** (Plunk contact data):
 
@@ -160,7 +181,7 @@ LIMIT 5;
 | # | Step | Pass criteria | ✓ |
 |---|------|---------------|---|
 | 5.1 | Open `https://levelplaydigital.com/platform/seo` | Waitlist form visible; tier picker + founding counter | |
-| 5.2 | Submit with **new test email** (no prior $97 order) | Success message; `sap_credit_eligible = false` | |
+| 5.2 | Submit with **new test email** (no prior $97 order) | Success message; `sap_credit_eligible = false`; **Resend confirmation in inbox within 1 min** | |
 | 5.3 | Supabase → `sap_waitlist_signups` | Row with `email`, `intended_tier`, `billing_preference`, `founding_member`, `source` | |
 | 5.4 | Submit from LevelStack report bridge URL with `?reportId={uuid}&source=levelstack_report_credit` | Page shows credit hint; form passes `reportId` | |
 | 5.5 | Submit with **Action Roadmap buyer email** (same as completed $97 order) | `sap_credit_eligible = true` | |
@@ -168,7 +189,7 @@ LIMIT 5;
 | 5.7 | Plunk → Contacts → test email | Contact exists | |
 | 5.8 | Plunk → Contact timeline | `sap_waitlist_joined` event with tier + credit flags | |
 | 5.9 | Plunk → Workflow B → Executions | New execution started (when credit-eligible, if branch configured) | |
-| 5.10 | Hub Vercel logs | No `[sap-waitlist] plunk track failed` | |
+| 5.10 | Hub Vercel logs | No `[sap-waitlist] plunk track failed`; `[sap-waitlist] confirmation email sent` present | |
 | 5.11 | Open `https://levelplaydigital.com/platform/seo/for-agencies` | Agency hero; Agency tier preselected; credit banner **absent** | |
 | 5.12 | Submit agency page with new test email | `source = platform_seo_agency`, `intended_tier = agency`, `sap_credit_eligible = false` | |
 | 5.13 | Plunk contact timeline (agency signup) | `sap_waitlist_joined` includes `source`, `audience = agency` | |

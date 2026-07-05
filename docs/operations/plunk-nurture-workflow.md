@@ -163,6 +163,14 @@ This creates:
 
 After first deploy, open Plunk dashboard and verify step wiring (API may not connect all transitions).
 
+**Condition branches bypassing?** Duplicate transitions at the same priority can route every contact down the first edge. Repair live workflows:
+
+```bash
+pnpm repair:plunk-workflow-transitions
+```
+
+This cancels active executions, dedupes edges, and rebuilds yes/no branches on CONDITION steps with explicit priority.
+
 **Email template dropdown empty?** The deploy API must set top-level `templateId` on each `SEND_EMAIL` step (not only `config.templateId`). Repair existing workflows:
 
 ```bash

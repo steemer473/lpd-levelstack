@@ -173,10 +173,12 @@ function exitStep(name, reason, index) {
 }
 
 async function connectSteps(workflowId, fromStepId, toStepId, branch) {
+  const priority = branch === "no" ? 1 : 0
   return api("POST", `/workflows/${workflowId}/transitions`, {
     fromStepId,
     toStepId,
     ...(branch ? { branch } : {}),
+    priority,
   })
 }
 
