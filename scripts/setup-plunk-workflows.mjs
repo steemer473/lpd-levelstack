@@ -111,14 +111,21 @@ async function disablePreviousWorkflow(workflowId, label) {
   }
 }
 
-async function addStep(workflowId, { name, type, config, position, autoConnect }) {
-  return api("POST", `/workflows/${workflowId}/steps`, {
+async function addStep(workflowId, { name, type, config, position, autoConnect, templateId: stepTemplateId }) {
+  const body = {
     type,
     name,
     position,
     config,
     ...(autoConnect ? { autoConnect: true } : {}),
-  })
+  }
+  if (type === "SEND_EMAIL") {
+    const id = stepTemplateId ?? config?.templateId
+    if (id) {
+      body.templateId = id
+    }
+  }
+  return api("POST", `/workflows/${workflowId}/steps`, body)
 }
 
 function stepPosition(index) {

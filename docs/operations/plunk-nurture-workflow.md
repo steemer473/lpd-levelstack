@@ -163,6 +163,14 @@ This creates:
 
 After first deploy, open Plunk dashboard and verify step wiring (API may not connect all transitions).
 
+**Email template dropdown empty?** The deploy API must set top-level `templateId` on each `SEND_EMAIL` step (not only `config.templateId`). Repair existing workflows:
+
+```bash
+pnpm repair:plunk-workflow-templates
+```
+
+This disables each workflow briefly, cancels active executions, patches template links, and re-enables. Re-fire `levelstack_report_ready` for any contacts whose executions were cancelled.
+
 ---
 
 ## Step 4 — Analytics webhooks (separate workflows)
