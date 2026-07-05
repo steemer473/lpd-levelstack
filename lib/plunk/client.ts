@@ -21,6 +21,10 @@ function getSecretKey(): string | undefined {
   return env.PLUNK_SECRET_KEY?.trim() || undefined
 }
 
+function getPublicKey(): string | undefined {
+  return env.PLUNK_PUBLIC_KEY?.trim() || undefined
+}
+
 function apiBase(): string {
   const configured = env.PLUNK_API_URL?.trim() || DEFAULT_API_BASE
   if (configured.includes("api.useplunk.com") && !configured.includes("next-api.useplunk.com")) {
@@ -33,7 +37,18 @@ export function workflowApiBase(): string {
   return env.PLUNK_WORKFLOW_API_URL?.trim() || DEFAULT_WORKFLOW_API_BASE
 }
 
-function authHeaders(): Record<string, string> {
+function trackAuthHeaders(): Record<string, string> {
+  const key = getPublicKey()
+  if (!key) {
+    throw new Error("PLUNK_PUBLIC_KEY is not configured")
+  }
+  return {
+    Authorization: `Bearer ${key}`,
+    "Content-Type": "application/json",
+  }
+}
+
+function secretAuthHeaders(): Record<string, string> {
   const key = getSecretKey()
   if (!key) {
     throw new Error("PLUNK_SECRET_KEY is not configured")
@@ -56,14 +71,18 @@ function normalizeData(
   return Object.keys(out).length > 0 ? out : undefined
 }
 
+export function isPlunkTrackConfigured(): boolean {
+  return Boolean(getPublicKey())
+}
+
 export function isPlunkConfigured(): boolean {
   return Boolean(getSecretKey())
 }
 
 /** Track a contact event — creates/updates contact and may trigger workflows. */
 export async function plunkTrack(params: PlunkTrackParams): Promise<PlunkApiResult> {
-  if (!isPlunkConfigured()) {
-    console.info("[plunk] Skipped track (PLUNK_SECRET_KEY not set):", params.event, params.email)
+  if (!isPlunkTrackConfigured()) {
+    console.info("[plunk] Skipped track (PLUNK_PUBLIC_KEY not set):", params.event, params.email)
     return { ok: false, status: 0, error: "not_configured" }
   }
 
@@ -82,7 +101,7 @@ export async function plunkTrack(params: PlunkTrackParams): Promise<PlunkApiResu
   try {
     const res = await fetch(`${apiBase()}/v1/track`, {
       method: "POST",
-      headers: authHeaders(),
+      headers: trackAuthHeaders(),
       body: JSON.stringify(body),
     })
     const text = await res.text()
@@ -128,7 +147,7 @@ export async function plunkApiRequest<T = unknown>(
   try {
     const res = await fetch(`${base}${path}`, {
       method,
-      headers: authHeaders(),
+      headers: secretAuthHeaders(),
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
     })
     const text = await res.text()
