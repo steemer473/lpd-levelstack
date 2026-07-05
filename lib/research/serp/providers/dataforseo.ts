@@ -38,11 +38,19 @@ async function dataForSeoPost<T>(path: string, body: unknown): Promise<{ data: T
 }
 
 function dataForSeoErrorMessage(data: {
+  status_code?: number
   status_message?: string
   tasks?: Array<{ status_message?: string; status_code?: number }>
 }): string | null {
   const taskError = data.tasks?.find((task) => task.status_code && task.status_code >= 40000)
-  return taskError?.status_message ?? data.status_message ?? null
+  if (taskError?.status_message) return taskError.status_message
+
+  // Top-level status_message is "Ok." on success — only treat explicit API errors as failures.
+  if (data.status_code && data.status_code >= 40000) {
+    return data.status_message ?? "DataForSEO request failed."
+  }
+
+  return null
 }
 
 export async function dataForSeoOrganicSearch(query: string): Promise<ProviderOrganicResult> {
