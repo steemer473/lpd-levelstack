@@ -26,6 +26,7 @@
     "generate:nurture-emails": "node scripts/sync-plunk-templates.mjs",
     "sync:plunk-templates": "node scripts/sync-plunk-templates.mjs --from-local",
     "setup:plunk-workflows": "node scripts/setup-plunk-workflows.mjs --from-local",
+    "repair:plunk-workflow-templates": "node scripts/repair-plunk-workflow-templates.mjs --from-local",
     "setup:plunk-analytics-webhooks": "node scripts/setup-plunk-analytics-webhooks.mjs --from-local",
     "import:ghl-emails": "node scripts/import-ghl-email-templates.mjs --from-local",
     "paste:ghl-emails": "node scripts/ghl-email-paste-helper.mjs"
