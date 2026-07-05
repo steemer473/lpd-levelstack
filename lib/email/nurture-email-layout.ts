@@ -30,6 +30,7 @@ export const GHL_MERGE = PLUNK_MERGE
 export const NURTURE_LINKS = {
   upgradeHub: `${HUB_ORIGIN}/platform/levelstack?source=levelstack_email#pricing`,
   sapWaitlist: `${HUB_ORIGIN}/platform/seo`,
+  sapWaitlistAgency: `${HUB_ORIGIN}/platform/seo/for-agencies?source=sap_agency_email`,
   privacy: `${HUB_ORIGIN}/privacy-policy`,
   terms: `${HUB_ORIGIN}/terms-of-service`,
 } as const
@@ -401,6 +402,66 @@ export function buildWaitlistEmailW4Body(): string {
   ].join("\n")
 }
 
+export function buildAgencyWaitlistEmailA1Body(): string {
+  return [
+    nurtureGreeting(),
+    nurtureParagraph("You're on the Agency founding list for SEO Automator Pro."),
+    nurtureParagraph(
+      "Your Agency founding rate is tied to this waitlist signup. No credit card, no pitch call, and no LevelStack prerequisite.",
+    ),
+    nurtureParagraph(
+      "When agency slots open, you'll be able to bring client sites into continuous technical monitoring without adding another site-by-site audit workflow.",
+    ),
+    nurtureCtaButton(NURTURE_LINKS.sapWaitlistAgency, "secondary"),
+    nurtureSignoff(),
+  ].join("\n")
+}
+
+export function buildAgencyWaitlistEmailA2Body(): string {
+  return [
+    nurtureGreeting(),
+    nurtureParagraph("The client call you don't want is usually not about a dramatic failure."),
+    nurtureParagraph(
+      "It is one client site with crawl drift, broken schema, or stale metadata that quietly costs leads until someone asks why traffic dropped.",
+    ),
+    nurtureParagraph(
+      "Across a portfolio, those leaks are easy to miss and expensive to explain. SEO Automator Pro is built to catch the technical layer before it becomes a retention conversation.",
+    ),
+    nurtureCtaButton(NURTURE_LINKS.sapWaitlistAgency, "secondary"),
+    nurtureSignoff(),
+  ].join("\n")
+}
+
+export function buildAgencyWaitlistEmailA3Body(): string {
+  return [
+    nurtureGreeting(),
+    nurtureParagraph("Quarterly audit deliverables do not stop weekly technical drift."),
+    nurtureParagraph(
+      "Client sites live on mixed stacks: WordPress, GoHighLevel, Webflow, Squarespace, Shopify, and custom builds. Manual checks do not scale across all of them.",
+    ),
+    nurtureParagraph(
+      "SEO Automator Pro uses one snippet per site to monitor the portfolio continuously, without CMS credentials or another plugin to maintain.",
+    ),
+    nurtureCtaButton(NURTURE_LINKS.sapWaitlistAgency, "secondary"),
+    nurtureSignoff(),
+  ].join("\n")
+}
+
+export function buildAgencyWaitlistEmailA4Body(): string {
+  return [
+    nurtureGreeting(),
+    nurtureParagraph("Cohort update: we're preparing the next agency automation slots."),
+    nurtureParagraph(
+      "Before your slot opens, list the first 5–20 client sites you want monitored and confirm you can add a snippet to each site's head section.",
+    ),
+    nurtureParagraph(
+      "No plugins. No CMS logins. No managed-service handoff. Just the technical monitoring layer your team can install once and keep watching across the portfolio.",
+    ),
+    nurtureCtaButton(NURTURE_LINKS.sapWaitlistAgency, "secondary"),
+    nurtureSignoff(),
+  ].join("\n")
+}
+
 export type NurtureEmailTemplateDef = {
   filename: string
   slug: string
@@ -486,6 +547,33 @@ export const WAITLIST_EMAIL_TEMPLATES = [
   ),
 ] as const
 
+export const AGENCY_WAITLIST_EMAIL_TEMPLATES = [
+  templateDef(
+    "waitlist-agency-a1-on-the-list.html",
+    "You're on the Agency founding list",
+    "Your Agency founding rate is tied to this waitlist signup.",
+    buildAgencyWaitlistEmailA1Body,
+  ),
+  templateDef(
+    "waitlist-agency-a2-client-call.html",
+    "The client call you don't want to get",
+    "Portfolio leaks are invisible until they are expensive.",
+    buildAgencyWaitlistEmailA2Body,
+  ),
+  templateDef(
+    "waitlist-agency-a3-quarterly-audits.html",
+    "Why operators are replacing quarterly audit deliverables",
+    "Continuous monitoring catches the drift quarterly audits miss.",
+    buildAgencyWaitlistEmailA3Body,
+  ),
+  templateDef(
+    "waitlist-agency-a4-cohort-update.html",
+    "Cohort update: prep your first client sites",
+    "What to prepare before agency onboarding opens.",
+    buildAgencyWaitlistEmailA4Body,
+  ),
+] as const
+
 /** @deprecated Use NURTURE_EMAIL_TEMPLATES */
 export const GHL_EMAIL_TEMPLATES = NURTURE_EMAIL_TEMPLATES
 
@@ -495,4 +583,5 @@ export const GHL_WAITLIST_EMAIL_TEMPLATES = WAITLIST_EMAIL_TEMPLATES
 export const ALL_NURTURE_TEMPLATES = [
   ...NURTURE_EMAIL_TEMPLATES,
   ...WAITLIST_EMAIL_TEMPLATES,
+  ...AGENCY_WAITLIST_EMAIL_TEMPLATES,
 ] as const
