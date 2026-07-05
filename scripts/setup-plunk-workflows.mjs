@@ -100,6 +100,17 @@ async function createWorkflow({ name, eventName }) {
   })
 }
 
+async function disablePreviousWorkflow(workflowId, label) {
+  if (!workflowId) return
+
+  try {
+    await api("PATCH", `/workflows/${workflowId}`, { enabled: false })
+    console.log(`Disabled previous ${label} workflow → ${workflowId}`)
+  } catch (err) {
+    console.warn(`⚠️  Could not disable previous ${label} workflow ${workflowId}: ${err.message || err}`)
+  }
+}
+
 async function addStep(workflowId, { name, type, config, position, autoConnect }) {
   return api("POST", `/workflows/${workflowId}/steps`, {
     type,
@@ -128,6 +139,28 @@ function emailStep(name, templateFilename, templateMapping, index) {
     name,
     type: "SEND_EMAIL",
     config: { templateId: templateId(templateMapping, templateFilename) },
+    position: stepPosition(index),
+  }
+}
+
+function conditionStep(name, field, operator, value, index) {
+  return {
+    name,
+    type: "CONDITION",
+    config: {
+      field,
+      operator,
+      ...(value !== undefined ? { value } : {}),
+    },
+    position: stepPosition(index),
+  }
+}
+
+function exitStep(name, reason, index) {
+  return {
+    name,
+    type: "EXIT",
+    config: { reason },
     position: stepPosition(index),
   }
 }
@@ -164,15 +197,7 @@ async function deployWorkflowA(templateMapping) {
   const delay4h = await addStep(workflowId, delayStep("Wait 4 hours", 4, "hours", i++))
   const email02 = await addStep(workflowId, emailStep("Email 2 — Prospect", "email-02-prospect.html", templateMapping, i++))
   const delay2d = await addStep(workflowId, delayStep("Wait 2 days", 2, "days", i++))
-  const condition = await addStep(workflowId, {
-    name: "Has top competitor?",
-    type: "CONDITION",
-    config: {
-      field: "contact.data.topCompetitor",
-      operator: "is_not_empty",
-    },
-    position: stepPosition(i++),
-  })
+  const condition = await addStep(workflowId, conditionStep("Has top competitor?", "contact.data.topCompetitor", "is_not_empty", undefined, i++))
   const email03 = await addStep(workflowId, emailStep("Email 3 — Competitor", "email-03-competitor.html", templateMapping, i++))
   const email03fb = await addStep(
     workflowId,
@@ -191,12 +216,7 @@ async function deployWorkflowA(templateMapping) {
     },
     position: stepPosition(i++),
   })
-  const exitPurchased = await addStep(workflowId, {
-    name: "Exit — purchased",
-    type: "EXIT",
-    config: { reason: "purchased" },
-    position: stepPosition(i++),
-  })
+  const exitPurchased = await addStep(workflowId, exitStep("Exit — purchased", "purchased", i++))
 
   const sid = (s) => s.id || s.step?.id || s.stepId
 
@@ -246,6 +266,10 @@ async function deployWorkflowB(templateMapping) {
   if (!workflowId) throw new Error("Workflow B create returned no id")
 
   let i = 0
+  const creditEligible = await addStep(
+    workflowId,
+    conditionStep("Credit eligible?", "contact.data.sapCreditEligible", "equals", true, i++),
+  )
   const delay1h = await addStep(workflowId, delayStep("Wait 1 hour", 1, "hours", i++))
   const w1 = await addStep(
     workflowId,
@@ -266,12 +290,18 @@ async function deployWorkflowB(templateMapping) {
     workflowId,
     emailStep("Waitlist W4", "waitlist-w4-cohort-update.html", templateMapping, i++),
   )
+  const exitNotCreditEligible = await addStep(
+    workflowId,
+    exitStep("Exit — not credit eligible", "not_credit_eligible", i++),
+  )
 
   const sid = (s) => s.id || s.step?.id || s.stepId
   const detail = await api("GET", `/workflows/${workflowId}`)
   const trigger = (detail.steps || detail.workflow?.steps || []).find((s) => s.type === "TRIGGER")
   if (trigger?.id) {
-    await connectSteps(workflowId, trigger.id, sid(delay1h))
+    await connectSteps(workflowId, trigger.id, sid(creditEligible))
+    await connectSteps(workflowId, sid(creditEligible), sid(delay1h), "yes")
+    await connectSteps(workflowId, sid(creditEligible), sid(exitNotCreditEligible), "no")
     await connectSteps(workflowId, sid(delay1h), sid(w1))
     await connectSteps(workflowId, sid(w1), sid(delay2d))
     await connectSteps(workflowId, sid(delay2d), sid(w2))
@@ -284,6 +314,81 @@ async function deployWorkflowB(templateMapping) {
   await api("PATCH", `/workflows/${workflowId}`, { enabled: true })
 
   console.log(`✅ Workflow B → ${workflowId}`)
+  return workflowId
+}
+
+/** Workflow C: Agency direct A1 +1h → A2 +3d → A3 +5d → A4 +9d. */
+async function deployWorkflowC(templateMapping) {
+  console.log("\n— Workflow C (Agency waitlist A1–A4) —")
+
+  if (dryRun) {
+    console.log("🔍 Would create agency workflow", EVENT_WAITLIST)
+    return null
+  }
+
+  const workflow = await createWorkflow({
+    name: "LevelStack SAP Waitlist — Workflow C (Agency)",
+    eventName: EVENT_WAITLIST,
+  })
+  const workflowId = workflow.id || workflow.workflow?.id
+  if (!workflowId) throw new Error("Workflow C create returned no id")
+
+  let i = 0
+  const agencyAudience = await addStep(
+    workflowId,
+    conditionStep("Agency audience?", "contact.data.audience", "equals", "agency", i++),
+  )
+  const notCreditEligible = await addStep(
+    workflowId,
+    conditionStep("Not credit eligible?", "contact.data.sapCreditEligible", "equals", false, i++),
+  )
+  const delay1h = await addStep(workflowId, delayStep("Wait 1 hour", 1, "hours", i++))
+  const a1 = await addStep(
+    workflowId,
+    emailStep("Agency A1", "waitlist-agency-a1-on-the-list.html", templateMapping, i++),
+  )
+  const delay2d = await addStep(workflowId, delayStep("Wait 2 days", 2, "days", i++))
+  const a2 = await addStep(
+    workflowId,
+    emailStep("Agency A2", "waitlist-agency-a2-client-call.html", templateMapping, i++),
+  )
+  const delay2d2 = await addStep(workflowId, delayStep("Wait 2 days", 2, "days", i++))
+  const a3 = await addStep(
+    workflowId,
+    emailStep("Agency A3", "waitlist-agency-a3-quarterly-audits.html", templateMapping, i++),
+  )
+  const delay4d = await addStep(workflowId, delayStep("Wait 4 days", 4, "days", i++))
+  const a4 = await addStep(
+    workflowId,
+    emailStep("Agency A4", "waitlist-agency-a4-cohort-update.html", templateMapping, i++),
+  )
+  const exitNotAgency = await addStep(workflowId, exitStep("Exit — not agency", "not_agency", i++))
+  const exitCreditEligible = await addStep(
+    workflowId,
+    exitStep("Exit — credit eligible", "credit_eligible_workflow_b", i++),
+  )
+
+  const sid = (s) => s.id || s.step?.id || s.stepId
+  const detail = await api("GET", `/workflows/${workflowId}`)
+  const trigger = (detail.steps || detail.workflow?.steps || []).find((s) => s.type === "TRIGGER")
+  if (trigger?.id) {
+    await connectSteps(workflowId, trigger.id, sid(agencyAudience))
+    await connectSteps(workflowId, sid(agencyAudience), sid(notCreditEligible), "yes")
+    await connectSteps(workflowId, sid(agencyAudience), sid(exitNotAgency), "no")
+    await connectSteps(workflowId, sid(notCreditEligible), sid(delay1h), "yes")
+    await connectSteps(workflowId, sid(notCreditEligible), sid(exitCreditEligible), "no")
+    await connectSteps(workflowId, sid(delay1h), sid(a1))
+    await connectSteps(workflowId, sid(a1), sid(delay2d))
+    await connectSteps(workflowId, sid(delay2d), sid(a2))
+    await connectSteps(workflowId, sid(a2), sid(delay2d2))
+    await connectSteps(workflowId, sid(delay2d2), sid(a3))
+    await connectSteps(workflowId, sid(a3), sid(delay4d))
+    await connectSteps(workflowId, sid(delay4d), sid(a4))
+  }
+
+  await api("PATCH", `/workflows/${workflowId}`, { enabled: true })
+
+  console.log(`✅ Workflow C → ${workflowId}`)
   return workflowId
 }
 
@@ -301,12 +406,27 @@ async function main() {
 
   const workflowAId = await deployWorkflowA(templateMapping)
   const workflowBId = await deployWorkflowB(templateMapping)
+  const workflowCId = await deployWorkflowC(templateMapping)
 
-  if (!dryRun && (workflowAId || workflowBId)) {
+  if (!dryRun && (workflowAId || workflowBId || workflowCId)) {
+    await disablePreviousWorkflow(
+      workflowAId && workflowMapping.workflow_a !== workflowAId ? workflowMapping.workflow_a : null,
+      "Workflow A",
+    )
+    await disablePreviousWorkflow(
+      workflowBId && workflowMapping.workflow_b !== workflowBId ? workflowMapping.workflow_b : null,
+      "Workflow B",
+    )
+    await disablePreviousWorkflow(
+      workflowCId && workflowMapping.workflow_c !== workflowCId ? workflowMapping.workflow_c : null,
+      "Workflow C",
+    )
+
     saveJson(workflowIdsPath, {
       ...workflowMapping,
       ...(workflowAId ? { workflow_a: workflowAId } : {}),
       ...(workflowBId ? { workflow_b: workflowBId } : {}),
+      ...(workflowCId ? { workflow_c: workflowCId } : {}),
       events: {
         report_ready: EVENT_REPORT_READY,
         purchased: EVENT_PURCHASED,

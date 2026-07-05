@@ -13,7 +13,7 @@
 | Layer | Tool | Role |
 |-------|------|------|
 | Email 1 (report delivery) | **Resend** (`lpd-levelstack`) | Transactional — sent by the product app |
-| Emails 2–5 + W1–W4 | **Plunk** (hosted SaaS) | Nurture workflows A & B — **Plunk renders and sends** |
+| Emails 2–5 + W1–W4 + A1–A4 | **Plunk** (hosted SaaS) | Nurture workflows A, B & C — **Plunk renders and sends** |
 | Business CRM | **Supabase** (shared project) | Orders, waitlist, report data |
 | Email audience + sequences | **Plunk** | Contact records + workflow engine |
 | Chat, SMS, inbox | **GHL** (downgraded) | Communications only — no nurture workflows |
@@ -31,7 +31,7 @@ lpd-levelstack (report ready)
 
 lpd-redesign (hub)
   └─ Stripe webhook → levelstack_purchased → exits Workflow A
-  └─ POST /api/sap-waitlist → sap_waitlist_joined → Workflow B → W1–W4
+  └─ POST /api/sap-waitlist → sap_waitlist_joined → Workflow B/C → W1–W4 or A1–A4
 ```
 
 ### Repo responsibilities
@@ -41,6 +41,7 @@ lpd-redesign (hub)
 | **Workflow A trigger** | `lpd-levelstack` | `trackReportReadyForNurture()` in `run-report-pipeline.ts` | Send Emails 2–5 |
 | **Workflow A exit** | `lpd-redesign` + `lpd-levelstack` | `levelstack_purchased` from Stripe webhook + `/api/upgrade/notify` | Cancel sends directly |
 | **Workflow B trigger** | `lpd-redesign` | `POST /api/sap-waitlist` → Supabase + Plunk track | Send W1–W4 |
+| **Workflow C trigger** | `lpd-redesign` | `POST /api/sap-waitlist` → Supabase + Plunk track | Send A1–A4 |
 | **Email 1** | `lpd-levelstack` | `sendReportReadyEmail` via Resend | Part of Plunk nurture |
 | **Template HTML (source)** | `lpd-levelstack` | `lib/email/nurture-email-layout.ts` → sync to Plunk | Host live templates |
 | **Live templates + workflows** | **Plunk dashboard** | Stores templates, runs delays/branches | Trigger on its own |
@@ -52,10 +53,11 @@ Recorded in [`docs/plunk/workflow-ids.json`](../plunk/workflow-ids.json):
 
 | Workflow | Plunk ID | Trigger event |
 |----------|----------|---------------|
-| A — Nurture Emails 2–5 | `8ff31129-a57b-4d61-b2e8-16dcd10c40d7` | `levelstack_report_ready` |
-| B — SAP waitlist W1–W4 | `4a5e6a98-4df7-42d2-af24-aae9e1f8d0ec` | `sap_waitlist_joined` |
+| A — Nurture Emails 2–5 | `de45a2a4-344c-4afe-9ffd-69b199b8ee2a` | `levelstack_report_ready` |
+| B — SAP waitlist W1–W4 | `3a49aa59-4ea9-4350-b423-715010c72837` | `sap_waitlist_joined` |
+| C — Agency waitlist A1–A4 | `9f963ee6-b9fc-43e7-be81-5c0ce17c5bb2` | `sap_waitlist_joined` |
 
-Both apps must use the **same** `PLUNK_SECRET_KEY` (same Plunk project). Duplicate workflows with the same trigger will double-send — keep only one enabled pair.
+Both apps must use the **same** `PLUNK_SECRET_KEY` (same Plunk project). Duplicate workflows with the same trigger and overlapping conditions will double-send — keep only one enabled set.
 
 ### Troubleshooting “wrong” emails
 
@@ -64,7 +66,7 @@ Both apps must use the **same** `PLUNK_SECRET_KEY` (same Plunk project). Duplica
 | Email 1 missing/wrong | `lpd-levelstack` Resend path (`sendReportReadyEmail`) |
 | Nurture never started | `lpd-levelstack` logs for `[plunk] nurture track failed`; Plunk contact timeline for `levelstack_report_ready` |
 | Nurture started but wrong copy | Plunk template (re-sync from `lpd-levelstack`: `pnpm sync:plunk-templates`) |
-| Waitlist sequence wrong | `lpd-redesign` `POST /api/sap-waitlist`; Plunk Workflow B |
+| Waitlist sequence wrong | `lpd-redesign` `POST /api/sap-waitlist`; Plunk Workflow B/C branch conditions |
 | Duplicate nurture emails | Multiple enabled workflows on same trigger in Plunk — delete extras |
 | Purchase didn't stop nurture | `lpd-redesign` Stripe webhook + `LEVELSTACK_UPGRADE_NOTIFY_SECRET` on both repos |
 
@@ -153,6 +155,12 @@ This creates:
 - **Trigger:** `sap_waitlist_joined` when `sapCreditEligible: true`
 - **Delays:** +1h W1 → +3d W2 → +5d W3 → +9d W4
 
+### Workflow C — Agency waitlist (A1–A4)
+
+- **Trigger:** `sap_waitlist_joined` when `audience: agency` and `sapCreditEligible: false`
+- **Delays:** +1h A1 → +3d A2 → +5d A3 → +9d A4
+- **CTA attribution:** `/platform/seo/for-agencies?source=sap_agency_email`
+
 After first deploy, open Plunk dashboard and verify step wiring (API may not connect all transitions).
 
 ---
@@ -203,7 +211,7 @@ See [`ghl-downgrade-checklist.md`](./ghl-downgrade-checklist.md) for plan downgr
 Full step-by-step manual test plan: [plunk-manual-test-plan.md](./plunk-manual-test-plan.md)
 
 - [ ] Domain verified in Plunk (`notify.levelplaydigital.com`)
-- [ ] Templates synced (9 files: 5 nurture + 4 waitlist)
+- [ ] Templates synced (13 files: 5 nurture + 4 waitlist + 4 agency waitlist)
 - [ ] Workflows deployed and transitions verified in dashboard
 - [ ] Test report completes → `levelstack_report_ready` in Plunk contact timeline
 - [ ] Test $97 checkout → Workflow A exits on `levelstack_purchased`

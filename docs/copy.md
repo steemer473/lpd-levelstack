@@ -59,6 +59,15 @@ See `lib/prompts/levelstackCopyPrompt.ts` and AGENTS.md § LevelStack Data-to-Co
 | W3 | Why [Industry/Niche] businesses are ditching traditional agencies |
 | W4 | Cohort update: preparing the next automation slots |
 
+## Email subjects (Workflow C agency waitlist)
+
+| ID | Subject |
+|---|---|
+| A1 | You're on the Agency founding list |
+| A2 | The client call you don't want to get |
+| A3 | Why operators are replacing quarterly audit deliverables |
+| A4 | Cohort update: prep your first client sites |
+
 ## App root landing (levelstack.levelplaydigital.com)
 
 Mirror: COPY_BANK §7.2.

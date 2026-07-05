@@ -1,6 +1,6 @@
 # Plunk integration — manual test plan
 
-**Scope:** LevelStack nurture (Workflow A), SAP waitlist (Workflow B), purchase exit, analytics webhooks, and deliverability.  
+**Scope:** LevelStack nurture (Workflow A), SAP waitlist (Workflow B), agency waitlist (Workflow C), purchase exit, analytics webhooks, and deliverability.
 **Runbook:** [plunk-nurture-workflow.md](./plunk-nurture-workflow.md) · **Domain:** [plunk-domain-setup.md](./plunk-domain-setup.md)
 
 **Tester:** _______________ · **Date:** _______________ · **Environment:** Production / Staging
@@ -40,11 +40,12 @@
 | Check | Expected |
 |-------|----------|
 | Domain `notify.levelplaydigital.com` | **Verified** |
-| Nurture Workflow A | Enabled — ID `8ff31129-a57b-4d61-b2e8-16dcd10c40d7` |
-| Waitlist Workflow B | Enabled — ID `4a5e6a98-4df7-42d2-af24-aae9e1f8d0ec` |
+| Nurture Workflow A | Enabled — ID `de45a2a4-344c-4afe-9ffd-69b199b8ee2a` |
+| Waitlist Workflow B | Enabled — ID `3a49aa59-4ea9-4350-b423-715010c72837` |
+| Agency Waitlist Workflow C | Enabled — ID `9f963ee6-b9fc-43e7-be81-5c0ce17c5bb2` |
 | Analytics workflows (5) | Enabled — see [analytics-workflow-ids.json](../plunk/analytics-workflow-ids.json) |
 | No duplicate workflows | Only **one** enabled workflow per trigger event |
-| Templates synced | 9 MARKETING templates (5 nurture + 4 waitlist) |
+| Templates synced | 13 MARKETING templates (5 nurture + 4 waitlist + 4 agency waitlist) |
 
 ### Deployments
 
@@ -171,10 +172,15 @@ LIMIT 5;
 | 5.11 | Open `https://levelplaydigital.com/platform/seo/for-agencies` | Agency hero; Agency tier preselected; credit banner **absent** | |
 | 5.12 | Submit agency page with new test email | `source = platform_seo_agency`, `intended_tier = agency`, `sap_credit_eligible = false` | |
 | 5.13 | Plunk contact timeline (agency signup) | `sap_waitlist_joined` includes `source`, `audience = agency` | |
+| 5.14 | Plunk → Workflow C → Executions | New execution started for agency signup | |
+| 5.15 | Plunk → Workflow B → Executions | No new Workflow B execution for agency non-credit signup | |
+| 5.16 | Submit owner page with new test email and no order | `audience = owner`, `sap_credit_eligible = false`; no Workflow B/C execution | |
+| 5.17 | Submit agency page with Action Roadmap buyer email | `sap_credit_eligible = true`; Workflow B execution starts | |
+| 5.18 | Plunk → Workflow C → Executions for buyer email | No new Workflow C execution for credit-eligible agency signup | |
 
 **GHL community link (distribution):** `https://levelplaydigital.com/platform/seo/for-agencies` — not in main nav v1.
 
-**Credit eligibility:** Resolved server-side only. Workflow B trigger uses `sapCreditEligible: true` from Plunk event payload. Agency direct path does not grant credit without Action Roadmap purchase.
+**Credit eligibility:** Resolved server-side only. Workflow B trigger uses `sapCreditEligible: true` from Plunk event payload. Workflow C uses `audience = agency` and `sapCreditEligible = false`. Agency direct path does not grant credit without Action Roadmap purchase.
 
 ---
 
@@ -186,7 +192,7 @@ Use a real nurture or waitlist email (or Plunk dashboard test send to subscribed
 
 | # | Step | Pass criteria | ✓ |
 |---|------|---------------|---|
-| 6.1 | Receive a Plunk MARKETING email (Email 2+ or waitlist W1+) | Email in inbox | |
+| 6.1 | Receive a Plunk MARKETING email (Email 2+, waitlist W1+, or agency A1+) | Email in inbox | |
 | 6.2 | Open email | — | |
 | 6.3 | Click a link in email | — | |
 | 6.4 | Supabase `email_events` for test email | Rows for `email.delivery`, `email.open`, `email.click` (may take 1–2 min) | |
@@ -246,6 +252,7 @@ Only if `GHL_SYNC_ENABLED=true` on levelstack.
 | Email 1 (Resend) + Workflow A trigger | ☐ Pass ☐ Fail |
 | Purchase exits Workflow A | ☐ Pass ☐ Fail |
 | Waitlist → Workflow B | ☐ Pass ☐ Fail |
+| Agency waitlist → Workflow C | ☐ Pass ☐ Fail |
 | Analytics → `email_events` | ☐ Pass ☐ Fail |
 | Unsubscribe flow | ☐ Pass ☐ Fail |
 | No duplicate Plunk workflows | ☐ Pass ☐ Fail |
