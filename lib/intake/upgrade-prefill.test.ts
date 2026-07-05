@@ -22,5 +22,6 @@ describe("sanitizeFreeSnapshotPrefill", () => {
     expect(result.ownerName).toBe("")
     expect(result.primaryService).toBe("")
     expect(result.purchaseMotivation).toBe("")
+    expect(result.priorBusinessNames).toEqual(["None"])
   })
 })
