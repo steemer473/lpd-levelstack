@@ -44,7 +44,7 @@ export function sanitizeFreeSnapshotPrefill(
           ? "local"
           : levelstackIntakeDefaults.geoMarket,
     ownerName: "",
-    priorBusinessNames: levelstackIntakeDefaults.priorBusinessNames,
+    priorBusinessNames: ["None"],
     primaryService: "",
     pricePoint: "",
     hasActiveAdSpend: "no",

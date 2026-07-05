@@ -8,6 +8,7 @@ import { requirePaidLevelStackIntakeAccess } from "@/lib/levelstack-intake-auth"
 import { planIdToReportTier } from "@/lib/levelstack-plans"
 import { isWebsiteReachable } from "@/lib/intake/validate-website"
 import { levelstackIntakeSchema } from "@/lib/intake/schema"
+import { normalizePriorBusinessNames } from "@/lib/intake/prior-names"
 import { upgradeFreeSnapshotToPaidIntake } from "@/lib/intake/upgrade-free-snapshot"
 import { getLatestReportForIntake } from "@/lib/reports/get-latest-report-for-intake"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -76,7 +77,7 @@ export async function POST(request: Request) {
 
   const formData = {
     ...data,
-    priorBusinessNames: data.priorBusinessNames.map((n) => n.trim()).filter(Boolean),
+    priorBusinessNames: normalizePriorBusinessNames(data.priorBusinessNames),
   }
 
   if (existing) {

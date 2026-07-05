@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { normalizePriorBusinessNames } from "@/lib/intake/prior-names"
+
 export const geoMarketOptions = ["local", "regional", "national"] as const
 export const ninetyDayGoalOptions = [
   "calls",
@@ -38,9 +40,12 @@ export const levelstackIntakeSchema = z
   marketCity: z.string().optional(),
   /** Optional state / province (recommended for US local businesses). */
   marketState: z.string().optional(),
-  priorBusinessNames: z
-    .array(z.string().min(1, "Enter a name or remove empty rows"))
-    .min(1, "Add at least one prior name entry (use “None” if not applicable)"),
+  priorBusinessNames: z.preprocess(
+    (val) => (Array.isArray(val) ? normalizePriorBusinessNames(val) : val),
+    z
+      .array(z.string().min(1, "Enter a name or remove empty rows"))
+      .min(1, "Add at least one prior name entry (use “None” if not applicable)"),
+  ),
   ownerName: z.string().min(1, "Owner / personal brand name is required"),
   primaryService: z.string().min(1, "Primary service or offer is required"),
   /**
@@ -92,7 +97,7 @@ export const levelstackIntakeDefaults: LevelstackIntakeFormValues = {
   primaryBusinessName: "",
   marketCity: "",
   marketState: "",
-  priorBusinessNames: [""],
+  priorBusinessNames: ["None"],
   ownerName: "",
   primaryService: "",
   primaryServiceKeywords: "",

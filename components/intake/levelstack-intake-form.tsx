@@ -60,14 +60,7 @@ export function LevelstackIntakeForm({
     setSubmitError(null)
     setValidationSummary([])
 
-    const payload = {
-      ...values,
-      priorBusinessNames: values.priorBusinessNames
-        .map((n) => n.trim())
-        .filter(Boolean),
-    }
-
-    const parsed = levelstackIntakeSchema.safeParse(payload)
+    const parsed = levelstackIntakeSchema.safeParse(values)
     if (!parsed.success) {
       const messages = applyZodErrors(form.setError, parsed.error)
       setValidationSummary(messages)
