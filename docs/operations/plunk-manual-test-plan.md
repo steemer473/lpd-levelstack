@@ -168,8 +168,13 @@ LIMIT 5;
 | 5.8 | Plunk → Contact timeline | `sap_waitlist_joined` event with tier + credit flags | |
 | 5.9 | Plunk → Workflow B → Executions | New execution started (when credit-eligible, if branch configured) | |
 | 5.10 | Hub Vercel logs | No `[sap-waitlist] plunk track failed` | |
+| 5.11 | Open `https://levelplaydigital.com/platform/seo/for-agencies` | Agency hero; Agency tier preselected; credit banner **absent** | |
+| 5.12 | Submit agency page with new test email | `source = platform_seo_agency`, `intended_tier = agency`, `sap_credit_eligible = false` | |
+| 5.13 | Plunk contact timeline (agency signup) | `sap_waitlist_joined` includes `source`, `audience = agency` | |
 
-**Credit eligibility:** Resolved server-side only. Workflow B trigger uses `sapCreditEligible: true` from Plunk event payload.
+**GHL community link (distribution):** `https://levelplaydigital.com/platform/seo/for-agencies` — not in main nav v1.
+
+**Credit eligibility:** Resolved server-side only. Workflow B trigger uses `sapCreditEligible: true` from Plunk event payload. Agency direct path does not grant credit without Action Roadmap purchase.
 
 ---
 
