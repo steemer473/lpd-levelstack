@@ -54,7 +54,10 @@ export default async function IntakePage({ searchParams }: PageProps) {
   if (fromUpgrade && !paidAccess) {
     return (
       <FormPanel className="max-w-2xl mx-auto">
-        <ConfirmingPaymentPoll reportId={queryReportId} />
+        <ConfirmingPaymentPoll
+          reportId={queryReportId}
+          signedInEmail={user.email?.trim().toLowerCase() ?? null}
+        />
       </FormPanel>
     )
   }
