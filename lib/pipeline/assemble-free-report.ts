@@ -97,7 +97,11 @@ export function extractUpgradeTeasers(
   const resolvedColumn = bundle.competitiveContext.competitorColumns[0]
   let previewCompetitor: ReturnType<typeof extractPreviewCompetitor>
 
-  if (resolvedColumn) {
+  const categoryPeerTooGeneric =
+    resolvedColumn?.source === "category_peer" &&
+    /general business services/i.test(searchQuery)
+
+  if (resolvedColumn && !categoryPeerTooGeneric) {
     // Try to find the resolved rival's SERP position in the stored detail string
     // (service SERP). Category peers won't appear there, so rank defaults to 1
     // — they are #1 for the category + market query, which is what the tease copy conveys.
@@ -150,7 +154,7 @@ export function assembleFreeReportFromResearch(
     sections,
   )
 
-  const rawPlan = buildActionPlanFromSections(allSections, intake)
+  const rawPlan = buildActionPlanFromSections(sections, intake)
   const teaserActionCount =
     rawPlan.thisWeek.length + rawPlan.thisMonth.length + rawPlan.thisQuarter.length
 

@@ -809,7 +809,7 @@ export function ExecutiveSummaryPanel({
         </p>
       </div>
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mt-4 mb-2">
-        What to do first
+        Your next decisions
       </p>
       <ul className="text-sm list-disc pl-5 space-y-1">
         {summary.firstSteps.map((step, i) => (

@@ -77,7 +77,7 @@ export const SNIPPET_COMPARE_UNAVAILABLE =
   "When people search your business name without a city, your site doesn't show on page 1 — so we couldn't check what short description Google would display for you."
 
 export const SNIPPET_COMPARE_SUCCESS =
-  "We compared your website's short description to what Google shows under your link in search results."
+  "Your website description and Google's search snippet align."
 
 const LEGACY_JARGON_REWRITES: ReadonlyArray<readonly [RegExp, string]> = [
   [
@@ -90,6 +90,10 @@ const LEGACY_JARGON_REWRITES: ReadonlyArray<readonly [RegExp, string]> = [
   ],
   [
     /We compared your live meta description to Google's snippet for your domain\.?/i,
+    SNIPPET_COMPARE_SUCCESS,
+  ],
+  [
+    /We compared your website's short description to what Google shows under your link in search results\.?/i,
     SNIPPET_COMPARE_SUCCESS,
   ],
   [

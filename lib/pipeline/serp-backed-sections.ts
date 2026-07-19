@@ -11,6 +11,7 @@ import {
   competitiveSectionLabel,
   formatSerpEvidenceTable,
 } from "@/lib/research/serp/competitor-resolve"
+import { formatBrandSerpEvidence } from "@/lib/research/serp/brand-serp-evidence"
 import type { SerpOrganicResult } from "@/lib/research/serp"
 import {
   filterCompetitorDomains,
@@ -44,13 +45,6 @@ import { computeDistinctHighlightsFromSections } from "@/lib/report/executive-de
 import { truncateReportCopy } from "@/lib/report/format-report-copy"
 
 type ScoreRow = NonNullable<ReportSection["scoreRows"]>[number]
-
-function formatTopResults(results: SerpOrganicResult[], limit = 3): string {
-  return results
-    .slice(0, limit)
-    .map((r) => `#${r.position} ${r.title} (${r.link})`)
-    .join("; ")
-}
 
 function titleForDomain(
   results: SerpOrganicResult[],
@@ -142,7 +136,16 @@ export function buildSectionsFromResearch(
               UNABLE_TO_VERIFY_VALUE,
             ),
       detail: businessSearch?.results.length
-        ? `These are the top Google results prospects see: ${formatTopResults(businessSearch.results)}`
+        ? [
+            "These are the brand-relevant Google results prospects see.",
+            formatBrandSerpEvidence(
+              businessSearch.results,
+              buyerHost,
+              intake.primaryBusinessName,
+            ),
+          ]
+            .filter(Boolean)
+            .join(" ")
         : businessSearch?.limitation
           ? customerLimitationText(
               businessSearch.limitation,
@@ -163,7 +166,16 @@ export function buildSectionsFromResearch(
               )
             : "No organic results captured when searching your owner name.",
       detail: ownerSearch?.results.length
-        ? `Top results for your name: ${formatTopResults(ownerSearch.results)}`
+        ? formatBrandSerpEvidence(
+            ownerSearch.results,
+            buyerHost,
+            intake.ownerName,
+          ) ||
+          formatBrandSerpEvidence(
+            ownerSearch.results,
+            buyerHost,
+            intake.primaryBusinessName,
+          )
         : ownerSearch?.limitation
           ? customerLimitationText(
               ownerSearch.limitation,

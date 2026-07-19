@@ -26,7 +26,7 @@ import {
   UNABLE_TO_VERIFY_DETAIL,
   UNABLE_TO_VERIFY_VALUE,
 } from "@/lib/report/customer-copy"
-import type { SerpOrganicResult } from "@/lib/research/serp"
+import { formatBrandSerpEvidence } from "@/lib/research/serp/brand-serp-evidence"
 import { hostnameFromUrl, resultsMentionDomain, topCompetitorDomains } from "@/lib/research/serp"
 
 const SEARCH_SIGNAL_IDS = new Set([
@@ -39,13 +39,6 @@ const SEARCH_SIGNAL_IDS = new Set([
 const llmResponseSchema = z.object({
   section: reportSectionSchema,
 })
-
-function formatTopResults(results: SerpOrganicResult[], limit = 3): string {
-  return results
-    .slice(0, limit)
-    .map((r) => `#${r.position} ${r.title} (${r.link})`)
-    .join("; ")
-}
 
 function sectionStatusFromSignals(signals: { status: string }[]) {
   if (signals.some((s) => s.status === "fail")) return "critical" as const
@@ -181,8 +174,14 @@ export function buildDeterministicSearchFootprintSection(
               : bareCompetitors.length
                 ? `When someone searches "${bareBrand}" without a location, Google surfaces other similarly named businesses first (${bareCompetitors.join(", ")}). Your domain (${buyerHost ?? "unknown"}) was not in the top 10 — a common issue for generic brand names competing nationally.`
                 : `When someone searches "${bareBrand}", your domain (${buyerHost ?? "unknown"}) was not in the top 10 organic results.`,
-            `Top results: ${formatTopResults(bareSearch.results)}`,
-          ].join(" ")
+            formatBrandSerpEvidence(
+              bareSearch.results,
+              buyerHost,
+              bareBrand,
+            ),
+          ]
+            .filter(Boolean)
+            .join(" ")
         : bareSearch?.limitation
           ? customerLimitationText(
               bareSearch.limitation,
@@ -208,8 +207,14 @@ export function buildDeterministicSearchFootprintSection(
               scopedHit
                 ? `Adding "${marketLocationLabel(intake) ?? "your market"}" to the search helps disambiguate your business — your site ranks at #${scopedHit.position} for local prospects.`
                 : `Even with location added ("${scopedQuery}"), your domain was not in the top 10. Local visibility may need strengthening.`,
-              `Top results: ${formatTopResults(scopedSearch.results)}`,
-            ].join(" ")
+              formatBrandSerpEvidence(
+                scopedSearch.results,
+                buyerHost,
+                bareBrand,
+              ),
+            ]
+              .filter(Boolean)
+              .join(" ")
           : scopedSearch.limitation
             ? customerLimitationText(
                 scopedSearch.limitation,
@@ -261,8 +266,19 @@ export function buildDeterministicSearchFootprintSection(
         value: `When someone searches your name, page 1 shows: ${ownerSearch.results[0]?.title ?? "mixed results"}`,
         detail: [
           `Personal brand searches for "${intake.ownerName}" can influence trust before prospects visit your business site.`,
-          `Top results for your name: ${formatTopResults(ownerSearch.results)}`,
-        ].join(" "),
+          formatBrandSerpEvidence(
+            ownerSearch.results,
+            buyerHost,
+            intake.ownerName,
+          ) ||
+            formatBrandSerpEvidence(
+              ownerSearch.results,
+              buyerHost,
+              bareBrand,
+            ),
+        ]
+          .filter(Boolean)
+          .join(" "),
         severity: ownerSearchSeverity(ownerSearch.results, buyerHost),
       })
     }

@@ -320,7 +320,7 @@ export function ExecutiveSummaryConversion({
       body: content.insights.whatProspectsSee,
     },
     {
-      label: "Reputation gap",
+      label: "Social presence",
       parts: content.structuredInsights?.reputationGap,
       body: content.insights.reputationGap,
     },
@@ -427,7 +427,7 @@ export function ExecutiveSummaryConversion({
 
       <div className="rpt-conv-bottom-row">
         <div className="rpt-card p-5">
-          <h3 className="rpt-card-title mb-4">What to do first</h3>
+          <h3 className="rpt-card-title mb-4">Your next decisions</h3>
           {actionItems.length > 0 ? (
             <ul className="rpt-conv-action-list list-none pl-0">
               {actionItems.map((item, i) => (
