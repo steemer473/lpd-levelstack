@@ -1,6 +1,6 @@
 # LevelStack vNext — PRD
 
-**Status:** In progress — P0 Wave A closed 2026-07-19 (P0-1…P0-4); **next engineering: P1-3** then Track 4 (P2-1). Open ODs: OD-5, OD-6, OD-8.
+**Status:** In progress — P0 Wave A closed 2026-07-19 (P0-1…P0-4); **P1-3 shipped 2026-07-19**; **next engineering: Track 4 (P2-1)**. Open ODs: OD-5, OD-6, OD-8.
 **Date:** 2026-07-18 (P0-3 status updated 2026-07-19)
 **Inputs:**
 
@@ -229,14 +229,16 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 
 
 
-#### P1-3 — `[UX]` Re-evaluate the letter-grade + red-banner treatment
+#### P1-3 — `[UX]` Re-evaluate the letter-grade + red-banner treatment — **SHIPPED 2026-07-19**
 
 **Description:** Re-evaluate the current letter grade and alarm-colored critical banner against the stated positioning ("advisor, not SEO scare tool"), once scoring is trustworthy.
 
 **Acceptance criteria:**
 
-- A design decision is made and documented on whether/how letter grades and severity-colored banners are used post-fix, informed by the corrected scoring model from P1-1.
-- The specific combination the audit observed — a red "F" grade paired with an alarm-colored critical banner driven partly by confirmed-failed checks (per P1-2) — cannot recur, since the underlying score it's rendering will no longer include failed-check penalties as if they were real findings.
+- [x] A design decision is made and documented on whether/how letter grades and severity-colored banners are used post-fix, informed by the corrected scoring model from P1-1. → `docs/plans/scoring-methodology.md` § Letter grade + severity presentation (P1-3).
+- [x] The specific combination the audit observed — a red "F" grade paired with an alarm-colored critical banner driven partly by confirmed-failed checks (per P1-2) — cannot recur, since the underlying score it's rendering will no longer include failed-check penalties as if they were real findings. → Neutral grade color (never severity-red); alarm chrome gated by `shouldUseAlarmSeverity` (`overallScore < 60` + scoreable critical/high only). Implementation: `lib/report/severity-presentation.ts`.
+
+**Locked presentation rules:** Keep A–F at current size with neutral heading color; score-gated alarm chrome (identical free/paid); priority framing otherwise.
 
 **Audit references:** None directly (this is a UX/positioning judgment call on top of P1-1/P1-2's fixes); critique §14.3 documents the observed effect ("reads as manufactured anxiety rather than evidence-based diagnosis") and critique §1 names the philosophy this should align to.
 
@@ -638,7 +640,7 @@ Build order below groups requirements by what blocks what; it does not assign da
 **Track 2 — Scoring integrity (OD-1 and OD-2 resolved):**
 7. **P1-1** (scoring methodology + reconciliation) — OD-1 Option A (Overall derived from displayed section scores) and OD-2 Option A (signals path canonical) are locked; blocks P2-1.
 8. **P1-2** (insufficient-data state) — depends on P0-1's classifier and overlaps with P1-1; recommend designing together.
-9. **P1-3** (grade/banner UX) — depends on P1-1 and P1-2.
+9. **P1-3** (grade/banner UX) — depends on P1-1 and P1-2. **Shipped 2026-07-19.**
 
 **Track 3 — Free-tier restructuring (OD-4 and OD-11 resolved):**
 10. **P0-2** (AI-search-presence check) — no hard dependency on Track 2, can run in parallel.

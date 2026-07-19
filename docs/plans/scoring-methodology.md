@@ -1,7 +1,8 @@
-# LevelStack scoring methodology (P1-1 / P1-2)
+# LevelStack scoring methodology (P1-1 / P1-2 / P1-3)
 
 Internal methodology for customer-facing section scores and Overall.
 Locked decisions: OD-1 Option A, OD-2 Option A (`levelstack-vnext-prd.md` §7).
+P1-3 presentation rules (letter grade + severity chrome) are documented below.
 
 ## Overall score (customer-facing)
 
@@ -81,6 +82,35 @@ Search Footprint includes a live **Google AI Overview** presence check derived f
 | F | &lt; 60 |
 
 Legacy inline thresholds in `assembleReportJson` (B/C/D at 80/70/55, no A) are removed as of P1-1.
+
+## Letter grade + severity presentation (P1-3)
+
+Positioning: advisor, not SEO scare tool (critique §14.3). Scoring math is unchanged; this section locks **how** grade and severity chrome render.
+
+### Letter grades (customer UI)
+
+- **Keep** A–F via `letterGradeFromScore` (thresholds above).
+- **Keep** current letter size on score card / KPI / print.
+- Grade color uses the neutral report heading token (`--rpt-heading`) — **never** severity-critical / alarm red, including for F.
+- Grade styling is independent of banner severity (no shared severity class that pairs a red F with an alarm banner).
+
+### Executive severity chrome (score-gated)
+
+Alarm treatment (red pull-quote, `is-critical` KPI chrome, “Most Critical Issue” framing) is allowed only when:
+
+```
+overallScore < 60
+AND at least one customer-facing finding with effective severity critical|high
+    that is not an unavailable / not-checked style finding
+```
+
+Otherwise use **priority** framing: amber/neutral chrome, label “Priority finding”, body text unchanged.
+
+- **Identical** free and paid rules.
+- Competitive snapshot `rpt-alert-red` and per-finding severity badges are **out of scope** for this gate.
+- Unable-to-verify / GBP-not-checked findings never qualify as “scoreable urgent” for alarm chrome (aligns with P1-2).
+
+Implementation: `lib/report/severity-presentation.ts` (`shouldUseAlarmSeverity`).
 
 ## Canonical assembly path (OD-2)
 

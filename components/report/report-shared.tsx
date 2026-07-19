@@ -284,11 +284,8 @@ export function ReportDashboard({ report }: { report: LevelstackReportJson }) {
       </h2>
       <div className="grid lg:grid-cols-[auto_1fr] gap-6">
         <div className="flex items-center gap-4">
-          <div
-            className="flex h-20 w-20 flex-col items-center justify-center rounded-xl border-2 text-center"
-            style={{ borderColor: LPD.orange }}
-          >
-            <span className="text-3xl font-semibold" style={{ color: LPD.orange }}>
+          <div className="flex h-20 w-20 flex-col items-center justify-center rounded-xl border-2 border-border text-center">
+            <span className="text-3xl font-semibold text-foreground">
               {meta.letterGrade}
             </span>
             <span className="text-[10px] text-muted-foreground uppercase">Grade</span>
