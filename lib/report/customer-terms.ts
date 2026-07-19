@@ -16,6 +16,27 @@ export const TERMS = {
   https: "Secure site (HTTPS)",
 } as const
 
+/**
+ * Expand bare acronyms in customer-facing strings so first read is clear.
+ * Skips when the full TERMS.* phrase is already present (avoids double expansion).
+ */
+export function expandAcronymsInCustomerCopy(text: string): string {
+  const pairs: Array<[RegExp, string]> = [
+    [/\bNAP\b/g, TERMS.nap],
+    [/\bGBP\b/g, TERMS.gbp],
+    [/\bCTA\b/g, TERMS.cta],
+    [/\bSERP\b/g, TERMS.serp],
+    [/\bLCP\b/g, TERMS.lcp],
+    [/\bCLS\b/g, TERMS.cls],
+  ]
+  let out = text
+  for (const [pattern, full] of pairs) {
+    if (out.includes(full)) continue
+    out = out.replace(pattern, full)
+  }
+  return out
+}
+
 /** Map short keys from pipeline detail strings to display labels */
 export const DETAIL_KEY_LABELS: Record<string, string> = {
   Meta: TERMS.metaDescription,

@@ -258,28 +258,36 @@ export const SECTION_GUIDES: Record<string, SectionGuide> = {
         type: "p",
         segments: [
           seg.t("This tab answers: "),
-          seg.b("“If someone is interested, can they easily take the next step?”"),
+          seg.b("“Is your stated offer and path to action clear enough to convert interest?”"),
         ],
       },
-      { type: "p", segments: [seg.b("We review:")] },
+      { type: "p", segments: [seg.b("What we check today:")] },
       {
         type: "ul",
         items: [
-          [seg.b("Landing pages"), seg.t(" and main offers")],
-          [seg.b(TERMS.cta), seg.t(" (book, call, quote, buy)")],
-          [seg.t("Whether messaging matches ")],
-          [seg.b("what you promise in ads or search"),
-          seg.t(" if you run paid traffic")],
-          [seg.t("Obvious blockers (buried phone number, vague pricing, dead forms)")],
+          [
+            seg.b("Your intake offer"),
+            seg.t(" — what you sell, price signals, and why buyers purchase"),
+          ],
+          [
+            seg.b("Ad / list context"),
+            seg.t(" you reported (spend and email list size, when provided)"),
+          ],
+          [
+            seg.b("Homepage conversion signals"),
+            seg.t(` — whether ${TERMS.cta} language appears, plus mobile ${TERMS.pageSpeed}`),
+          ],
         ],
       },
       {
         type: "callout",
         tone: "tip",
         segments: [
-          seg.t("Look for "),
-          seg.b("one clear primary action"),
-          seg.t(" per page — more than one often means fewer conversions."),
+          seg.t("This is "),
+          seg.b("not a full page-by-page funnel audit yet"),
+          seg.t(
+            " — deeper landing-page and form analysis is still limited. Use it as a conversion readiness read, then validate the primary action on your key pages.",
+          ),
         ],
       },
     ],
@@ -287,30 +295,26 @@ export const SECTION_GUIDES: Record<string, SectionGuide> = {
       {
         type: "p",
         segments: [
-          seg.b("Traffic without a clear path to action wastes money and referrals."),
+          seg.b("Visibility without a clear next step wastes the traffic you already earn."),
         ],
       },
       {
         type: "ul",
         items: [
           [
-            seg.t("Improving the funnel often delivers "),
-            seg.a("faster returns"),
-            seg.t(" than chasing more visibility alone."),
+            seg.t("A mismatched offer or buried "),
+            seg.b(TERMS.cta),
+            seg.t(" turns search wins into abandoned visits."),
           ],
-          [seg.b("Small copy and layout fixes"), seg.t(" can lift leads without a full rebrand.")],
           [
-            seg.t("If you run ads, funnel gaps mean you pay for clicks that "),
+            seg.t("If you run ads later, funnel gaps mean you pay for clicks that "),
             seg.b("never convert"),
+            seg.t("."),
           ],
-        ],
-      },
-      {
-        type: "callout",
-        tone: "important",
-        segments: [
-          seg.b("Think of this tab as your checkout line"),
-          seg.t(" — it doesn’t matter how many people enter the store if they can’t pay."),
+          [
+            seg.b("Clarify the offer and primary action first"),
+            seg.t(" — before buying more traffic."),
+          ],
         ],
       },
     ],

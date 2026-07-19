@@ -157,7 +157,7 @@ export async function buildReportSections(
     },
     {
       id: "revenue_funnel",
-      label: "Revenue funnel diagnosis",
+      label: "Revenue funnel",
       ...scoreFromFindings(funnelFindings),
       findings: funnelFindings,
     },

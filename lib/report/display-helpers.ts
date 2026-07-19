@@ -252,7 +252,7 @@ export const SECTION_TAB_ORDER: { id: string; label: string }[] = [
 export const LOCKED_SECTION_LABELS: Record<string, string> = {
   online_reputation: "Reputation review",
   digital_presence: "Digital presence",
-  revenue_funnel: "Revenue funnel diagnosis",
+  revenue_funnel: "Revenue funnel",
   competitive_context: "Competitive context snapshot",
   action_plan: "Full prioritized action plan",
 }
