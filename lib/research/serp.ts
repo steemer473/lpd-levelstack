@@ -19,6 +19,7 @@ export {
   qualifiedPeerDomains,
   topCompetitorDomains,
 } from "@/lib/research/serp/competitor-domains"
+export { formatBrandSerpEvidence } from "@/lib/research/serp/brand-serp-evidence"
 export {
   buyerRelevanceTokens,
   categoryPeerQuery,

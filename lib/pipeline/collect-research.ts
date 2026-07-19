@@ -22,8 +22,8 @@ import {
   relevantServicePeerColumns,
   resolveCompetitorColumns,
 } from "@/lib/research/serp"
-import { searchSocialPlatforms } from "@/lib/research/social-search"
-import { fetchSocialProfileSignals } from "@/lib/research/social"
+import { searchSocialPlatforms, discoverWebsiteSocialProfiles } from "@/lib/research/social-search"
+import { extractSocialUrls, fetchSocialProfileSignals } from "@/lib/research/social"
 import {
   fetchWebsiteExtendedSignals,
   fetchWebsiteSignals,
@@ -98,10 +98,21 @@ export async function collectSocialMediaSearch(
   { reportTier }: CollectResearchOptions,
 ): Promise<void> {
   const host = hostnameFromUrl(intake.websiteUrl) ?? intake.websiteUrl
+  const brandName = intake.primaryBusinessName.trim() || businessNameForSearch(intake)
+
+  const fromIntake = extractSocialUrls(intake.socialProfiles ?? "").map((p) => ({
+    ...p,
+    source: "intake" as const,
+  }))
+  const fromWebsite = await discoverWebsiteSocialProfiles(intake.websiteUrl)
+  // Intake URLs win when both list the same platform.
+  const knownProfiles = [...fromWebsite, ...fromIntake]
+
   bundle.socialSearch.platforms = await searchSocialPlatforms(
-    businessNameForSearch(intake),
+    brandName,
     host,
     reportTier,
+    knownProfiles,
   )
 }
 

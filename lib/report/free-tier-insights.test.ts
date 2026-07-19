@@ -61,6 +61,20 @@ const freeReport: LevelstackReportJson = {
       ],
     },
     {
+      id: "social_offsite",
+      label: "Social & off-site presence",
+      status: "attention",
+      score: 55,
+      findings: [
+        {
+          label: "Facebook",
+          value: "No clear Facebook profile matched your brand in search",
+          detail: "Nothing in the top results clearly matched.",
+          severity: "high",
+        },
+      ],
+    },
+    {
       id: "online_reputation",
       label: "Reputation",
       status: "attention",
@@ -121,8 +135,8 @@ describe("free-tier-insights", () => {
     expect(pickReputationPublicSignal(report)).toBeUndefined()
     const copy = buildFreeTierReputationGap(report)
     expect(copy).not.toContain("Castleberry Hill")
-    expect(copy).toContain("Reputation section scored 58/100")
-    expect(copy).toContain("Level Play Digital")
+    expect(copy).toContain("Open Social & off-site presence")
+    expect(copy).toContain("No clear Facebook profile matched")
   })
 
   it("prefers review signals over bare business names for reputation teaser", () => {
@@ -165,13 +179,13 @@ describe("free-tier-insights", () => {
     ).toBe(true)
   })
 
-  it("replaces free-tier reputation gap with analysis separate from upgrade", () => {
+  it("replaces free-tier reputation gap with social presence analysis", () => {
     const copy = buildFreeTierReputationGap(freeReport)
-    expect(copy).toContain("Reputation gap compares")
-    expect(copy).toContain("public reputation research")
-    expect(copy).toContain("From public research: Mixed review signals")
-    expect(copy).toContain("Open the Reputation tab")
+    expect(copy).toContain("Social presence compares")
+    expect(copy).toContain("From public research: No clear Facebook profile matched")
+    expect(copy).toContain("Open Social & off-site presence")
     expect(copy).toContain("Upgrade to Action Roadmap ($97)")
+    expect(copy).not.toContain("Open the Reputation tab")
     expect(copy).not.toContain("From public research so far:")
     expect(copy).not.toMatch(/From public research:.*Upgrade to the Action Roadmap/)
     expect(copy).not.toContain("Intake note: Not specified")
@@ -180,7 +194,7 @@ describe("free-tier-insights", () => {
   it("replaces free-tier revenue risk with analysis separate from upgrade", () => {
     const copy = buildFreeTierRevenueRisk(freeReport)
     expect(copy).toContain("From public research:")
-    expect(copy).toContain("Search footprint and Digital presence")
+    expect(copy).toContain("Search footprint and Social & off-site presence")
     expect(copy).toContain("Upgrade to Action Roadmap ($97)")
     expect(copy).not.toMatch(/From public research:.*Upgrade to the Action Roadmap/)
   })
@@ -205,7 +219,7 @@ describe("free-tier-insights", () => {
 
   it("resolveExecutiveContent applies free-tier insight copy", () => {
     const content = resolveExecutiveContent(freeReport)
-    expect(content.insights.reputationGap).toContain("public reputation research")
+    expect(content.insights.reputationGap).toContain("Social presence compares")
     expect(content.insights.revenueRisk).toContain("does not ask about")
     expect(content.insights.whatProspectsSee).toContain("From public research:")
     expect(content.insights.whatProspectsSee).not.toContain("Not specified")

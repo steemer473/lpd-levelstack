@@ -112,7 +112,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
       body: content.insights.whatProspectsSee,
     },
     {
-      label: "Reputation gap",
+      label: "Social presence",
       parts: content.structuredInsights?.reputationGap,
       body: content.insights.reputationGap,
     },
@@ -289,7 +289,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
 
         <div className="grid sm:grid-cols-2 gap-6 mb-6 break-inside-avoid">
           <div>
-            <h3 className="font-medium mb-2">What to do first</h3>
+            <h3 className="font-medium mb-2">Your next decisions</h3>
             {actionItems.length > 0 ? (
               <ul className="list-none pl-0 space-y-2">
                 {actionItems.map((item, i) => (
@@ -372,9 +372,9 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
       <section className="mb-6 rounded border border-orange-200 bg-orange-50 p-4 break-inside-avoid">
         <h3 className="font-semibold text-orange-900 mb-1">Upgrade to Action Roadmap — $97</h3>
         <p className="text-xs text-orange-950 leading-relaxed">
-          This free snapshot covers search footprint, reputation, and digital presence. The Full
-          Report adds revenue funnel diagnosis, competitive context, a complete prioritized 90-day
-          action plan, and a downloadable PDF for your team.
+          This free snapshot covers search footprint and social &amp; off-site presence. The Full
+          Report adds reputation, digital presence, revenue funnel diagnosis, competitive
+          context, a complete prioritized 90-day action plan, and a downloadable PDF for your team.
         </p>
         <p className="text-xs text-orange-900 mt-2 font-medium break-all">{upgradeUrl}</p>
       </section>

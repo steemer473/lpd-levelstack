@@ -102,15 +102,38 @@ function scoreReputationFinding(
   return score
 }
 
-function reputationSectionSummary(report: LevelstackReportJson): string {
-  const section = report.sections.find((s) => s.id === "online_reputation")
+function socialSectionSummary(report: LevelstackReportJson): string {
+  const section = report.sections.find((s) => s.id === "social_offsite")
   if (!section) {
-    return "Open the Reputation tab for review and trust signals we found in public search."
+    return "Open Social & off-site presence for LinkedIn and Facebook signals from public search and your website."
   }
   if (section.status === "insufficient_data" || section.score == null) {
-    return `We could not fully verify Reputation signals for ${report.meta.businessName} in this snapshot. Open the Reputation tab for what we could check.`
+    return `We could not fully verify social signals for ${report.meta.businessName} in this snapshot. Open Social & off-site presence for what we could check.`
   }
-  return `Your Reputation section scored ${section.score}/100 in this snapshot. Open the Reputation tab for platform-by-platform findings about ${report.meta.businessName}.`
+  return `Your Social & off-site presence scored ${section.score}/100 in this snapshot. Open that section for platform-by-platform findings about ${report.meta.businessName}.`
+}
+
+/** Best customer-facing social finding for exec teaser. */
+export function pickSocialPublicSignal(
+  report: LevelstackReportJson,
+): string | undefined {
+  const section = report.sections.find((s) => s.id === "social_offsite")
+  if (!section?.findings.length) return undefined
+
+  const ranked = [...section.findings].sort(
+    (a, b) => severityRank(a.severity) - severityRank(b.severity),
+  )
+
+  const problem = ranked.find(
+    (f) =>
+      isCustomerFacingFinding(f.value) &&
+      (f.severity === "critical" ||
+        f.severity === "high" ||
+        f.severity === "medium"),
+  )
+  if (problem) return problem.value
+
+  return ranked.find((f) => isCustomerFacingFinding(f.value))?.value
 }
 
 /** Best customer-facing reputation finding for exec teaser (subject business only). */
@@ -140,8 +163,9 @@ export function pickReputationPublicSignal(
 
 function pickRevenuePublicSignal(report: LevelstackReportJson): string | undefined {
   const pools = [
-    ...(report.sections.find((s) => s.id === "digital_presence")?.findings ?? []),
     ...(report.sections.find((s) => s.id === "search_footprint")?.findings ?? []),
+    ...(report.sections.find((s) => s.id === "social_offsite")?.findings ?? []),
+    ...(report.sections.find((s) => s.id === "digital_presence")?.findings ?? []),
   ]
 
   const match = pools.find(
@@ -193,12 +217,14 @@ export function buildFreeTierWhatProspectsSeeParts(
 export function buildFreeTierReputationGapParts(
   report: LevelstackReportJson,
 ): ExecutiveInsightPart[] {
-  const publicSignal = pickReputationPublicSignal(report)
+  // P0-3: free snapshot no longer includes Reputation — social fills this insight slot.
+  const publicSignal =
+    pickSocialPublicSignal(report) ?? pickReputationPublicSignal(report)
 
   const parts: ExecutiveInsightPart[] = [
     {
       kind: "text",
-      text: "Reputation gap compares how you see your reputation with what prospects find in public search — review ratings, complaint patterns, and trust cues.",
+      text: "Social presence compares whether strangers can find credible LinkedIn and Facebook profiles that match your brand — not lookalikes or empty search results.",
     },
   ]
 
@@ -207,23 +233,23 @@ export function buildFreeTierReputationGapParts(
       kind: "finding",
       prefix: "From public research:",
       text: publicSignal,
-      suffix: "Open the Reputation tab for all findings in this snapshot.",
+      suffix: "Open Social & off-site presence for all findings in this snapshot.",
     })
   } else {
     parts.push({
       kind: "highlight",
-      text: reputationSectionSummary(report),
+      text: socialSectionSummary(report),
     })
   }
 
   parts.push(
     {
       kind: "muted",
-      text: `This free snapshot includes public reputation research but does not ask about ${FREE_SNAPSHOT_INTAKE_GAP.reputation}.`,
+      text: `This free snapshot checks public social signals. Full review ratings, complaint patterns, and your self-assessment (${FREE_SNAPSHOT_INTAKE_GAP.reputation}) unlock in ${PRODUCT_NAMES.paid}.`,
     },
     {
       kind: "muted",
-      text: `Upgrade to ${PRODUCT_NAMES.paid} ($97) to add your self-assessment and get a side-by-side reputation gap analysis.`,
+      text: `Upgrade to ${PRODUCT_NAMES.paid} ($97) for Reputation, Digital presence, and a side-by-side trust gap analysis.`,
     },
   )
 
@@ -247,12 +273,12 @@ export function buildFreeTierRevenueRiskParts(
       kind: "finding",
       prefix: "From public research:",
       text: publicSignal,
-      suffix: "See Search footprint and Digital presence for the full read.",
+      suffix: "See Search footprint and Social & off-site presence for the full read.",
     })
   } else {
     parts.push({
       kind: "text",
-      text: "See Search footprint and Digital presence for conversion-related signals from public research.",
+      text: "See Search footprint and Social & off-site presence for conversion-related signals from public research.",
     })
   }
 
