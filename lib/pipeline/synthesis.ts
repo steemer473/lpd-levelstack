@@ -6,7 +6,6 @@ import {
   buildActionPlanFromSections,
   normalizeLlmActionPlan,
 } from "@/lib/pipeline/action-plan"
-import { buildReportSections } from "@/lib/pipeline/build-sections"
 import { runQualityGate } from "@/lib/pipeline/quality-gate"
 import {
   actionPlanSchema,
@@ -173,32 +172,15 @@ export async function synthesizeReportSections(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
 ): Promise<SynthesisResult> {
-  const fallbackSections = await buildReportSections(intake)
-  const planSource = fallbackSections.filter((s) => s.id !== "action_plan")
-
+  // OD-2: research / serp-backed path is canonical. Do not call intake-only
+  // `buildReportSections` for customer-facing assembly.
   if (!isOpenAiConfigured()) {
-    if (researchBundleHasSerpData(bundle)) {
-      return serpFallbackResult(intake, bundle)
-    }
-    const actionPlan = buildActionPlanFromSections(planSource, intake)
-    return finalizeSynthesis(
+    return serpFallbackResult(
       intake,
-      planSource,
-      {
-        paragraphs: [
-          `When prospects search for ${intake.ownerName} or ${intake.primaryBusinessName}, results depend on live Google data. Add OPENAI_API_KEY and at least one SERP provider to .env.local, restart the dev server, then regenerate this report.`,
-          `You rated reputation ${intake.reputationScale}/10. Intake note: ${intake.complaintsAwareness.slice(0, 180)}`,
-          "This report is diagnostic only — you execute the fixes listed in the action plan.",
-        ],
-        criticalIssue:
-          fallbackSections
-            .flatMap((s) => s.findings)
-            .find((f) => f.severity === "critical" || f.severity === "high")?.value ??
-          "Configure SERP provider(s) + OpenAI for research-backed findings.",
-        firstSteps: actionPlan.thisWeek.map((a) => a.task),
-      },
-      actionPlan,
-      false,
+      bundle,
+      researchBundleHasSerpData(bundle)
+        ? undefined
+        : "Live Google search data was limited for this run. Configure SERP provider(s) and regenerate for fuller findings.",
     )
   }
 
@@ -220,34 +202,14 @@ Produce sections, executiveSummary, and actionPlan per schema.`
 
   if (!result.ok) {
     console.warn("[synthesis]", result.error)
-    if (researchBundleHasSerpData(bundle)) {
-      return serpFallbackResult(
-        intake,
-        bundle,
-        `Note: AI narrative synthesis was skipped (${result.error}).`,
-      )
-    }
-    const actionPlan = buildActionPlanFromSections(planSource, intake)
-    return finalizeSynthesis(
+    return serpFallbackResult(
       intake,
-      planSource,
-      {
-        paragraphs: [
-          `Research APIs were unavailable or synthesis failed. This report uses intake and limited public signals for ${intake.primaryBusinessName}.`,
-          "Diagnostic only — you execute fixes; LevelStack does not implement them for you.",
-        ],
-        criticalIssue:
-          "Re-run generation with a configured SERP provider and OPENAI_API_KEY for live search-based findings.",
-        firstSteps: actionPlan.thisWeek.map((a) => a.task),
-      },
-      actionPlan,
-      false,
+      bundle,
+      `Note: AI narrative synthesis was skipped (${result.error}).`,
     )
   }
 
-  const baselineSections = researchBundleHasSerpData(bundle)
-    ? buildSectionsFromResearch(intake, bundle)
-    : planSource
+  const baselineSections = buildSectionsFromResearch(intake, bundle)
 
   const normalized = normalizeSynthesisPayload(
     result.json,
@@ -296,22 +258,10 @@ Produce sections, executiveSummary, and actionPlan per schema.`
   }
 
   console.warn("[synthesis] validation", fullParsed.error.flatten())
-  if (researchBundleHasSerpData(bundle)) {
-    return serpFallbackResult(intake, bundle)
-  }
-  const actionPlan = buildActionPlanFromSections(planSource, intake)
-  return finalizeSynthesis(
+  return serpFallbackResult(
     intake,
-    planSource,
-    {
-      paragraphs: [
-        `Synthesis validation failed for ${intake.primaryBusinessName}. Regenerate after checking API keys.`,
-      ],
-      criticalIssue: "Regenerate the report to refresh findings.",
-      firstSteps: actionPlan.thisWeek.map((a) => a.task),
-    },
-    actionPlan,
-    false,
+    bundle,
+    `Note: AI synthesis validation failed. Showing research-backed findings.`,
   )
 }
 

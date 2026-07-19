@@ -1,4 +1,5 @@
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
+import { deriveOverallFromSections } from "@/lib/audit/derive-overall-from-sections"
 import { TERMS } from "@/lib/report/customer-terms"
 
 import { buildActionPlanFromSections } from "@/lib/pipeline/action-plan"
@@ -36,6 +37,11 @@ async function fetchWebsiteSnippet(url: string): Promise<string | null> {
   }
 }
 
+/**
+ * @deprecated OD-2 / P1-1: intake-only section builder. Not used by
+ * `synthesizeReportSections` or the production pipeline. Prefer
+ * `buildSectionsFromResearch`. Kept for isolated unit tests only.
+ */
 export async function buildReportSections(
   intake: LevelstackIntakeFormValues,
 ): Promise<ReportSection[]> {
@@ -213,18 +219,7 @@ export function assembleReportJson(
   const count = (sev: string) =>
     allFindings.filter((f) => f.severity === sev).length
 
-  const scores = sections.map((s) => s.score)
-  const overallScore = Math.round(
-    scores.reduce((a, b) => a + b, 0) / Math.max(scores.length, 1),
-  )
-  const letterGrade =
-    overallScore >= 80
-      ? "B"
-      : overallScore >= 70
-        ? "C"
-        : overallScore >= 55
-          ? "D"
-          : "F"
+  const { overallScore, letterGrade } = deriveOverallFromSections(sections)
 
   const criticalFinding =
     allFindings.find((f) => f.severity === "critical") ??

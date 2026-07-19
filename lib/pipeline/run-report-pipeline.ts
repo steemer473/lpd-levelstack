@@ -1,4 +1,5 @@
 import { scoreAllSignals } from "@/lib/audit/score-all-signals"
+import { deriveOverallFromSections } from "@/lib/audit/derive-overall-from-sections"
 import { assembleFreeReportFromResearch } from "@/lib/pipeline/assemble-free-report"
 import { synthesizeFreeSearchFootprint } from "@/lib/pipeline/search-footprint-synthesis"
 import { levelstackIntakeSchema } from "@/lib/intake/schema"
@@ -226,18 +227,20 @@ export async function runReportPipeline({
     } else {
       const synthesis = await synthesizeReportSections(parsed.data, bundle)
       const fullSections = appendActionPlanSection(synthesis.sections)
+      const derived = deriveOverallFromSections(fullSections)
       reportJson = assembleReportJson(parsed.data, fullSections, planId, {
         executiveSummary: {
           ...synthesis.executiveSummary,
           paragraphs: [
-            `Overall presence score: ${audit.overallScore}/100 (${audit.letterGrade}).`,
+            `Overall presence score: ${derived.overallScore}/100 (${derived.letterGrade}).`,
             ...synthesis.executiveSummary.paragraphs,
           ],
         },
         actionPlan: synthesis.actionPlan,
       })
-      reportJson.meta.overallScore = audit.overallScore
-      reportJson.meta.letterGrade = audit.letterGrade
+      // P1-1 / OD-1: customer Overall from displayed sections — not scoreAllSignals.
+      reportJson.meta.overallScore = derived.overallScore
+      reportJson.meta.letterGrade = derived.letterGrade
       reportJson.meta.reportTier = reportTier
 
       // P1.8.1 — wire the resolved grid rival as the report's conversion trigger.
@@ -323,7 +326,7 @@ export async function runReportPipeline({
           progress: 100,
           research_mode: "prd-v2",
           report_tier: reportTier,
-          overall_score: audit.overallScore,
+          overall_score: reportJson.meta.overallScore,
         },
       })
       .eq("id", jobId)

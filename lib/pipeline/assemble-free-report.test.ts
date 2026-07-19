@@ -205,4 +205,35 @@ describe("extractUpgradeTeasers", () => {
     const teasers = extractUpgradeTeasers(sections, bundle, "levelplaydigital.com")
     expect(teasers.previewCompetitor?.domain).toBe("levelagency.com")
   })
+
+  it("sets Overall from equal-weight mean of free diagnostic section scores (P1-1)", () => {
+    const bundle = emptyResearchBundle()
+    const searchFootprint = {
+      id: "search_footprint" as const,
+      label: "Search footprint",
+      status: "good" as const,
+      score: 87,
+      findings: [
+        {
+          label: "Visibility",
+          value: "Strong local brand match",
+          detail: "Appears in top results for the primary brand query.",
+          severity: "good" as const,
+        },
+      ],
+    }
+    const report = assembleFreeReportFromResearch(
+      intake,
+      bundle,
+      audit,
+      "levelstack-free-snapshot",
+      searchFootprint,
+    )
+    const diagnostic = report.sections.filter((s) => s.id !== "action_plan")
+    const expected = Math.round(
+      diagnostic.reduce((sum, s) => sum + s.score, 0) / diagnostic.length,
+    )
+    expect(report.meta.overallScore).toBe(expected)
+    expect(report.meta.overallScore).not.toBe(audit.overallScore)
+  })
 })

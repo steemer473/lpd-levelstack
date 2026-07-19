@@ -1,4 +1,5 @@
 import type { AuditScoreBundle } from "@/lib/audit/types"
+import { deriveOverallFromSections } from "@/lib/audit/derive-overall-from-sections"
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
 import { buildActionPlanFromSections } from "@/lib/pipeline/action-plan"
 import { marketLabelFromIntake } from "@/lib/pipeline/context"
@@ -148,6 +149,7 @@ export function assembleFreeReportFromResearch(
   const failCount = audit.signals.filter((s) => s.status === "fail").length
   const warnCount = audit.signals.filter((s) => s.status === "warning").length
   const findingCount = sections.reduce((n, s) => n + s.findings.length, 0)
+  const { overallScore, letterGrade } = deriveOverallFromSections(sections)
 
   return {
     meta: {
@@ -161,8 +163,8 @@ export function assembleFreeReportFromResearch(
       }),
       planId,
       reportTier: "free_snapshot",
-      overallScore: audit.overallScore,
-      letterGrade: audit.letterGrade,
+      overallScore,
+      letterGrade,
       totalFindings: findingCount + audit.insights.length,
       criticalCount: failCount,
       highCount: warnCount,

@@ -44,7 +44,46 @@ describe("assembleReportJson", () => {
     const parsed = levelstackReportJsonSchema.safeParse(json)
     expect(parsed.success).toBe(true)
     expect(json.meta.businessName).toBe("Test Co")
+    expect(json.meta.overallScore).toBe(60)
+    expect(json.meta.letterGrade).toBe("D")
     expect(buildActionPlanFromSections(sections, intake).thisWeek.length).toBeGreaterThan(0)
     expect(json.actionPlan.thisWeek[0]?.findingRef).toBeDefined()
+  })
+
+  it("excludes action_plan from Overall and uses letterGradeFromScore (incl. A)", () => {
+    const intake = {
+      ...levelstackIntakeDefaults,
+      primaryBusinessName: "Test Co",
+      ownerName: "Alex Owner",
+    }
+    const json = assembleReportJson(
+      intake,
+      [
+        {
+          id: "search_footprint",
+          label: "Search",
+          status: "good",
+          score: 90,
+          findings: [],
+        },
+        {
+          id: "online_reputation",
+          label: "Reputation",
+          status: "good",
+          score: 90,
+          findings: [],
+        },
+        {
+          id: "action_plan",
+          label: "Plan",
+          status: "attention",
+          score: 55,
+          findings: [],
+        },
+      ],
+      null,
+    )
+    expect(json.meta.overallScore).toBe(90)
+    expect(json.meta.letterGrade).toBe("A")
   })
 })
