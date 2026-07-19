@@ -1,6 +1,6 @@
 # LevelStack vNext — PRD
 
-**Status:** In progress — P0 Wave A closed 2026-07-19 (P0-1…P0-4); **P1-3 shipped 2026-07-19**; **P2-2 + P2-3 locked 2026-07-19**; **P2-1 schema shipped 2026-07-19**; **P2-4 dual-write shipped 2026-07-19**; **P2-5 Action Roadmap UI shipped 2026-07-19** (OD-5 Option B). Open ODs: OD-6, OD-8.
+**Status:** In progress — P0 Wave A closed 2026-07-19 (P0-1…P0-4); **P1-1…P1-3 shipped**; **P1-4 still open** (category taxonomy); **P2-2 + P2-3 locked 2026-07-19**; **P2-1 schema shipped 2026-07-19**; **P2-4 dual-write shipped 2026-07-19**; **P2-5 Action Roadmap UI shipped 2026-07-19** (OD-5 Option B; [#99](https://github.com/steemer473/lpd-levelstack/pull/99)). Open ODs: OD-6, OD-8. P2-7 gated on OD-6.
 **Date:** 2026-07-18 (P0-3 status updated 2026-07-19)
 **Inputs:**
 
@@ -250,6 +250,8 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 
 #### P1-4 — `[DATA]` Broaden business-category taxonomy
 
+**Status:** **Open** — not started. Standalone (Track 1); does not block P2-1…P2-5. Tracked in `lpd-planning/CURRENT_SPRINT_GOALS.md` item 0 and `PRODUCT_ROADMAP.md`.
+
 **Description:** Build a real category/vertical taxonomy so recommendations that depend on it (BBB listing relevance, GBP category norms) stay relevant for businesses outside literal local-service verticals.
 
 **Acceptance criteria:**
@@ -287,7 +289,7 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 - Per OD-14's resolution, the schema also includes **`urgency`** (why-now rationale) and **`consequenceOfInaction`** (inaction-risk statement), required to match `level-play-brand-os/product/AI_PRINCIPLES.md`'s locked recommendation anatomy. Both are generated in the same synthesis pass as `evidence`/`roi`/`confidence`, not a separate call. **Guardrail (required, not optional):** the intensity/severity of `urgency` and `consequenceOfInaction` copy must scale with the recommendation's own `confidence` and evidence strength — a low-confidence or minor finding must produce a modest, honest note, not invented pressure. This is directly testable: no recommendation with `confidence: Low` should render `urgency`/`consequenceOfInaction` language equivalent in severity to a `confidence: High` recommendation. — **Schema fields Met;** synthesis population + guardrail enforcement = P2-4.
 - Per OD-13's resolution, the schema also includes a structured **artifact/deliverable-content field** (e.g., email template, copy rewrite, reply draft, checklist) — the scope `CURRENT_SPRINT_GOALS.md` #12 ("Report Value Slice 3") was building against the old `actionItemSchema`. This is a new field added to the list above by that resolution, not present in the original critique §8/§13 field set — see §5's Data Model table. — **Met** (`artifact.kind` + `content`).
 - The schema is reviewed by engineering and design before any individual module (Search, Trust, Brand) is scoped against it, per critique §13's explicit recommendation. — **Met** via `recommendation-object.md` + this PRD §5.
-- The schema supersedes, or has a documented migration path from, the current `findingSchema`/`actionItemSchema` pair. — **Met** (dual-schema period + mapper; findings/actionPlan remain UI-canonical until P2-4/P2-5).
+- The schema supersedes, or has a documented migration path from, the current `findingSchema`/`actionItemSchema` pair. — **Met** (dual-schema period + mapper; Action Roadmap UI prefers `recommendations[]` per P2-5; section findings remain diagnostic; legacy `actionPlan` is fallback for older reports).
 
 **Audit references:**
 
@@ -350,11 +352,11 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 
 **Description:** Rebuild the current Search Footprint and Trust/Reputation output onto the new schema from P2-1 — this is the shippable, differentiated core once the schema exists.
 
-**Status:** **Shipped 2026-07-19 (dual-write)** — `attachSearchReputationRecommendations` in `lib/pipeline/build-recommendations.ts` (pipeline hook before sanitize). Findings/actionPlan remain UI-canonical until P2-5. Clutch/G2/Capterra clustered in `buildReputationFindings`. Free = Search recs only; paid = Search + Reputation.
+**Status:** **Shipped 2026-07-19 (dual-write)** — `attachSearchReputationRecommendations` in `lib/pipeline/build-recommendations.ts` (pipeline hook before sanitize). Action Roadmap UI consumes `recommendations[]` (P2-5); section findings remain diagnostic; legacy `actionPlan` is fallback for older reports. Clutch/G2/Capterra clustered in `buildReputationFindings`. Free = Search recs only; paid = Search + Reputation.
 
 **Acceptance criteria:**
 
-- Search Footprint and Reputation sections generate Recommendation Objects (per P2-1's schema) rather than the current `Finding`/`ActionItem` pair. — **Met as dual-write** onto `recommendations[]`; pair still rendered until P2-5.
+- Search Footprint and Reputation sections generate Recommendation Objects (per P2-1's schema) rather than the current `Finding`/`ActionItem` pair. — **Met as dual-write** onto `recommendations[]`; Roadmap UI over that array shipped in P2-5; findings remain for section UI.
 - Output for these two sections reflects the fixes from P0-1, P1-1, and P1-2 (no raw errors, reconciled scoring, insufficient-data states) — this is not a like-for-like port of today's buggy output onto a new schema. — **Met** (builds from post-P0/P1 sections).
 - Digital Presence and the other current sections are explicitly out of scope for this rebuild (only Search + Trust/Reputation, per critique §7's V1 list and §12's roadmap step 1). — **Met.**
 - Per OD-13's resolution, this rebuild absorbs Report Value Slice 3's scope rather than that work shipping separately against the old schema: Reputation findings are deduplicated (e.g., Clutch/G2/Capterra clustered into one finding, not three), Reputation and Search Footprint Recommendation Objects populate the new artifact field from P2-1 (email template, copy rewrite, reply draft, or checklist, as applicable per finding type), and findings carry SERP evidence links via P2-2's provenance standard rather than as a separate feature. — **Met.**
@@ -641,12 +643,12 @@ Build order below groups requirements by what blocks what; it does not assign da
 
 **Track 1 — Ship immediately, no blocking dependencies:**
 
-1. **P0-1** (error leakage fix) — live trust risk, standalone.
-2. **P0-4** (funnel copy fix) — standalone, though if shipped before P1-1 the only safe fix is removal (see P0-4's own note).
-3. **P1-4** (category taxonomy) — standalone.
-4. **P2-2** (evidence provenance standard) — foundational, no dependencies.
-5. **P2-3** (confidence methodology) — foundational, no dependencies.
-6. **P2-6** (naming/copy audit) — standalone; OD-7 audit pass completed 2026-07-18 (in-repo external uses = 0).
+1. **P0-1** (error leakage fix) — live trust risk, standalone. **Shipped.**
+2. **P0-4** (funnel copy fix) — standalone, though if shipped before P1-1 the only safe fix is removal (see P0-4's own note). **Shipped.**
+3. **P1-4** (category taxonomy) — standalone. **Still open** (does not block Track 4).
+4. **P2-2** (evidence provenance standard) — foundational, no dependencies. **Locked (docs).**
+5. **P2-3** (confidence methodology) — foundational, no dependencies. **Locked (docs).**
+6. **P2-6** (naming/copy audit) — standalone; OD-7 audit pass completed 2026-07-18 (in-repo external uses = 0). **Satisfied in-repo.**
 
 **Track 2 — Scoring integrity (OD-1 and OD-2 resolved):**
 7. **P1-1** (scoring methodology + reconciliation) — OD-1 Option A (Overall derived from displayed section scores) and OD-2 Option A (signals path canonical) are locked; blocks P2-1.
