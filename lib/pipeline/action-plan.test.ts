@@ -49,4 +49,33 @@ describe("buildActionPlanFromSections", () => {
       plan.thisWeek.some((a) => /paid|traffic|pause/i.test(a.task)),
     ).toBe(true)
   })
+
+  it("maps AI Overview findings to entity next steps, not meta rewrites", () => {
+    const plan = buildActionPlanFromSections(
+      [
+        {
+          id: "search_footprint",
+          label: "Search footprint",
+          status: "attention" as const,
+          score: 70,
+          findings: [
+            {
+              label: "Google AI Overview",
+              value: "No Google AI Overview snippet returned for footprint queries.",
+              detail:
+                "Google did not show an AI Overview for these brand queries.",
+              severity: "medium" as const,
+            },
+          ],
+        },
+      ],
+      {
+        ...levelstackIntakeDefaults,
+        primaryBusinessName: "Test Co",
+        ownerName: "Alex",
+      },
+    )
+    expect(plan.thisWeek[0]?.sub).toMatch(/entity details|Business Profile/i)
+    expect(plan.thisWeek[0]?.sub).not.toMatch(/meta description/i)
+  })
 })

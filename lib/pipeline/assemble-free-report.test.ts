@@ -253,8 +253,50 @@ describe("extractUpgradeTeasers", () => {
           {
             query: "Level Play Digital",
             position: 3,
-            title: "Level Agency",
-            link: "https://levelagency.com/",
+            title: "Level Play Digital Agency — Atlanta",
+            link: "https://levelplay-rival.example/",
+            snippet: "Level Play Digital namesake",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const teasers = extractUpgradeTeasers(
+      sections,
+      bundle,
+      "levelplaydigital.com",
+      "Level Play Digital",
+    )
+    expect(teasers.previewCompetitor?.domain).toBe("levelplay-rival.example")
+  })
+
+  it("omits previewCompetitor for weak category peers and unrelated brand co-rankers", () => {
+    const bundle = emptyResearchBundle()
+    bundle.competitiveContext.competitorColumns = [
+      {
+        domain: "digitalrealty.com",
+        source: "category_peer",
+        title: "ATL14 Data Center | 250 Williams Street",
+      },
+    ]
+    bundle.searchFootprint.searches = [
+      {
+        query: "Level Play Digital Atlanta",
+        results: [
+          {
+            query: "Level Play Digital Atlanta",
+            position: 1,
+            title: "Level Play Digital",
+            link: "https://levelplaydigital.com/",
+            snippet: "",
+          },
+          {
+            query: "Level Play Digital Atlanta",
+            position: 3,
+            title: "ATL14 Data Center | 250 Williams Street",
+            link: "https://www.digitalrealty.com/data-centers/americas/atlanta/atl14",
             snippet: "",
           },
         ],
@@ -263,8 +305,20 @@ describe("extractUpgradeTeasers", () => {
       },
     ]
     const sections = buildSectionsFromResearch(intake, bundle)
-    const teasers = extractUpgradeTeasers(sections, bundle, "levelplaydigital.com")
-    expect(teasers.previewCompetitor?.domain).toBe("levelagency.com")
+    const competitive = sections.find((s) => s.id === "competitive_context")
+    if (competitive?.findings[0]) {
+      competitive.findings[0].label = 'Service search — "General business services"'
+      competitive.findings[0].detail =
+        "#1 ATL14 Data Center (https://www.digitalrealty.com/data-centers/americas/atlanta/atl14)"
+    }
+    const teasers = extractUpgradeTeasers(
+      sections,
+      bundle,
+      "levelplaydigital.com",
+      "Level Play Digital",
+    )
+    expect(teasers.previewCompetitor).toBeUndefined()
+    expect(teasers.competitiveSearchQuery).toMatch(/general business services/i)
   })
 
   it("sets Overall from equal-weight mean of free diagnostic section scores (P1-1)", () => {

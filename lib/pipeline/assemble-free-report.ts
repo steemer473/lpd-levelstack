@@ -26,6 +26,7 @@ import {
   resolvePreviewCompetitorFromBundle,
   serpDetailFromSections,
 } from "@/lib/report/parse-serp-rows"
+import type { CompetitorComparisonSource } from "@/lib/research/serp/competitor-resolve"
 import { hostnameFromUrl } from "@/lib/research/serp"
 
 function signalRows(signals: AuditScoreBundle["signals"]) {
@@ -49,10 +50,34 @@ function signalRows(signals: AuditScoreBundle["signals"]) {
   }))
 }
 
+const STRONG_TEASER_SOURCES = new Set<CompetitorComparisonSource>([
+  "service_peer",
+  "namesake",
+  "intake",
+])
+
+/** Category peers for vague service queries are not credible free-teaser rivals. */
+const WEAK_CATEGORY_TEASER_QUERY =
+  /general business services|^business services$|^services$/i
+
+function previewFromResolvedColumn(
+  column: { domain: string; title?: string },
+  detailSource: string,
+): NonNullable<ReturnType<typeof extractPreviewCompetitor>> {
+  const serpRows = parseSerpRowsFromDetail(detailSource, 20)
+  const matched = serpRows.find((r) => r.domain === column.domain)
+  return {
+    rank: matched?.serpPosition ?? 1,
+    domain: column.domain,
+    title: column.title,
+  }
+}
+
 export function extractUpgradeTeasers(
   allSections: ReportSection[],
   bundle: ResearchBundle,
   buyerHost?: string | null,
+  brandName?: string,
 ): NonNullable<LevelstackReportJson["meta"]["upgradeTeasers"]> {
   const competitive = allSections.find((s) => s.id === "competitive_context")
   const search = allSections.find((s) => s.id === "search_footprint")
@@ -91,31 +116,36 @@ export function extractUpgradeTeasers(
 
   const detailSource = serpDetailFromSections(competitive, search)
 
-  // P1.8.1 — align the conversion trigger to the resolved grid rival.
-  // competitor shown in the grid, not raw SERP #1 (which can be a directory or
-  // unrelated brand after P1.7–P1.8 filtering).
-  const resolvedColumn = bundle.competitiveContext.competitorColumns[0]
+  // P1.8.1 — prefer resolved grid rivals; never tease a weak category peer for
+  // vague queries, and never fall back to unrelated brand-SERP co-rankers.
+  const columns = bundle.competitiveContext.competitorColumns
+  const strongColumn = columns.find((c) => STRONG_TEASER_SOURCES.has(c.source))
+  const categoryColumn = columns.find((c) => c.source === "category_peer")
+  const usableCategory =
+    categoryColumn && !WEAK_CATEGORY_TEASER_QUERY.test(searchQuery)
+      ? categoryColumn
+      : undefined
+  const resolvedColumn = strongColumn ?? usableCategory
+
   let previewCompetitor: ReturnType<typeof extractPreviewCompetitor>
 
-  const categoryPeerTooGeneric =
-    resolvedColumn?.source === "category_peer" &&
-    /general business services/i.test(searchQuery)
-
-  if (resolvedColumn && !categoryPeerTooGeneric) {
-    // Try to find the resolved rival's SERP position in the stored detail string
-    // (service SERP). Category peers won't appear there, so rank defaults to 1
-    // — they are #1 for the category + market query, which is what the tease copy conveys.
-    const serpRows = parseSerpRowsFromDetail(detailSource, 20)
-    const matched = serpRows.find((r) => r.domain === resolvedColumn.domain)
-    previewCompetitor = {
-      rank: matched?.serpPosition ?? 1,
-      domain: resolvedColumn.domain,
-      title: resolvedColumn.title,
-    }
+  if (resolvedColumn) {
+    previewCompetitor = previewFromResolvedColumn(resolvedColumn, detailSource)
   } else {
-    previewCompetitor =
-      resolvePreviewCompetitorFromBundle(bundle, buyerHost) ??
-      (detailSource ? extractPreviewCompetitor(detailSource, buyerHost) : undefined)
+    previewCompetitor = resolvePreviewCompetitorFromBundle(
+      bundle,
+      buyerHost,
+      brandName,
+    )
+    // Avoid re-introducing junk from competitive SERP detail when the category
+    // query itself is too vague to name a credible rival.
+    if (
+      !previewCompetitor &&
+      detailSource &&
+      !WEAK_CATEGORY_TEASER_QUERY.test(searchQuery)
+    ) {
+      previewCompetitor = extractPreviewCompetitor(detailSource, buyerHost)
+    }
   }
 
   return {
@@ -146,6 +176,7 @@ export function assembleFreeReportFromResearch(
     allSections,
     bundle,
     hostnameFromUrl(intake.websiteUrl),
+    intake.primaryBusinessName,
   )
 
   const executiveSummary = buildExecutiveSummaryFromResearch(

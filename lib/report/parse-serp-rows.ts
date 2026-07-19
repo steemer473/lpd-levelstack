@@ -2,6 +2,7 @@ import type { ReportSection } from "@/lib/pipeline/report-types"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
 import type { ResearchBundle } from "@/lib/pipeline/research-types"
 import { isNonCompetitorHost, topCompetitorDomains } from "@/lib/research/serp/competitor-domains"
+import { serpResultMentionsBrand } from "@/lib/research/serp/brand-serp-evidence"
 import { hostnameFromUrl } from "@/lib/research/serp"
 import type { SerpOrganicResult } from "@/lib/research/serp/types"
 import { PRODUCT_NAMES } from "@/lib/report/outcome-copy"
@@ -132,11 +133,17 @@ export function deriveBuyerHostFromReport(
 function previewFromSerpResults(
   results: SerpOrganicResult[],
   excludeHost: string | null | undefined,
+  brandName?: string,
 ): PreviewCompetitor | undefined {
-  const domain = topCompetitorDomains(results, excludeHost ?? null, 1)[0]
+  const pool =
+    brandName && brandName.trim().length >= 4
+      ? results.filter((r) => serpResultMentionsBrand(r, brandName))
+      : results
+
+  const domain = topCompetitorDomains(pool, excludeHost ?? null, 1)[0]
   if (!domain) return undefined
 
-  const row = results.find((r) => {
+  const row = pool.find((r) => {
     try {
       const host = new URL(r.link).hostname.replace(/^www\./, "").toLowerCase()
       return host === domain
@@ -167,13 +174,19 @@ function previewFromNameCollisions(
   return { rank: 1, domain, title: preferred.title }
 }
 
-/** Free-tier preview rival from raw brand SERP (not stored detail text). */
+/**
+ * Free-tier preview rival from raw brand SERP (not stored detail text).
+ * When `brandName` is set, only brand-mentioned organic hits qualify — so
+ * unrelated local co-rankers (e.g. a data center for "Atlanta") never become
+ * the competitive tease.
+ */
 export function resolvePreviewCompetitorFromBundle(
   bundle: ResearchBundle,
   excludeHost?: string | null,
+  brandName?: string,
 ): PreviewCompetitor | undefined {
   const brandResults = bundle.searchFootprint.searches.flatMap((s) => s.results)
-  const fromSerp = previewFromSerpResults(brandResults, excludeHost)
+  const fromSerp = previewFromSerpResults(brandResults, excludeHost, brandName)
   if (fromSerp) return fromSerp
 
   return previewFromNameCollisions(bundle, excludeHost)

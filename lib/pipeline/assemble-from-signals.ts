@@ -277,7 +277,12 @@ export function assembleReportFromSignals(
 
   const upgradeTeasers =
     reportTier === "free_snapshot"
-      ? extractUpgradeTeasers(allSections, emptyResearchBundle(), hostnameFromUrl(intake.websiteUrl))
+      ? extractUpgradeTeasers(
+          allSections,
+          emptyResearchBundle(),
+          hostnameFromUrl(intake.websiteUrl),
+          intake.primaryBusinessName,
+        )
       : undefined
 
   return {

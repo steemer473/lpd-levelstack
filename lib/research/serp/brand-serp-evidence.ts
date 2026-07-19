@@ -18,7 +18,7 @@ function formatResult(r: SerpOrganicResult): string {
 }
 
 function mentionsBrand(
-  result: SerpOrganicResult,
+  result: Pick<SerpOrganicResult, "title" | "link" | "snippet">,
   brandName: string,
 ): boolean {
   const brand = brandName.trim().toLowerCase()
@@ -32,6 +32,14 @@ function mentionsBrand(
     .replace(/\s+/g, " ")
     .trim()
   return core.length >= 6 && haystack.includes(core)
+}
+
+/** Exported for competitive teaser quality gates. */
+export function serpResultMentionsBrand(
+  result: Pick<SerpOrganicResult, "title" | "link" | "snippet">,
+  brandName: string,
+): boolean {
+  return mentionsBrand(result, brandName)
 }
 
 /**

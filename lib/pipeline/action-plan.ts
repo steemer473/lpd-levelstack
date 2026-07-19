@@ -40,16 +40,16 @@ function nextStepForFinding(
     return "Next step: Make sure each social profile uses your brand name and is linked from your website."
   }
 
+  if (/ai overview/.test(blob)) {
+    return "Next step: Add clear entity details (name, location, services) on your site and Google Business Profile."
+  }
+
   if (/snippet|meta description|what google shows/.test(blob)) {
     return "Next step: Rewrite your homepage title and meta description so Google's snippet matches your offer."
   }
 
   if (/not in the top|was not in the top|visibility/.test(blob)) {
     return "Next step: Strengthen branded and local pages so your domain owns page 1 for your business name."
-  }
-
-  if (/ai overview/.test(blob)) {
-    return "Next step: Add clear entity details (name, location, services) on your site and Google Business Profile."
   }
 
   return `Next step: Fix this before spending more on ads or outreach — ${finding.detail.slice(0, 120)}`
