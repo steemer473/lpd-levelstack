@@ -51,6 +51,8 @@ If research fails, the report status is **failed** with: *"We couldn't complete 
 
 Free tier uses ~7 SERP queries per run (brand 1, social 2, directory 4). Results are cached in Supabase for 24 hours — re-runs for the same business within that window reuse cached data at zero API cost.
 
+**P0-2 AI Overview check:** Google AI Overview presence is read from the brand organic SERP response (`aiOverview` field). It adds **+0 SERP calls** vs the baseline above (same cached brand query). ChatGPT / Perplexity are not queried. In staging/dogfood, observe `% of free reports with non-null aiOverview` as an operational signal — not a cost driver.
+
 Local dev with zero API cost:
 
 ```bash

@@ -142,23 +142,6 @@ export async function buildReportSections(
       label: "Search footprint review",
       ...scoreFromFindings(searchFindings),
       findings: searchFindings,
-      aiPreview: [
-        {
-          platform: "ChatGPT",
-          result: `No strong citation detected for ${intake.primaryBusinessName} in a typical “${intake.primaryService}” query — structured FAQ/content improves AI visibility.`,
-          severity: "high",
-        },
-        {
-          platform: "Perplexity",
-          result: "Answer engines favor pages with clear entity data (name, location, service, credentials).",
-          severity: "medium",
-        },
-        {
-          platform: TERMS.aiOverview,
-          result: `Local packs and branded results depend on ${TERMS.gbp} and consistent ${TERMS.nap} across the web.`,
-          severity: "medium",
-        },
-      ],
     },
     {
       id: "online_reputation",

@@ -71,10 +71,10 @@ describe("effectiveFindingSeverity", () => {
     expect(effectiveFindingSeverity("search_footprint", finding)).toBe("good")
   })
 
-  it("keeps medium for automated AI citation placeholder", () => {
+  it("keeps medium for missing Google AI Overview", () => {
     const finding: ReportFinding = {
-      label: "ChatGPT / Perplexity",
-      value: "Live AI citation checks are not automated in v1; improve entity clarity.",
+      label: "Google AI Overview",
+      value: "No Google AI Overview snippet returned for footprint queries.",
       detail: "",
       severity: "medium",
     }
@@ -101,15 +101,15 @@ describe("findingSeverityExplanation", () => {
     )
   })
 
-  it("explains why AI placeholder still shows Attention", () => {
+  it("explains missing Google AI Overview", () => {
     const finding: ReportFinding = {
-      label: "ChatGPT / Perplexity",
-      value: "Live AI citation checks are not automated in v1; improve entity clarity.",
+      label: "Google AI Overview",
+      value: "No Google AI Overview snippet returned for footprint queries.",
       detail: "",
       severity: "medium",
     }
     expect(findingSeverityExplanation("search_footprint", finding)).toContain(
-      "not a penalty against your Google rank",
+      "organic results matter more",
     )
   })
 

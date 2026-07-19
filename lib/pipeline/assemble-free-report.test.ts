@@ -82,6 +82,55 @@ describe("assembleFreeReportFromResearch", () => {
     const parsed = levelstackReportJsonSchema.safeParse(report)
     expect(parsed.success).toBe(true)
   })
+
+  it("attaches live Google AI Overview preview without ChatGPT stub", () => {
+    const bundle = emptyResearchBundle()
+    bundle.searchFootprint.searches = [
+      {
+        query: "Test Co Atlanta, GA",
+        results: [
+          {
+            query: "Test Co Atlanta, GA",
+            position: 1,
+            title: "Test Co",
+            link: "https://example.com",
+            snippet: "Coaching",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+    const override = {
+      id: "search_footprint" as const,
+      label: "Search footprint",
+      status: "attention" as const,
+      score: 70,
+      findings: [
+        {
+          label: "Brand search",
+          value: "Partial visibility",
+          detail: "Top results: #1 Test Co (https://example.com)",
+          severity: "medium" as const,
+        },
+      ],
+    }
+
+    const report = assembleFreeReportFromResearch(
+      intake,
+      bundle,
+      audit,
+      "levelstack-free-snapshot",
+      override,
+    )
+
+    const search = report.sections.find((s) => s.id === "search_footprint")
+    expect(search?.aiPreview).toHaveLength(1)
+    expect(search?.aiPreview?.[0]?.platform).toBe("Google AI Overview")
+    expect(search?.aiPreview?.[0]?.result).toMatch(/No Google AI Overview/i)
+    expect(JSON.stringify(report)).not.toMatch(/not automated in v1/i)
+    expect(JSON.stringify(report)).not.toMatch(/ChatGPT \/ Perplexity/i)
+  })
 })
 
 describe("extractUpgradeTeasers", () => {

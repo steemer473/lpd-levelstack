@@ -40,7 +40,7 @@ SECTIONS (exact ids, no action_plan section)
 search_footprint, online_reputation, digital_presence, revenue_funnel, competitive_context
 - Each: status critical|attention|good, score 0-100, 2-4 findings (label, value headline, detail 2-4 sentences, severity).
 - Finding extras when evidence supports them: headline (short card title), bullets (1-3 concise points), riskCategory ("Revenue Risk" | "Visibility Leak" | "Competitor Advantage"), snippetBefore, snippetAfter.
-- search_footprint: include aiPreview when evidence exists (ChatGPT, Perplexity, Google AI Overview).
+- search_footprint: include aiPreview only for Google AI Overview when RESEARCH JSON includes aiOverview evidence. Never invent ChatGPT or Perplexity citation checks.
 - digital_presence: optional scoreRows from website signals.
 - competitive_context: optional competitiveGrid (you vs competitor domains from research).
 - competitive_context: NEVER replace the first finding — it contains live service-search evidence (query, positions, URLs). Add at most 2 supplemental findings.
@@ -102,4 +102,5 @@ REQUIRED FINDINGS (3-5 total):
 4. Optional: owner-name search if research includes owner query
 5. Optional: one-sentence "Search footprint summary" at top if multiple critical issues
 
-Match severity to documented risk (missing from top 10 = high/critical; partial visibility = medium/low; strong page-1 presence = good).`
+Match severity to documented risk (missing from top 10 = high/critical; partial visibility = medium/low; strong page-1 presence = good).
+When RESEARCH includes aiOverview text, you may reference Google AI Overview in a finding — never invent ChatGPT or Perplexity citation checks.`

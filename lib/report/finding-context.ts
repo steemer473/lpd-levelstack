@@ -35,12 +35,6 @@ export function effectiveFindingSeverity(
       return "good"
     }
 
-    if (
-      /live ai citation checks are not automated|not automated in v1/i.test(finding.value)
-    ) {
-      return "medium"
-    }
-
     if (finding.value.includes(SNIPPET_COMPARE_UNAVAILABLE)) {
       return finding.severity === "critical" ? "critical" : "high"
     }
@@ -183,10 +177,6 @@ export function findingSeverityExplanation(
         return "Negative results appear when people search your name — address or monitor these before prospects see them."
       }
       return "Page 1 for your name doesn't clearly feature your website — prospects may click a directory or social profile instead."
-    }
-
-    if (/live ai citation checks are not automated|not automated in v1/i.test(finding.value)) {
-      return "Attention here means we have not automated live AI citation checks yet — it is not a penalty against your Google rank above."
     }
 
     if (/no ai overview|no google ai overview/i.test(combined)) {

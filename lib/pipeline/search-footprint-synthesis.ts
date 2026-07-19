@@ -15,7 +15,10 @@ import {
   businessSearchSeverity,
   ownerSearchSeverity,
 } from "@/lib/pipeline/search-finding-severity"
-import { TERMS } from "@/lib/report/customer-terms"
+import {
+  attachAiOverviewPreview,
+  buildAiOverviewCheck,
+} from "@/lib/pipeline/ai-overview-check"
 import {
   customerLimitationText,
   SNIPPET_COMPARE_SUCCESS,
@@ -99,6 +102,7 @@ function compactPayload(
     searches: bundle.searchFootprint.searches.map((s) => ({
       query: s.query,
       limitation: s.limitation,
+      aiOverview: s.aiOverview?.slice(0, 400) ?? null,
       topResults: s.results.slice(0, 5).map((r) => ({
         position: r.position,
         title: r.title,
@@ -145,6 +149,7 @@ export function buildDeterministicSearchFootprintSection(
   )
 
   const findings: ReportSection["findings"] = []
+  const aiOverviewCheck = buildAiOverviewCheck(intake, bundle)
 
   if (!researchBundleHasSerpData(bundle)) {
     findings.push({
@@ -261,17 +266,9 @@ export function buildDeterministicSearchFootprintSection(
         severity: ownerSearchSeverity(ownerSearch.results, buyerHost),
       })
     }
-
-    const aiOverview = bundle.searchFootprint.searches.find((s) => s.aiOverview)?.aiOverview
-    if (aiOverview) {
-      findings.push({
-        label: TERMS.aiOverview,
-        value: "Google returned an AI Overview for one of your brand queries.",
-        detail: aiOverview.slice(0, 400),
-        severity: "medium",
-      })
-    }
   }
+
+  findings.push(aiOverviewCheck.finding)
 
   return {
     id: "search_footprint",
@@ -280,6 +277,7 @@ export function buildDeterministicSearchFootprintSection(
     score: scoreFromSignals(searchSignals),
     findings,
     scoreRows: signalRowsFromAudit(audit),
+    aiPreview: aiOverviewCheck.aiPreview,
   }
 }
 
@@ -330,7 +328,10 @@ Return the search_footprint section JSON.`,
     return { section: fallback(), source: "fallback" }
   }
 
-  const section = parsed.data.section
+  const section = attachAiOverviewPreview(
+    parsed.data.section,
+    buildAiOverviewCheck(intake, bundle),
+  )
   section.scoreRows = signalRowsFromAudit(audit)
 
   console.log("[pipeline] search_footprint synthesis: llm")

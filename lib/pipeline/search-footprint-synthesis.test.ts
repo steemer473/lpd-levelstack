@@ -94,7 +94,38 @@ describe("buildDeterministicSearchFootprintSection", () => {
     const audit = scoreAllSignals(intake, bundle, "free_snapshot")
     const section = buildDeterministicSearchFootprintSection(intake, bundle, audit)
 
-    expect(section.findings).toHaveLength(1)
     expect(section.findings[0]?.value).toMatch(/not available/i)
+    expect(section.findings.some((f) => f.label === "Google AI Overview")).toBe(true)
+    expect(section.aiPreview).toHaveLength(1)
+    expect(section.aiPreview?.[0]?.platform).toBe("Google AI Overview")
+    expect(JSON.stringify(section)).not.toMatch(/not automated in v1/i)
+  })
+
+  it("always includes Google AI Overview check when SERP data exists", () => {
+    const bundle = emptyResearchBundle()
+    bundle.searchFootprint.searches = [
+      {
+        query: "Platinum Real Estate",
+        results: [
+          {
+            query: "Platinum Real Estate",
+            position: 1,
+            title: "Platinum Real Estate",
+            link: "https://www.platinumrealestate.com/",
+            snippet: "Atlanta brokerage",
+          },
+        ],
+        aiOverview: "Platinum Real Estate is a brokerage in Atlanta.",
+        limitation: null,
+      },
+    ]
+    const audit = scoreAllSignals(intake, bundle, "free_snapshot")
+    const section = buildDeterministicSearchFootprintSection(intake, bundle, audit)
+
+    expect(section.aiPreview).toHaveLength(1)
+    expect(section.aiPreview?.[0]?.platform).toBe("Google AI Overview")
+    expect(section.aiPreview?.[0]?.result).toMatch(/mentions your business/i)
+    expect(section.findings.some((f) => f.label === "Google AI Overview")).toBe(true)
+    expect(JSON.stringify(section)).not.toMatch(/ChatGPT/i)
   })
 })

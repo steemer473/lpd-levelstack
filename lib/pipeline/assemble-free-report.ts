@@ -2,6 +2,10 @@ import type { AuditScoreBundle } from "@/lib/audit/types"
 import { deriveOverallFromSections } from "@/lib/audit/derive-overall-from-sections"
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
 import { buildActionPlanFromSections } from "@/lib/pipeline/action-plan"
+import {
+  attachAiOverviewPreview,
+  buildAiOverviewCheck,
+} from "@/lib/pipeline/ai-overview-check"
 import { marketLabelFromIntake } from "@/lib/pipeline/context"
 import {
   FREE_TIER_SECTION_IDS,
@@ -125,8 +129,12 @@ export function assembleFreeReportFromResearch(
   planId: string | null,
   searchFootprintOverride: ReportSection,
 ): LevelstackReportJson {
+  const searchWithAi = attachAiOverviewPreview(
+    searchFootprintOverride,
+    buildAiOverviewCheck(intake, bundle),
+  )
   const allSections = buildSectionsFromResearch(intake, bundle).map((s) =>
-    s.id === "search_footprint" ? searchFootprintOverride : s,
+    s.id === "search_footprint" ? searchWithAi : s,
   )
 
   const sections = allSections.filter((s) => FREE_TIER_SECTION_IDS.has(s.id))

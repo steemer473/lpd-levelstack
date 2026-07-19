@@ -466,3 +466,78 @@ describe("buildSectionsFromResearch P1-2 insufficient data", () => {
     expect(checkedGbp?.value).not.toBe(skippedGbp?.value)
   })
 })
+
+describe("buildSectionsFromResearch AI Overview (P0-2)", () => {
+  it("emits Google-only aiPreview without ChatGPT stub", () => {
+    const bundle = emptyResearchBundle()
+    bundle.searchFootprint.searches = [
+      {
+        query: "Level Play Digital",
+        results: [
+          {
+            query: "Level Play Digital",
+            position: 1,
+            title: "Level Play Digital",
+            link: "https://levelplaydigital.com",
+            snippet: "Marketing operations",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const search = sections.find((s) => s.id === "search_footprint")!
+
+    expect(search.aiPreview).toHaveLength(1)
+    expect(search.aiPreview?.[0]?.platform).toBe("Google AI Overview")
+    expect(search.aiPreview?.[0]?.result).toMatch(/No Google AI Overview/i)
+    expect(JSON.stringify(search)).not.toMatch(/not automated in v1/i)
+    expect(JSON.stringify(search)).not.toMatch(/ChatGPT/i)
+  })
+
+  it("marks cited AI Overview as low severity", () => {
+    const bundle = emptyResearchBundle()
+    bundle.searchFootprint.searches = [
+      {
+        query: "Level Play Digital",
+        results: [
+          {
+            query: "Level Play Digital",
+            position: 1,
+            title: "Level Play Digital",
+            link: "https://levelplaydigital.com",
+            snippet: "Marketing",
+          },
+        ],
+        aiOverview: "Level Play Digital helps local businesses with marketing ops.",
+        limitation: null,
+      },
+    ]
+
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const search = sections.find((s) => s.id === "search_footprint")!
+
+    expect(search.aiPreview?.[0]?.severity).toBe("low")
+    expect(search.aiPreview?.[0]?.result).toMatch(/mentions your business/i)
+  })
+
+  it("does not invent a confident missing-AIO gap when brand SERP failed", () => {
+    const bundle = emptyResearchBundle()
+    bundle.searchFootprint.searches = [
+      {
+        query: "Level Play Digital",
+        results: [],
+        aiOverview: null,
+        limitation: "Internal SE Server Error",
+      },
+    ]
+
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const search = sections.find((s) => s.id === "search_footprint")!
+
+    expect(search.aiPreview?.[0]?.result).toMatch(/Unable to verify/i)
+    expect(search.aiPreview?.[0]?.result).not.toMatch(/No Google AI Overview/i)
+  })
+})
