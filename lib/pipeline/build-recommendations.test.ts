@@ -201,7 +201,6 @@ describe("attachSearchReputationRecommendations", () => {
         found: false,
         url: null,
         title: null,
-        snippet: null,
       },
     ]
 
