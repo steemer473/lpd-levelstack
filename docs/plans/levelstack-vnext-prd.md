@@ -1,7 +1,7 @@
 # LevelStack vNext — PRD
 
-**Status:** Draft for review
-**Date:** 2026-07-18
+**Status:** In progress — P0 Wave A closed 2026-07-19 (P0-1…P0-4); **next engineering: P1-3** then Track 4 (P2-1). Open ODs: OD-5, OD-6, OD-8.
+**Date:** 2026-07-18 (P0-3 status updated 2026-07-19)
 **Inputs:**
 
 - `docs/plans/levelstack-vnext-critique.md` (strategic critique, live funnel/report audit §14, fix backlog §15)
@@ -127,6 +127,8 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 
 
 #### P0-3 — `[PRODUCT]` Restructure free report to exactly two sections
+
+**Status:** **Shipped 2026-07-19** — `lpd-levelstack` [#92](https://github.com/steemer473/lpd-levelstack/pull/92) (`social_offsite`; Reputation + non-social Digital Presence paid); hub [#132](https://github.com/steemer473/lpd-redesign/pull/132). Quality follow-ups: social brand-match + website discovery [#94](https://github.com/steemer473/lpd-levelstack/pull/94); free teaser / next-step copy [#95](https://github.com/steemer473/lpd-levelstack/pull/95). Dogfood free PDF verified (Search + Social only).
 
 **Description:** Cut the free report to the two sections marketing actually promises — Search Footprint and Social & Off-site (with AI-search-presence built into one of them, per P0-2) — and move Reputation and Digital Presence behind the $97 paywall to match what's already marketed as locked.
 
