@@ -15,6 +15,7 @@ function sanitizeFindingText(text: string, fallback: string): string {
   if (!trimmed || INTAKE_PLACEHOLDER.test(trimmed) || INTAKE_DISCOVERED.test(trimmed)) {
     return fallback
   }
+  // Defense in depth: catch provider/backend error shapes that bypassed write-time filters.
   if (isInternalLimitation(trimmed)) {
     return fallback
   }

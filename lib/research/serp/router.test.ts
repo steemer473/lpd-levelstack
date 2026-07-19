@@ -29,6 +29,42 @@ describe("googleOrganicSearch failover", () => {
     vi.unstubAllGlobals()
   })
 
+  it("retries once on Internal SE Server Error then returns unable-to-verify", async () => {
+    const fetchMock = vi.fn(async () => {
+      return new Response(JSON.stringify({ error: "Internal SE Server Error." }), {
+        status: 200,
+      })
+    })
+
+    vi.stubGlobal("fetch", fetchMock)
+
+    vi.doMock("@/lib/research/serp/cache", () => ({
+      getCachedSerp: vi.fn().mockResolvedValue(null),
+      setCachedSerp: vi.fn().mockResolvedValue(undefined),
+    }))
+
+    vi.doMock("@/env.mjs", () => ({
+      env: {
+        SERPAPI_KEY: "serp-key",
+        SEARCHAPI_KEY: undefined,
+        DATAFORSEO_LOGIN: undefined,
+        DATAFORSEO_PASSWORD: undefined,
+        SERP_PROVIDER_CHAIN: "serpapi",
+        SERP_CACHE_TTL_HOURS: 24,
+        LEVELSTACK_DEV_MOCK_SERP: false,
+      },
+    }))
+
+    const { googleOrganicSearch } = await import("@/lib/research/serp/router")
+    const { UNABLE_TO_VERIFY_VALUE } = await import("@/lib/report/customer-copy")
+    const result = await googleOrganicSearch("Acme reviews")
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(result.results).toHaveLength(0)
+    expect(result.limitation).toBe(UNABLE_TO_VERIFY_VALUE)
+    expect(result.limitation).not.toContain("Internal SE Server Error")
+  })
+
   it("falls back from SerpAPI quota error to SearchAPI success", async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input)

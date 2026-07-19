@@ -27,6 +27,9 @@ import { TERMS } from "@/lib/report/customer-terms"
 import {
   customerGbpFindingDetail,
   customerGbpFindingValue,
+  customerLimitationText,
+  UNABLE_TO_VERIFY_DETAIL,
+  UNABLE_TO_VERIFY_VALUE,
 } from "@/lib/report/customer-copy"
 import { computeDistinctHighlightsFromSections } from "@/lib/report/executive-dedup"
 import { truncateReportCopy } from "@/lib/report/format-report-copy"
@@ -109,10 +112,18 @@ export function buildSectionsFromResearch(
         ? `Your site appears around position #${businessHit.position}`
         : businessSearch?.results.length
           ? "Your website was not in the top 10 organic results for this query."
-          : businessSearch?.limitation ?? "Search data unavailable for business name.",
+          : customerLimitationText(
+              businessSearch?.limitation,
+              UNABLE_TO_VERIFY_VALUE,
+            ),
       detail: businessSearch?.results.length
         ? `These are the top Google results prospects see: ${formatTopResults(businessSearch.results)}`
-        : (businessSearch?.limitation ?? ""),
+        : businessSearch?.limitation
+          ? customerLimitationText(
+              businessSearch.limitation,
+              UNABLE_TO_VERIFY_DETAIL,
+            )
+          : "",
       severity: businessSearchSeverity(
         businessHit,
         Boolean(businessSearch?.results.length),
@@ -126,7 +137,12 @@ export function buildSectionsFromResearch(
           : "No organic results captured when searching your owner name.",
       detail: ownerSearch?.results.length
         ? `Top results for your name: ${formatTopResults(ownerSearch.results)}`
-        : (ownerSearch?.limitation ?? ""),
+        : ownerSearch?.limitation
+          ? customerLimitationText(
+              ownerSearch.limitation,
+              UNABLE_TO_VERIFY_DETAIL,
+            )
+          : "",
       severity: ownerSearchSeverity(
         ownerSearch?.results ?? [],
         buyerHost,
@@ -218,7 +234,9 @@ export function buildSectionsFromResearch(
       detail: [
         site.metaDescription ? `${TERMS.metaDescription}: ${site.metaDescription}` : null,
         site.h1 ? `${TERMS.mainHeading}: ${site.h1}` : null,
-        site.limitation,
+        site.limitation
+          ? customerLimitationText(site.limitation, "")
+          : null,
       ]
         .filter(Boolean)
         .join(" "),
@@ -249,7 +267,10 @@ export function buildSectionsFromResearch(
             {
               label: "Mobile site speed",
               value: `${TERMS.pageSpeed} data unavailable`,
-              detail: psi.limitation,
+              detail: customerLimitationText(
+                psi.limitation,
+                UNABLE_TO_VERIFY_DETAIL,
+              ),
               severity: "medium" as const,
             },
           ]
@@ -454,8 +475,12 @@ export function buildSectionsFromResearch(
           : "No direct competitor domains on page 1 for this query — see page-1 evidence below.",
       detail: serviceSearch?.results.length
         ? formatSerpEvidenceTable(serviceSearch.results)
-        : (serviceSearch?.limitation ??
-          "Run a service-market search with identifiable business competitors to populate this section."),
+        : serviceSearch?.limitation
+          ? customerLimitationText(
+              serviceSearch.limitation,
+              UNABLE_TO_VERIFY_DETAIL,
+            )
+          : "Run a service-market search with identifiable business competitors to populate this section.",
       severity: "medium" as const,
     },
     ...(compDomains.length === 0 && serviceSearch?.results.length
@@ -683,7 +708,7 @@ function buildReputationFindings(
     } else if (search.limitation) {
       findings.push({
         label,
-        value: search.limitation.slice(0, 100),
+        value: customerLimitationText(search.limitation, UNABLE_TO_VERIFY_VALUE),
         detail: `We searched Google for: ${search.query}`,
         severity: "medium",
       })
@@ -718,7 +743,7 @@ function buildSocialFindings(
           {
             label: "Social profiles",
             value: "Could not parse profile URLs",
-            detail: lim,
+            detail: customerLimitationText(lim, UNABLE_TO_VERIFY_DETAIL),
             severity: "medium" as const,
           },
         ]
@@ -728,7 +753,14 @@ function buildSocialFindings(
   return signals.map((s) => ({
     label: s.platform,
     value: s.pageTitle ?? s.url,
-    detail: [s.recencyHint, s.limitation].filter(Boolean).join(" "),
+    detail: [
+      s.recencyHint,
+      s.limitation
+        ? customerLimitationText(s.limitation, UNABLE_TO_VERIFY_DETAIL)
+        : null,
+    ]
+      .filter(Boolean)
+      .join(" "),
     severity: s.limitation ? ("medium" as const) : ("good" as const),
   }))
 }

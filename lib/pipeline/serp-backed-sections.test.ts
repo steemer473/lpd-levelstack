@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import { levelstackIntakeDefaults } from "@/lib/intake/schema"
 import { emptyResearchBundle } from "@/lib/pipeline/research-types"
 import { buildSectionsFromResearch } from "@/lib/pipeline/serp-backed-sections"
+import { UNABLE_TO_VERIFY_VALUE } from "@/lib/report/customer-copy"
 
 const intake = {
   ...levelstackIntakeDefaults,
@@ -42,6 +43,24 @@ describe("buildSectionsFromResearch reputation filtering", () => {
     )
     expect(reputation.findings[0]?.value).toContain("No review listings found")
     expect(reputation.findings[0]?.label).toBe("Review search: Level Play Digital")
+  })
+
+  it("does not surface raw provider errors in reputation findings", () => {
+    const bundle = emptyResearchBundle()
+    bundle.reputation.searches = [
+      {
+        query: "Level Play Digital reviews",
+        results: [],
+        aiOverview: null,
+        limitation: "Internal SE Server Error.",
+      },
+    ]
+
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const reputation = sections.find((s) => s.id === "online_reputation")!
+
+    expect(reputation.findings[0]?.value).toBe(UNABLE_TO_VERIFY_VALUE)
+    expect(reputation.findings[0]?.value).not.toContain("Internal SE Server Error")
   })
 
   it("keeps subject-specific reputation hits", () => {

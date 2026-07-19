@@ -17,6 +17,8 @@ import {
   serpApiMapsSearch,
   serpApiOrganicSearch,
 } from "@/lib/research/serp/providers/serpapi"
+import { isRetryableProviderError } from "@/lib/research/serp/quota-errors"
+import { UNABLE_TO_VERIFY_VALUE } from "@/lib/report/customer-copy"
 import type {
   MapsPlaceResult,
   ProviderMapsResult,
@@ -104,10 +106,29 @@ export async function googleOrganicSearch(query: string): Promise<SerpSearchResp
   const limitations: string[] = []
 
   for (const provider of chain) {
-    const result = await callOrganicProvider(provider, query)
+    let result = await callOrganicProvider(provider, query)
+
+    // P0-1: one same-provider retry on transient non-quota errors before fallback.
+    if (
+      !result.shouldFailover &&
+      result.response.limitation &&
+      isRetryableProviderError(result.response.limitation, result.httpStatus)
+    ) {
+      console.log(`[serp] provider=${provider} retryable error, retrying once`)
+      result = await callOrganicProvider(provider, query)
+    }
+
     if (!result.shouldFailover) {
-      await setCachedSerp("google", query, result.response, provider)
-      return result.response
+      const response =
+        result.response.limitation &&
+        isRetryableProviderError(result.response.limitation, result.httpStatus)
+          ? {
+              ...result.response,
+              limitation: UNABLE_TO_VERIFY_VALUE,
+            }
+          : result.response
+      await setCachedSerp("google", query, response, provider)
+      return response
     }
 
     console.log(`[serp] provider=${provider} quota exceeded, trying next`)
@@ -118,7 +139,8 @@ export async function googleOrganicSearch(query: string): Promise<SerpSearchResp
     query,
     results: [],
     aiOverview: null,
-    limitation: limitations.join("; ") || "All SERP providers failed.",
+    // Keep raw limitations out of customer paths; section builders sanitize further.
+    limitation: UNABLE_TO_VERIFY_VALUE,
   }
 }
 
@@ -151,10 +173,25 @@ export async function googleMapsSearch(query: string): Promise<MapsPlaceResult> 
   const limitations: string[] = []
 
   for (const provider of chain) {
-    const result = await callMapsProvider(provider, query)
+    let result = await callMapsProvider(provider, query)
+
+    if (
+      !result.shouldFailover &&
+      result.place.limitation &&
+      isRetryableProviderError(result.place.limitation, result.httpStatus)
+    ) {
+      console.log(`[serp] provider=${provider} maps retryable error, retrying once`)
+      result = await callMapsProvider(provider, query)
+    }
+
     if (!result.shouldFailover) {
-      await setCachedSerp("google_maps", query, result.place, provider)
-      return result.place
+      const place =
+        result.place.limitation &&
+        isRetryableProviderError(result.place.limitation, result.httpStatus)
+          ? { ...result.place, limitation: UNABLE_TO_VERIFY_VALUE }
+          : result.place
+      await setCachedSerp("google_maps", query, place, provider)
+      return place
     }
 
     console.log(`[serp] provider=${provider} quota exceeded, trying next`)
@@ -163,7 +200,7 @@ export async function googleMapsSearch(query: string): Promise<MapsPlaceResult> 
 
   return {
     ...empty,
-    limitation: limitations.join("; ") || "All SERP providers failed.",
+    limitation: UNABLE_TO_VERIFY_VALUE,
   }
 }
 
