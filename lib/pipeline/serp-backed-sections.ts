@@ -898,7 +898,7 @@ function buildSocialOffsiteFromSearch(
         label: p.platform,
         value: p.title ?? p.url ?? `${p.platform} profile found`,
         detail: p.url
-          ? `Found in search results: ${p.url}`
+          ? `Public search returned a ${p.platform} result that matches your brand: ${p.url}`
           : `${p.platform} presence detected in search for your brand.`,
         severity: "good",
       })
@@ -906,8 +906,8 @@ function buildSocialOffsiteFromSearch(
     } else {
       findings.push({
         label: p.platform,
-        value: `No ${p.platform} profile found in search`,
-        detail: `Prospects searching for your brand on ${p.platform} may not find a clear profile — competitors with visible profiles win those clicks.`,
+        value: `No clear ${p.platform} profile matched your brand in search`,
+        detail: `We searched ${p.platform} for your brand and domain. Nothing in the top results clearly matched — unrelated profiles that rank for similar words are excluded.`,
         severity: "high",
       })
       checks.push({ availability: "negative", severity: "high" })
