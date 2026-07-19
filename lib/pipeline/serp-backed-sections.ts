@@ -898,8 +898,10 @@ function buildSocialOffsiteFromSearch(
         label: p.platform,
         value: p.title ?? p.url ?? `${p.platform} profile found`,
         detail: p.url
-          ? `Public search returned a ${p.platform} result that matches your brand: ${p.url}`
-          : `${p.platform} presence detected in search for your brand.`,
+          ? p.source === "website" || p.source === "intake"
+            ? `Confirmed via a ${p.platform} link on your ${p.source === "intake" ? "intake" : "website"}: ${p.url}`
+            : `Public search returned a ${p.platform} result that matches your brand: ${p.url}`
+          : `${p.platform} presence detected for your brand.`,
         severity: "good",
       })
       checks.push({ availability: "ok", severity: "good" })

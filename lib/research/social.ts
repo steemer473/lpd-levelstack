@@ -15,12 +15,12 @@ export function extractSocialUrls(text: string): { platform: string; url: string
   const seen = new Set<string>()
 
   for (const raw of matches) {
-    let url = raw.trim()
+    let url = raw.trim().replace(/\\+$/g, "").replace(/[.,;:)]+$/g, "")
     if (!url.startsWith("http")) url = `https://${url}`
     try {
       const parsed = new URL(url)
       const host = parsed.hostname.replace(/^www\./, "").toLowerCase()
-      const key = parsed.origin + parsed.pathname
+      const key = parsed.origin + parsed.pathname.replace(/\/$/, "")
       if (seen.has(key)) continue
       seen.add(key)
       out.push({ platform: platformFromHost(host), url: parsed.toString() })

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { socialSerpHitMatchesBrand } from "@/lib/research/social-search"
+import {
+  brandSocialSlugCandidates,
+  socialSerpHitMatchesBrand,
+} from "@/lib/research/social-search"
 
 describe("socialSerpHitMatchesBrand", () => {
   const brand = "Level Play Digital"
@@ -20,7 +23,35 @@ describe("socialSerpHitMatchesBrand", () => {
     ).toBe(false)
   })
 
-  it("accepts LinkedIn company pages that match the brand", () => {
+  it("rejects namesake brands like Next Level Play", () => {
+    expect(
+      socialSerpHitMatchesBrand(
+        {
+          title: "Next Level Play",
+          link: "https://sg.linkedin.com/company/next-lvl-play",
+          snippet: "Next Level Play company page",
+        },
+        brand,
+        domain,
+      ),
+    ).toBe(false)
+  })
+
+  it("accepts the real company slug for Level Play Digital", () => {
+    expect(
+      socialSerpHitMatchesBrand(
+        {
+          title: "Level Play Digital | LinkedIn",
+          link: "https://www.linkedin.com/company/levelplaydigital",
+          snippet: "",
+        },
+        brand,
+        domain,
+      ),
+    ).toBe(true)
+  })
+
+  it("accepts LinkedIn company pages that match the dashed brand slug", () => {
     expect(
       socialSerpHitMatchesBrand(
         {
@@ -60,5 +91,11 @@ describe("socialSerpHitMatchesBrand", () => {
         domain,
       ),
     ).toBe(true)
+  })
+
+  it("builds slug candidates from brand + domain", () => {
+    expect(brandSocialSlugCandidates(brand, domain)).toEqual(
+      expect.arrayContaining(["levelplaydigital", "level-play-digital"]),
+    )
   })
 })
