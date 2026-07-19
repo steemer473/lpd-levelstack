@@ -12,7 +12,7 @@ import {
 } from "@/lib/report/severity-presentation"
 
 function baseReport(
-  overrides: Partial<LevelstackReportJson> & {
+  overrides: Omit<Partial<LevelstackReportJson>, "meta"> & {
     meta?: Partial<LevelstackReportJson["meta"]>
   } = {},
 ): LevelstackReportJson {
