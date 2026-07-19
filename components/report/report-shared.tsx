@@ -444,6 +444,24 @@ export function ActionPlanPanel({
 
     return (
       <div className="space-y-5">
+        <div className="rounded-md border border-border/60 bg-muted/30 px-3 py-2.5 text-[12px] leading-relaxed text-muted-foreground">
+          <p className="font-medium text-foreground">How to read this roadmap</p>
+          <ul className="mt-1.5 list-disc space-y-1 pl-4">
+            <li>
+              <span className="font-medium text-foreground">P0–P3</span> is urgency
+              (P0 = this week, P1 = this month, P2 = this quarter, P3 = backlog). Tap the
+              info icon on each badge for detail.
+            </li>
+            <li>
+              <span className="font-medium text-foreground">Confidence</span> is how
+              strong the public evidence is — not a grade on your business.
+            </li>
+            <li>
+              <span className="font-medium text-foreground">ROI</span> is directional
+              (risk reduction or upside), not a guaranteed dollar amount.
+            </li>
+          </ul>
+        </div>
         {ACTION_PLAN_GROUPS.map((g) => (
           <div key={g.key}>
             <span
@@ -597,7 +615,13 @@ export function ActionPlanKanban({
                   >
                     <div className="mb-1 flex flex-wrap gap-1.5">
                       <span className="text-[10px] font-semibold text-muted-foreground">
-                        {rec.priority}
+                        {rec.priority === "P0"
+                          ? "P0 — this week"
+                          : rec.priority === "P1"
+                            ? "P1 — this month"
+                            : rec.priority === "P2"
+                              ? "P2 — this quarter"
+                              : "P3 — backlog"}
                       </span>
                     </div>
                     <p className="font-medium leading-snug">{rec.title}</p>

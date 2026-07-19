@@ -185,7 +185,7 @@ export function buildSectionsFromSignals(
       },
       {
         id: "revenue_funnel",
-        label: "Revenue funnel diagnosis",
+        label: "Revenue funnel",
         status: "attention",
         score: 62,
         findings: [

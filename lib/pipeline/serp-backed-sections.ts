@@ -672,7 +672,7 @@ export function buildSectionsFromResearch(
     },
     {
       id: "revenue_funnel",
-      label: "Revenue funnel diagnosis",
+      label: "Revenue funnel",
       ...scoreSectionFromChecks(funnelChecks),
       findings: funnelFindings,
     },

@@ -1,5 +1,6 @@
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
 import type { CheckAvailability } from "@/lib/pipeline/check-availability"
+import { TERMS } from "@/lib/report/customer-terms"
 import {
   isB2bReviewDirectoryPlatform,
   platformFromQuery,
@@ -206,7 +207,7 @@ function artifactForFinding(
       kind: "checklist",
       content: [
         "Claim or create the missing review profile",
-        "Match NAP to your website and Google Business Profile",
+        `Match ${TERMS.nap} to your website and ${TERMS.gbp}`,
         "Request 3–5 recent customer reviews",
         "Link the profile from your website footer",
       ].join("\n"),
@@ -217,8 +218,8 @@ function artifactForFinding(
     return {
       kind: "checklist",
       content: [
-        "Confirm homepage title/H1 match your brand name",
-        "Align Google Business Profile name and website URL",
+        "Confirm homepage title and main heading (H1) match your brand name",
+        `Align ${TERMS.gbp} name and website URL`,
         "Add clear service + location copy on the homepage",
         "Re-check brand search after changes",
       ].join("\n"),
@@ -249,7 +250,7 @@ function roiForFinding(
   }
   return {
     kind: "risk_reduction",
-    rangeLabel: "Risk reduction — clearer brand SERP",
+    rangeLabel: `Risk reduction — clearer brand ${TERMS.serp}`,
   }
 }
 
@@ -372,10 +373,13 @@ function evidenceForReputationFinding(
       continue
     }
 
+    const sourceLabel = platform
+      ? `Public ${platform} search results`
+      : "Public review / directory search results"
     const fromResults = evidenceFromSerpResults(
       search,
       "directory_serp",
-      platform ? `${platform} search` : "Directory search",
+      sourceLabel,
       generatedAt,
       2,
     )
@@ -385,7 +389,7 @@ function evidenceForReputationFinding(
     } else if (search.query) {
       evidence.push({
         sourceType: "directory_serp",
-        sourceLabel: platform ? `${platform} search` : "Directory search",
+        sourceLabel,
         capturedAt: generatedAt,
         query: search.query,
         url: googleSearchUrl(search.query),
