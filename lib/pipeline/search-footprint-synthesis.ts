@@ -16,7 +16,13 @@ import {
   ownerSearchSeverity,
 } from "@/lib/pipeline/search-finding-severity"
 import { TERMS } from "@/lib/report/customer-terms"
-import { SNIPPET_COMPARE_SUCCESS, SNIPPET_COMPARE_UNAVAILABLE } from "@/lib/report/customer-copy"
+import {
+  customerLimitationText,
+  SNIPPET_COMPARE_SUCCESS,
+  SNIPPET_COMPARE_UNAVAILABLE,
+  UNABLE_TO_VERIFY_DETAIL,
+  UNABLE_TO_VERIFY_VALUE,
+} from "@/lib/report/customer-copy"
 import type { SerpOrganicResult } from "@/lib/research/serp"
 import { hostnameFromUrl, resultsMentionDomain, topCompetitorDomains } from "@/lib/research/serp"
 
@@ -159,7 +165,10 @@ export function buildDeterministicSearchFootprintSection(
         ? `Your site appears around position #${bareHit.position} for this query.`
         : bareSearch?.results.length
           ? "Your website was not in the top 10 organic results for this query."
-          : bareSearch?.limitation ?? "Search data unavailable for business name.",
+          : customerLimitationText(
+              bareSearch?.limitation,
+              UNABLE_TO_VERIFY_VALUE,
+            ),
       detail: bareSearch?.results.length
         ? [
             bareHit
@@ -169,7 +178,12 @@ export function buildDeterministicSearchFootprintSection(
                 : `When someone searches "${bareBrand}", your domain (${buyerHost ?? "unknown"}) was not in the top 10 organic results.`,
             `Top results: ${formatTopResults(bareSearch.results)}`,
           ].join(" ")
-        : (bareSearch?.limitation ?? ""),
+        : bareSearch?.limitation
+          ? customerLimitationText(
+              bareSearch.limitation,
+              UNABLE_TO_VERIFY_DETAIL,
+            )
+          : "",
       severity: businessSearchSeverity(bareHit, Boolean(bareSearch?.results.length)),
     })
 
@@ -180,7 +194,10 @@ export function buildDeterministicSearchFootprintSection(
           ? `Your site appears around position #${scopedHit.position} for this query.`
           : scopedSearch.results.length
             ? "Your website was not in the top 10 organic results for this location-scoped query."
-            : scopedSearch.limitation ?? "Search data unavailable.",
+            : customerLimitationText(
+                scopedSearch.limitation,
+                UNABLE_TO_VERIFY_VALUE,
+              ),
         detail: scopedSearch.results.length
           ? [
               scopedHit
@@ -188,7 +205,12 @@ export function buildDeterministicSearchFootprintSection(
                 : `Even with location added ("${scopedQuery}"), your domain was not in the top 10. Local visibility may need strengthening.`,
               `Top results: ${formatTopResults(scopedSearch.results)}`,
             ].join(" ")
-          : (scopedSearch.limitation ?? ""),
+          : scopedSearch.limitation
+            ? customerLimitationText(
+                scopedSearch.limitation,
+                UNABLE_TO_VERIFY_DETAIL,
+              )
+            : "",
         severity: businessSearchSeverity(
           scopedHit,
           Boolean(scopedSearch.results.length),

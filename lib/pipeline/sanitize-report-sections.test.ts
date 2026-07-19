@@ -24,4 +24,27 @@ describe("sanitizeReportSections", () => {
     expect(section!.findings[0]!.value).not.toContain("Not fetched yet")
     expect(section!.findings[0]!.detail).not.toContain("SERPAPI")
   })
+
+  it("strips provider passthrough errors without vendor tokens", () => {
+    const [section] = sanitizeReportSections([
+      {
+        id: "reputation",
+        label: "Reputation",
+        status: "attention",
+        score: 40,
+        findings: [
+          {
+            label: "Reviews search",
+            value: "Internal SE Server Error.",
+            detail: "We searched Google for: Acme reviews",
+            severity: "medium",
+          },
+        ],
+      },
+    ])
+
+    expect(section!.findings[0]!.value).not.toContain("Internal SE Server Error")
+    expect(section!.findings[0]!.detail).toContain("We searched Google")
+  })
 })
+

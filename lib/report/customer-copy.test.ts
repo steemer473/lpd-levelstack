@@ -3,10 +3,13 @@ import { describe, expect, it } from "vitest"
 import {
   customerGbpFindingDetail,
   customerGbpFindingValue,
+  customerLimitationText,
   GBP_NOT_FOUND_VALUE,
   isCustomerFacingFinding,
   isInternalLimitation,
+  isSafeCustomerLimitation,
   polishCustomerFindingCopy,
+  UNABLE_TO_VERIFY_VALUE,
 } from "@/lib/report/customer-copy"
 
 describe("customer-copy", () => {
@@ -16,6 +19,32 @@ describe("customer-copy", () => {
       true,
     )
     expect(isInternalLimitation("No Google Maps listing found for query.")).toBe(false)
+  })
+
+  it("treats provider passthrough errors without vendor tokens as internal", () => {
+    expect(isInternalLimitation("Internal SE Server Error.")).toBe(true)
+    expect(isInternalLimitation("Internal Server Error")).toBe(true)
+    expect(isInternalLimitation("The operation was aborted due to timeout")).toBe(true)
+    expect(isInternalLimitation("Unexpected token < in JSON at position 0")).toBe(true)
+  })
+
+  it("allowlists only known customer-safe limitation phrases", () => {
+    expect(isSafeCustomerLimitation("No Google Maps listing found for \"Acme\".")).toBe(
+      true,
+    )
+    expect(isSafeCustomerLimitation("Website returned HTTP 404.")).toBe(true)
+    expect(isSafeCustomerLimitation("Internal SE Server Error.")).toBe(false)
+    expect(isSafeCustomerLimitation("Some unknown provider blurb")).toBe(false)
+    expect(isSafeCustomerLimitation("Not fetched yet.")).toBe(false)
+  })
+
+  it("rewrites unsafe limitations to unable-to-verify", () => {
+    expect(customerLimitationText("Internal SE Server Error.")).toBe(
+      UNABLE_TO_VERIFY_VALUE,
+    )
+    expect(
+      customerLimitationText('No Google Maps listing found for "Acme".'),
+    ).toContain("No Google Maps listing found")
   })
 
   it("never returns Not fetched yet as GBP finding value", () => {
@@ -40,6 +69,15 @@ describe("customer-copy", () => {
     )
     expect(detail).toContain("Claim and complete your Google Business Profile")
     expect(detail).not.toContain("Not fetched yet")
+  })
+
+  it("does not surface raw provider errors in GBP detail", () => {
+    const detail = customerGbpFindingDetail(
+      { found: false, limitation: "Internal SE Server Error." },
+      "Google Business Profile (GBP)",
+    )
+    expect(detail).not.toContain("Internal SE Server Error")
+    expect(detail).toContain("Claim and complete your Google Business Profile")
   })
 
   it("rejects placeholder strings from executive summary selection", () => {

@@ -1,5 +1,17 @@
 import type { ReportFinding } from "@/lib/pipeline/report-types"
-import { polishCustomerFindingCopy } from "@/lib/report/customer-copy"
+import {
+  isInternalLimitation,
+  polishCustomerFindingCopy,
+  UNABLE_TO_VERIFY_DETAIL,
+  UNABLE_TO_VERIFY_VALUE,
+} from "@/lib/report/customer-copy"
+
+function safeFindingDisplay(text: string, fallback: string): string {
+  const polished = polishCustomerFindingCopy(text)
+  if (!polished.trim()) return polished
+  if (isInternalLimitation(polished)) return fallback
+  return polished
+}
 import { OutcomeAuditCard } from "@/components/report/outcome-audit-card"
 import {
   effectiveFindingSeverity,
@@ -74,8 +86,11 @@ export function FindingCard({
   sectionId: string
   showSeverityBorder?: boolean
 }) {
-  const polishedValue = polishCustomerFindingCopy(finding.value)
-  const polishedDetail = polishCustomerFindingCopy(finding.detail)
+  const polishedValue = safeFindingDisplay(finding.value, UNABLE_TO_VERIFY_VALUE)
+  const polishedDetail = safeFindingDisplay(
+    finding.detail,
+    UNABLE_TO_VERIFY_DETAIL,
+  )
   const context = findingContextLine(sectionId, finding)
   const label = formatFindingLabel(sectionId, finding.label)
   const severity = effectiveFindingSeverity(sectionId, finding)
@@ -129,8 +144,11 @@ export function FindingPrintBlock({
   sectionId: string
   finding: ReportFinding
 }) {
-  const polishedValue = polishCustomerFindingCopy(finding.value)
-  const polishedDetail = polishCustomerFindingCopy(finding.detail)
+  const polishedValue = safeFindingDisplay(finding.value, UNABLE_TO_VERIFY_VALUE)
+  const polishedDetail = safeFindingDisplay(
+    finding.detail,
+    UNABLE_TO_VERIFY_DETAIL,
+  )
   const label = formatFindingLabel(sectionId, finding.label)
   const context = findingContextLine(sectionId, finding)
   const explanation = findingSeverityExplanation(sectionId, finding)
