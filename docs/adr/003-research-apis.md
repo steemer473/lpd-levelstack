@@ -19,7 +19,7 @@ Accepted (updated June 2026 — SERP cost optimization + multi-provider failover
 | Mobile performance | **PageSpeed Insights API v5** | `GOOGLE_PAGESPEED_API_KEY` optional | Mobile score, LCP, CLS |
 | Social recency (light) | **Direct fetch** of intake URLs | — | og:title / updated_time |
 | Competitor snapshots | SERP chain + website fetch | ≥1 provider | Per top-3 domain |
-| AI visibility (ChatGPT / Perplexity) | **Not called** | — | Serp `ai_overview` when present |
+| AI visibility (Google AI Overview) | **Serp `ai_overview` field** on brand organic query | Same SERP keys | Parsed by SerpAPI/SearchAPI; DataForSEO mapper returns null. **+0 extra SERP calls** — rides cached brand query (`levelstack_serp_cache`, 24h TTL). ChatGPT / Perplexity **not called** (deferred). |
 | Synthesis | **OpenAI** | `OPENAI_API_KEY` | `gpt-4o-mini` + quality gate |
 | Dev mock | Fixture provider | `LEVELSTACK_DEV_MOCK_SERP` | Local only; blocked on Vercel |
 

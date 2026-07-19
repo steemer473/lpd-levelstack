@@ -54,6 +54,15 @@ These remain the section builders’ responsibility. Overall does **not** recomp
 | Reputation / Digital Presence (research path) | `scoreSectionFromChecks` in `serp-backed-sections.ts` | Cliff buckets on `ok`/`negative` only: critical→42, high/medium→62, else→78; ≥50% blocked → insufficient_data |
 | Other paid sections | LLM synthesis or SERP-backed builders | Same report section schema (`score` 0–100 or null) |
 
+## Free-tier AI Overview check (P0-2)
+
+Search Footprint includes a live **Google AI Overview** presence check derived from the brand SERP response already collected for free snapshots.
+
+- **Cost:** +0 additional SERP calls (field on cached brand organic query; `SERP_CACHE_TTL_HOURS`, default 24).
+- **Not included:** ChatGPT / Perplexity live clients (deferred).
+- **Scoring:** Classified via `check-availability` (`ok` / `negative` / `unavailable` / `not_checked`) and included in serp-backed Search Footprint `searchChecks`. Failed SERP does not cliff-score as a fake “missing from AI” gap.
+- **Observability:** Track `% free reports with non-null aiOverview` in dogfood; cost risk is closed at +0 calls regardless of that rate.
+
 ## Letter grades
 
 **One threshold set everywhere:** `letterGradeFromScore` in `lib/audit/types.ts`.

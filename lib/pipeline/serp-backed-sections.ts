@@ -19,6 +19,7 @@ import {
 } from "@/lib/research/serp"
 import type { ResearchBundle } from "@/lib/pipeline/research-types"
 import type { ReportFinding, ReportSection } from "@/lib/pipeline/report-types"
+import { buildAiOverviewCheck } from "@/lib/pipeline/ai-overview-check"
 import {
   classifyLimitationAvailability,
   isNotFetchedYet,
@@ -171,9 +172,11 @@ export function buildSectionsFromResearch(
       severity: ownerSeverity,
     },
   ]
+  const aiOverviewCheck = buildAiOverviewCheck(intake, bundle)
   const searchChecks: SectionCheck[] = [
     { availability: businessAvailability, severity: businessSeverity },
     { availability: ownerAvailability, severity: ownerSeverity },
+    aiOverviewCheck.check,
   ]
 
   const { findings: reputationFindings, checks: reputationChecks } =
@@ -625,27 +628,13 @@ export function buildSectionsFromResearch(
     competitiveChecks.push({ availability: "negative", severity: "medium" })
   }
 
-  const aiOverview = bundle.searchFootprint.searches.find((s) => s.aiOverview)?.aiOverview
-
   return [
     {
       id: "search_footprint",
       label: "Search footprint",
       ...scoreSectionFromChecks(searchChecks),
       findings: searchFindings,
-      aiPreview: [
-        {
-          platform: TERMS.aiOverview,
-          result: aiOverview ?? `No ${TERMS.aiOverview} snippet returned for footprint queries.`,
-          severity: aiOverview ? ("low" as const) : ("high" as const),
-        },
-        {
-          platform: "ChatGPT / Perplexity",
-          result:
-            `Live AI citation checks are not automated in v1; improve entity clarity on site and ${TERMS.gbp}.`,
-          severity: "medium" as const,
-        },
-      ],
+      aiPreview: aiOverviewCheck.aiPreview,
     },
     {
       id: "online_reputation",
