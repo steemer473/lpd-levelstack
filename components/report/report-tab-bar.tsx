@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 type ReportTab = {
   id: string
   label: string
-  section?: { status: "critical" | "attention" | "good" }
+  section?: { status: "critical" | "attention" | "good" | "insufficient_data" }
   locked?: boolean
 }
 

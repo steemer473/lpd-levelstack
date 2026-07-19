@@ -1,4 +1,4 @@
-export type SignalStatus = "pass" | "warning" | "fail"
+export type SignalStatus = "pass" | "warning" | "fail" | "unavailable"
 
 export type AuditSignalResult = {
   id: string
@@ -43,6 +43,7 @@ export const SIGNAL_WEIGHTS: Record<string, number> = {
 export function statusToPercent(status: SignalStatus): number {
   if (status === "pass") return 100
   if (status === "warning") return 50
+  if (status === "unavailable") return 0
   return 0
 }
 

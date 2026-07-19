@@ -1,14 +1,14 @@
-# LevelStack scoring methodology (P1-1)
+# LevelStack scoring methodology (P1-1 / P1-2)
 
 Internal methodology for customer-facing section scores and Overall.
 Locked decisions: OD-1 Option A, OD-2 Option A (`levelstack-vnext-prd.md` §7).
 
 ## Overall score (customer-facing)
 
-**Rule:** equal-weight rounded arithmetic mean of **displayed diagnostic section scores**.
+**Rule:** equal-weight rounded arithmetic mean of **displayed diagnostic section scores that have a numeric score**.
 
 ```
-overallScore = round( mean( section.score for each diagnostic section in the report ) )
+overallScore = round( mean( section.score for each scored diagnostic section ) )
 letterGrade  = letterGradeFromScore(overallScore)   // A≥90, B≥80, C≥70, D≥60, else F
 ```
 
@@ -16,27 +16,43 @@ letterGrade  = letterGradeFromScore(overallScore)   // A≥90, B≥80, C≥70, D
 
 - `action_plan` — prioritized tasks, not a presence diagnostic
 - `executive_summary` — if ever scored as a section
+- sections with `status: "insufficient_data"` or `score: null` (P1-2)
 
-**Not used for Overall:** `scoreAllSignals` weighted signal average. That audit bundle may still power insights, signal rows, and upgrade teasers — it must not set `meta.overallScore` / `meta.letterGrade`.
+**Not used for Overall:** `scoreAllSignals` weighted signal average. That audit bundle may still power insights, signal rows, and upgrade teasers — it must not set `meta.overallScore` / `meta.letterGrade`. Unavailable signals are skipped from that internal weighted average as well.
 
-**Free tier:** mean is over the free snapshot’s unlocked diagnostic sections only (whatever remains after `FREE_TIER_SECTION_IDS` filtering). Locked paid sections do not enter the mean.
+**Free tier:** mean is over the free snapshot’s unlocked **scored** diagnostic sections only (whatever remains after `FREE_TIER_SECTION_IDS` filtering). Locked paid sections and insufficient-data sections do not enter the mean.
 
-**Paid tier:** mean is over all diagnostic sections in the assembled report (Search, Reputation, Digital Presence, Revenue funnel, Competitive, etc.), excluding `action_plan`.
+**Paid tier:** mean is over all scored diagnostic sections in the assembled report (Search, Reputation, Digital Presence, Revenue funnel, Competitive, etc.), excluding `action_plan` and insufficient-data sections.
 
 Implementation: `lib/audit/derive-overall-from-sections.ts`.
 
+## Check availability (P1-2)
+
+Each underlying check is classified before it can affect a section score:
+
+| Availability | Meaning |
+|--------------|---------|
+| `ok` | Checked; healthy / acceptable signal |
+| `negative` | Checked; genuine gap (not found, weak reviews, etc.) |
+| `unavailable` | Attempted; provider/error/internal limitation |
+| `not_checked` | Tier-skipped / never fetched (e.g. `Not fetched yet.`) |
+
+Implementation: `lib/pipeline/check-availability.ts` (uses P0-1 `isInternalLimitation` / limitation classifiers).
+
+**Insufficient-data rule:** if `(unavailable + not_checked) / checks ≥ 50%` for a section, the section renders `status: "insufficient_data"` with `score: null` — never a numeric cliff score. Failed-check findings may still appear as “Unable to verify…” customer copy, but they do **not** enter the severity cliff.
+
+**Tier copy:** free/tier-skipped GBP (`not_checked`) uses distinct copy from paid “checked, not found.”
+
 ## Section scores (current formulas)
 
-These remain the section builders’ responsibility. Overall does **not** recompute them — it only averages the scores already shown.
+These remain the section builders’ responsibility. Overall does **not** recompute them — it only averages the numeric scores already shown.
 
 | Section | Primary scorer | Formula (summary) |
 |--------|----------------|-------------------|
 | Search Footprint (free, LLM path) | `synthesizeFreeSearchFootprint` | Model returns 0–100; schema-constrained |
-| Search Footprint (fallback) | `scoreFromSignals` / research findings | Deterministic fallback when LLM unavailable |
-| Reputation / Digital Presence (research path) | `scoreFromFindings` in `serp-backed-sections.ts` | Cliff buckets: critical→42, high→62, else→78 (approx.) |
-| Other paid sections | LLM synthesis or SERP-backed builders | Same report section schema (`score` 0–100) |
-
-Failed/skipped checks and “insufficient data” states are **P1-2** (not this doc). Until P1-2 ships, errored checks may still depress a section via findings severity.
+| Search Footprint (fallback) | `scoreSectionFromChecks` / research findings | Cliff over scoreable checks only; else insufficient_data |
+| Reputation / Digital Presence (research path) | `scoreSectionFromChecks` in `serp-backed-sections.ts` | Cliff buckets on `ok`/`negative` only: critical→42, high/medium→62, else→78; ≥50% blocked → insufficient_data |
+| Other paid sections | LLM synthesis or SERP-backed builders | Same report section schema (`score` 0–100 or null) |
 
 ## Letter grades
 
@@ -63,3 +79,7 @@ Legacy inline thresholds in `assembleReportJson` (B/C/D at 80/70/55, no A) are r
 ## Why this closes 87 / 62 / 62 → 57
 
 Previously Overall came from an independent signal pool (`scoreAllSignals`), so three visible section scores could not explain the headline number. Under this methodology, those same three scores average to ~70 (C), and that **is** Overall.
+
+## Why this closes Reputation 62 with half-failed checks
+
+Previously any `search.limitation` became a medium finding and depressed the section via the cliff. Under P1-2, errored checks are `unavailable` and do not enter the cliff; when ≥50% of checks are blocked, the section shows **Insufficient data** instead of a confident 62.

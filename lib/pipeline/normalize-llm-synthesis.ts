@@ -42,13 +42,22 @@ function coerceStatus(
   value: unknown,
   fallback: ReportSection["status"],
 ): ReportSection["status"] {
-  if (value === "critical" || value === "attention" || value === "good") {
+  if (
+    value === "critical" ||
+    value === "attention" ||
+    value === "good" ||
+    value === "insufficient_data"
+  ) {
     return value
   }
   return fallback
 }
 
-function coerceScore(value: unknown, fallback: number): number {
+function coerceScore(
+  value: unknown,
+  fallback: number | null,
+): number | null {
+  if (fallback == null) return null
   if (typeof value === "number" && !Number.isNaN(value)) {
     return Math.min(100, Math.max(0, Math.round(value)))
   }

@@ -65,6 +65,13 @@ export const GBP_NOT_FOUND_VALUE =
 export const GBP_NOT_FOUND_DETAIL =
   "Claim and complete your Google Business Profile so local prospects see accurate hours, reviews, and contact info."
 
+/** Tier-skipped GBP (never fetched) — distinct from checked-not-found (P1-2). */
+export const GBP_NOT_CHECKED_VALUE =
+  "Google Business Profile was not checked for this report"
+
+export const GBP_NOT_CHECKED_DETAIL =
+  "This Maps listing check runs on the full Action Roadmap. Upgrade to verify reviews, hours, and local presence."
+
 /** Google search result preview text shown under a link. */
 export const SNIPPET_COMPARE_UNAVAILABLE =
   "When people search your business name without a city, your site doesn't show on page 1 — so we couldn't check what short description Google would display for you."
@@ -152,8 +159,12 @@ export function customerGbpFindingValue(
     return gbp.title ?? "Maps listing found"
   }
 
-  if (gbp.limitation && !isInternalLimitation(gbp.limitation)) {
-    return GBP_NOT_FOUND_VALUE
+  if (/^not fetched yet\.?$/i.test(gbp.limitation?.trim() ?? "")) {
+    return GBP_NOT_CHECKED_VALUE
+  }
+
+  if (gbp.limitation && isInternalLimitation(gbp.limitation)) {
+    return UNABLE_TO_VERIFY_VALUE
   }
 
   return GBP_NOT_FOUND_VALUE
@@ -164,6 +175,14 @@ export function customerGbpFindingDetail(
   gbpTerm: string,
 ): string {
   if (gbp.found) return ""
+
+  if (/^not fetched yet\.?$/i.test(gbp.limitation?.trim() ?? "")) {
+    return GBP_NOT_CHECKED_DETAIL
+  }
+
+  if (gbp.limitation && isInternalLimitation(gbp.limitation)) {
+    return UNABLE_TO_VERIFY_DETAIL
+  }
 
   const primary =
     gbp.limitation && isSafeCustomerLimitation(gbp.limitation)

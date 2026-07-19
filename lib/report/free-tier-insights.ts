@@ -107,6 +107,9 @@ function reputationSectionSummary(report: LevelstackReportJson): string {
   if (!section) {
     return "Open the Reputation tab for review and trust signals we found in public search."
   }
+  if (section.status === "insufficient_data" || section.score == null) {
+    return `We could not fully verify Reputation signals for ${report.meta.businessName} in this snapshot. Open the Reputation tab for what we could check.`
+  }
   return `Your Reputation section scored ${section.score}/100 in this snapshot. Open the Reputation tab for platform-by-platform findings about ${report.meta.businessName}.`
 }
 

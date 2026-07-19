@@ -322,24 +322,36 @@ export function ReportDashboard({ report }: { report: LevelstackReportJson }) {
               Section scores
             </p>
             <div className="space-y-2">
-              {contentSections.map((s) => (
+              {contentSections.map((s) => {
+                const score =
+                  s.status !== "insufficient_data" &&
+                  typeof s.score === "number" &&
+                  Number.isFinite(s.score)
+                    ? s.score
+                    : null
+                return (
                 <div key={s.id} className="flex items-center gap-3 text-sm">
                   <span className="w-36 truncate text-muted-foreground">{s.label}</span>
                   <span
                     className="h-2 flex-1 max-w-[200px] rounded-full bg-muted overflow-hidden"
                     aria-hidden
                   >
-                    <span
-                      className="block h-full rounded-full"
-                      style={{
-                        width: `${s.score}%`,
-                        backgroundColor: scoreBarColor(s.score),
-                      }}
-                    />
+                    {score != null ? (
+                      <span
+                        className="block h-full rounded-full"
+                        style={{
+                          width: `${score}%`,
+                          backgroundColor: scoreBarColor(score),
+                        }}
+                      />
+                    ) : null}
                   </span>
-                  <span className="w-8 text-right font-medium">{s.score}</span>
+                  <span className="min-w-8 text-right font-medium">
+                    {score != null ? score : "—"}
+                  </span>
                 </div>
-              ))}
+                )
+              })}
             </div>
           </div>
 
@@ -512,13 +524,17 @@ export function SectionPanel({
   const statusClass =
     section.status === "critical"
       ? "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-200"
-      : section.status === "attention"
+      : section.status === "attention" || section.status === "insufficient_data"
         ? "bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
         : "bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-200"
 
   if (section.id === "action_plan") return null
 
   const accent = sectionScoreAccent(section.id)
+  const hasScore =
+    section.status !== "insufficient_data" &&
+    typeof section.score === "number" &&
+    Number.isFinite(section.score)
 
   return (
     <div className="rpt-dash-panel">
@@ -529,8 +545,14 @@ export function SectionPanel({
         <div>
           <p className="rpt-caption">Section score</p>
           <p className="rpt-section-score-value">
-            {section.score}
-            <span className="rpt-section-score-denom">/100</span>
+            {hasScore ? (
+              <>
+                {section.score}
+                <span className="rpt-section-score-denom">/100</span>
+              </>
+            ) : (
+              <span className="text-[0.85em]">Insufficient data</span>
+            )}
           </p>
         </div>
         <span className={cn("text-[11px] font-medium px-2.5 py-1 rounded", statusClass)}>

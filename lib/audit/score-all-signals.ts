@@ -10,7 +10,7 @@ import {
 import { detectInfrastructureLeakage } from "@/lib/audit/insights/infrastructure-leakage"
 import { detectNameCollisions } from "@/lib/audit/insights/name-collision"
 import { detectSnippetStaleness } from "@/lib/audit/insights/snippet-staleness"
-import { SNIPPET_COMPARE_UNAVAILABLE } from "@/lib/report/customer-copy"
+import { isInternalLimitation, SNIPPET_COMPARE_UNAVAILABLE } from "@/lib/report/customer-copy"
 import { detectSubdomainExposure } from "@/lib/audit/insights/subdomain-detector"
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
 import type { ResearchBundle } from "@/lib/pipeline/research-types"
@@ -190,12 +190,36 @@ function scoreSubdomains(bundle: ResearchBundle): AuditSignalResult {
 }
 
 function scoreDirectories(bundle: ResearchBundle): AuditSignalResult {
+  const searches = bundle.reputation.searches
   const hits = DIRECTORY_SITES.filter((site) =>
-    bundle.reputation.searches.some((s) =>
+    searches.some((s) =>
       s.results.some((r) => r.link.includes(site.replace("google.com/maps", "google.com"))),
     ),
   )
   const count = hits.length
+
+  if (count === 0 && searches.length > 0) {
+    const unavailableCount = searches.filter((s) => {
+      if (s.results.length > 0) return false
+      const lim = s.limitation?.trim()
+      if (!lim) return false
+      return (
+        isInternalLimitation(lim) || /^not fetched yet\.?$/i.test(lim)
+      )
+    }).length
+    if (unavailableCount / searches.length >= 0.5) {
+      return {
+        id: "directory_presence",
+        label: "Directory Presence",
+        status: "unavailable",
+        finding:
+          "Directory presence could not be verified — live search checks failed or were skipped.",
+        evidence: [],
+        tier: "free",
+      }
+    }
+  }
+
   const status: SignalStatus = count >= 4 ? "pass" : count >= 2 ? "warning" : "fail"
 
   return {
@@ -318,6 +342,7 @@ export function scoreAllSignals(
   let weightedSum = 0
   let weightTotal = 0
   for (const signal of signals) {
+    if (signal.status === "unavailable") continue
     const weight = SIGNAL_WEIGHTS[signal.id] ?? 10
     weightedSum += statusToPercent(signal.status) * weight
     weightTotal += weight

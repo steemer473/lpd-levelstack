@@ -101,7 +101,10 @@ export function ReportVariationB({ report }: ReportViewProps) {
                         <span className="truncate flex-1">{tab.label}</span>
                         {section ? (
                           <span className="text-xs tabular-nums text-muted-foreground">
-                            {section.score}
+                            {typeof section.score === "number" &&
+                            section.status !== "insufficient_data"
+                              ? section.score
+                              : "—"}
                           </span>
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>

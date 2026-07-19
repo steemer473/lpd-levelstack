@@ -83,6 +83,11 @@ export function ScoreBreakdown({
 
               if (!section) return null
 
+              const hasScore =
+                section.status !== "insufficient_data" &&
+                typeof section.score === "number" &&
+                Number.isFinite(section.score)
+
               return (
                 <li key={tab.id} className="flex items-center gap-3 text-sm">
                   <span className="w-36 shrink-0 truncate rpt-muted-text">{tab.label}</span>
@@ -91,19 +96,29 @@ export function ScoreBreakdown({
                     style={{ background: "color-mix(in srgb, var(--rpt-muted) 20%, white)" }}
                     aria-hidden
                   >
-                    <span
-                      className="block h-full rounded-full"
-                      style={{
-                        width: `${section.score}%`,
-                        backgroundColor: rptScoreBarColor(section.score),
-                      }}
-                    />
+                    {hasScore ? (
+                      <span
+                        className="block h-full rounded-full"
+                        style={{
+                          width: `${section.score as number}%`,
+                          backgroundColor: rptScoreBarColor(section.score as number),
+                        }}
+                      />
+                    ) : (
+                      <span
+                        className="block h-full w-full rounded-full opacity-40"
+                        style={{
+                          background:
+                            "repeating-linear-gradient(90deg, transparent, transparent 4px, color-mix(in srgb, var(--rpt-muted) 40%, white) 4px, color-mix(in srgb, var(--rpt-muted) 40%, white) 8px)",
+                        }}
+                      />
+                    )}
                   </span>
                   <span
-                    className="w-8 text-right font-medium tabular-nums"
+                    className="min-w-8 text-right font-medium tabular-nums"
                     style={{ color: "var(--rpt-heading)" }}
                   >
-                    {section.score}
+                    {hasScore ? section.score : "—"}
                   </span>
                 </li>
               )
