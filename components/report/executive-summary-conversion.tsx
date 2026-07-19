@@ -101,8 +101,17 @@ function FreeSectionCard({
   return (
     <button type="button" onClick={onSelect} className="rpt-conv-sec-card">
       <p className="rpt-conv-sec-score">
-        <span style={{ color: accent.bar }}>{section.score}</span>
-        <span className="rpt-conv-sec-denom">/100</span>
+        {typeof section.score === "number" &&
+        section.status !== "insufficient_data" ? (
+          <>
+            <span style={{ color: accent.bar }}>{section.score}</span>
+            <span className="rpt-conv-sec-denom">/100</span>
+          </>
+        ) : (
+          <span style={{ color: accent.bar }} className="text-[0.75em]">
+            Insufficient data
+          </span>
+        )}
       </p>
       <p className="rpt-conv-sec-name">{label}</p>
       <span className="rpt-conv-sec-link">

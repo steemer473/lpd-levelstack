@@ -93,9 +93,16 @@ export function ReportVariationA({ report }: ReportViewProps) {
                         ? "bg-lpd-attention"
                         : "bg-lpd-critical"
                 const scoreLabel =
-                  section && tab.id !== "executive_summary"
+                  section &&
+                  tab.id !== "executive_summary" &&
+                  typeof section.score === "number" &&
+                  section.status !== "insufficient_data"
                     ? `${section.score}`
-                    : null
+                    : section &&
+                        tab.id !== "executive_summary" &&
+                        (section.status === "insufficient_data" || section.score == null)
+                      ? "—"
+                      : null
                 return (
                   <button
                     key={tab.id}

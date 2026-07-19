@@ -183,8 +183,17 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
             return (
               <div key={id} className="rounded border border-gray-200 p-3">
                 <p className="font-semibold" style={{ color: accent.bar }}>
-                  {section.score}
-                  <span className="text-xs font-normal text-gray-500">/100</span>
+                  {typeof section.score === "number" &&
+                  section.status !== "insufficient_data" ? (
+                    <>
+                      {section.score}
+                      <span className="text-xs font-normal text-gray-500">/100</span>
+                    </>
+                  ) : (
+                    <span className="text-xs font-medium text-gray-600">
+                      Insufficient data
+                    </span>
+                  )}
                 </p>
                 <p className="text-xs text-gray-800 mt-1">{label}</p>
               </div>
@@ -348,7 +357,10 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
         return (
           <section key={id} className="mb-8 break-inside-avoid">
             <h2 className="text-base font-semibold uppercase mb-2">
-              {label} ({section.score}/100)
+              {typeof section.score === "number" &&
+              section.status !== "insufficient_data"
+                ? `${label} (${section.score}/100)`
+                : `${label} (Insufficient data)`}
             </h2>
             {section.findings.map((f, i) => (
               <FindingPrintBlock key={i} sectionId={id} finding={f} />

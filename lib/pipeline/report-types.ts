@@ -52,11 +52,19 @@ export const competitiveGridSchema = z.object({
   ),
 })
 
+export const reportSectionStatusSchema = z.enum([
+  "critical",
+  "attention",
+  "good",
+  "insufficient_data",
+])
+
 export const reportSectionSchema = z.object({
   id: z.string(),
   label: z.string(),
-  status: z.enum(["critical", "attention", "good"]),
-  score: z.number().min(0).max(100),
+  status: reportSectionStatusSchema,
+  /** Null when status is insufficient_data (P1-2) — do not invent 0. */
+  score: z.number().min(0).max(100).nullable(),
   findings: z.array(findingSchema),
   aiPreview: z.array(aiPreviewSchema).optional(),
   scoreRows: z.array(scoreRowSchema).optional(),

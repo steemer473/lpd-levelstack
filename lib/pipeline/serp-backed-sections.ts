@@ -18,7 +18,14 @@ import {
   resultsMentionDomain,
 } from "@/lib/research/serp"
 import type { ResearchBundle } from "@/lib/pipeline/research-types"
-import type { ReportSection } from "@/lib/pipeline/report-types"
+import type { ReportFinding, ReportSection } from "@/lib/pipeline/report-types"
+import {
+  classifyLimitationAvailability,
+  isNotFetchedYet,
+  isUnavailableSearchCheck,
+  scoreSectionFromChecks,
+  type SectionCheck,
+} from "@/lib/pipeline/check-availability"
 import {
   businessSearchSeverity,
   ownerSearchSeverity,
@@ -28,6 +35,7 @@ import {
   customerGbpFindingDetail,
   customerGbpFindingValue,
   customerLimitationText,
+  isInternalLimitation,
   UNABLE_TO_VERIFY_DETAIL,
   UNABLE_TO_VERIFY_VALUE,
 } from "@/lib/report/customer-copy"
@@ -35,18 +43,6 @@ import { computeDistinctHighlightsFromSections } from "@/lib/report/executive-de
 import { truncateReportCopy } from "@/lib/report/format-report-copy"
 
 type ScoreRow = NonNullable<ReportSection["scoreRows"]>[number]
-
-function scoreFromFindings(
-  findings: { severity: string }[],
-): { score: number; status: "critical" | "attention" | "good" } {
-  if (findings.some((f) => f.severity === "critical")) {
-    return { score: 42, status: "critical" }
-  }
-  if (findings.some((f) => f.severity === "high" || f.severity === "medium")) {
-    return { score: 62, status: "attention" }
-  }
-  return { score: 78, status: "good" }
-}
 
 function formatTopResults(results: SerpOrganicResult[], limit = 3): string {
   return results
@@ -105,7 +101,34 @@ export function buildSectionsFromResearch(
     ? resultsMentionDomain(businessSearch.results, buyerHost)
     : null
 
-  const searchFindings = [
+  const businessUnavailable =
+    Boolean(businessSearch) && isUnavailableSearchCheck(businessSearch!)
+  const businessSeverity = businessUnavailable
+    ? ("medium" as const)
+    : businessSearchSeverity(
+        businessHit,
+        Boolean(businessSearch?.results.length),
+      )
+  const businessAvailability: SectionCheck["availability"] = businessUnavailable
+    ? classifyLimitationAvailability(businessSearch?.limitation)
+    : businessHit
+      ? "ok"
+      : "negative"
+
+  const ownerUnavailable =
+    Boolean(ownerSearch) && isUnavailableSearchCheck(ownerSearch!)
+  const ownerSeverity = ownerUnavailable
+    ? ("medium" as const)
+    : ownerSearchSeverity(ownerSearch?.results ?? [], buyerHost)
+  const ownerAvailability: SectionCheck["availability"] = ownerUnavailable
+    ? classifyLimitationAvailability(ownerSearch?.limitation)
+    : ownerSearch?.results.length
+      ? ownerSeverity === "good" || ownerSeverity === "low"
+        ? "ok"
+        : "negative"
+      : "negative"
+
+  const searchFindings: ReportFinding[] = [
     {
       label: `Google — "${businessQuery}"`,
       value: businessHit
@@ -124,17 +147,19 @@ export function buildSectionsFromResearch(
               UNABLE_TO_VERIFY_DETAIL,
             )
           : "",
-      severity: businessSearchSeverity(
-        businessHit,
-        Boolean(businessSearch?.results.length),
-      ),
+      severity: businessSeverity,
     },
     {
       label: `Google — "${intake.ownerName}"`,
       value:
         ownerSearch?.results.length
           ? `When someone searches your name, page 1 shows: ${ownerSearch.results[0]?.title ?? "mixed results"}`
-          : "No organic results captured when searching your owner name.",
+          : ownerUnavailable
+            ? customerLimitationText(
+                ownerSearch?.limitation,
+                UNABLE_TO_VERIFY_VALUE,
+              )
+            : "No organic results captured when searching your owner name.",
       detail: ownerSearch?.results.length
         ? `Top results for your name: ${formatTopResults(ownerSearch.results)}`
         : ownerSearch?.limitation
@@ -143,14 +168,16 @@ export function buildSectionsFromResearch(
               UNABLE_TO_VERIFY_DETAIL,
             )
           : "",
-      severity: ownerSearchSeverity(
-        ownerSearch?.results ?? [],
-        buyerHost,
-      ),
+      severity: ownerSeverity,
     },
   ]
+  const searchChecks: SectionCheck[] = [
+    { availability: businessAvailability, severity: businessSeverity },
+    { availability: ownerAvailability, severity: ownerSeverity },
+  ]
 
-  const reputationFindings = buildReputationFindings(intake, bundle, buyerHost)
+  const { findings: reputationFindings, checks: reputationChecks } =
+    buildReputationFindings(intake, bundle, buyerHost)
 
   const site = bundle.digitalPresence.website
   const psi = bundle.digitalPresence.pageSpeed
@@ -225,12 +252,34 @@ export function buildSectionsFromResearch(
         ]),
   ]
 
-  const digitalFindings = [
+  const siteNotChecked = isNotFetchedYet(site.limitation)
+  const siteUnavailable =
+    !siteNotChecked &&
+    Boolean(site.limitation) &&
+    isInternalLimitation(site.limitation) &&
+    !site.title
+  const siteSeverity: ReportFinding["severity"] =
+    site.title && site.metaDescription && site.h1
+      ? "good"
+      : site.title
+        ? "low"
+        : "high"
+  const siteAvailability: SectionCheck["availability"] = siteNotChecked
+    ? "not_checked"
+    : siteUnavailable
+      ? "unavailable"
+      : siteSeverity === "good" || siteSeverity === "low"
+        ? "ok"
+        : "negative"
+
+  const digitalFindings: ReportFinding[] = [
     {
       label: "Homepage signals",
       value: site.title
         ? `First impression on your homepage: Title: “${site.title}”`
-        : "Could not read your homepage title.",
+        : siteUnavailable || siteNotChecked
+          ? customerLimitationText(site.limitation, UNABLE_TO_VERIFY_VALUE)
+          : "Could not read your homepage title.",
       detail: [
         site.metaDescription ? `${TERMS.metaDescription}: ${site.metaDescription}` : null,
         site.h1 ? `${TERMS.mainHeading}: ${site.h1}` : null,
@@ -240,79 +289,138 @@ export function buildSectionsFromResearch(
       ]
         .filter(Boolean)
         .join(" "),
-      severity: site.title && site.metaDescription && site.h1 ? ("good" as const) : site.title ? ("low" as const) : ("high" as const),
+      severity: siteSeverity,
     },
-    ...(psi.mobileScore != null
-      ? [
-          {
-            label: "Mobile site speed",
-            value: `Mobile site speed: ${psi.mobileScore}/100 (Lighthouse)`,
-            detail: [
-              psi.lcp ? `${TERMS.lcp}: ${psi.lcp}` : null,
-              psi.cls ? `${TERMS.cls}: ${psi.cls}` : null,
-              `Source: ${TERMS.pageSpeed} (mobile). 70+ is healthy; under 50 often feels broken on phones.`,
-            ]
-              .filter(Boolean)
-              .join(" "),
-            severity:
-              psi.mobileScore < 50
-                ? ("critical" as const)
-                : psi.mobileScore < 70
-                  ? ("high" as const)
-                  : ("medium" as const),
-          },
-        ]
-      : psi.limitation
-        ? [
-            {
-              label: "Mobile site speed",
-              value: `${TERMS.pageSpeed} data unavailable`,
-              detail: customerLimitationText(
-                psi.limitation,
-                UNABLE_TO_VERIFY_DETAIL,
-              ),
-              severity: "medium" as const,
-            },
-          ]
-        : []),
-    ...(gbp.found
-      ? [
-          {
-            label: TERMS.gbp,
-            value:
-              gbp.rating != null
-                ? `${gbp.title ?? intake.primaryBusinessName} — ${gbp.rating}★ (${gbp.reviewCount ?? "?"} reviews)`
-                : (gbp.title ?? "Maps listing found"),
-            detail: [
-              gbp.address ? `Address: ${gbp.address}` : null,
-              gbp.category ? `Category: ${gbp.category}` : null,
-              gbpLocationMismatch(intake, gbp.address)
-                ? `Listed address may not match your stated market (${marketLocationLabel(intake)}). Confirm this is your location in Google Maps.`
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" "),
-            severity: gbpLocationMismatch(intake, gbp.address)
-              ? ("high" as const)
-              : (gbp.reviewCount ?? 0) < 5 || (gbp.rating ?? 5) < 4
-                ? ("high" as const)
-                : ("good" as const),
-          },
-        ]
-      : [
-          {
-            label: TERMS.gbp,
-            value: customerGbpFindingValue(gbp, intake.primaryBusinessName),
-            detail: customerGbpFindingDetail(gbp, TERMS.gbp),
-            severity: "high" as const,
-          },
-        ]),
-    ...buildSocialFindings(bundle),
   ]
+  const digitalChecks: SectionCheck[] = [
+    { availability: siteAvailability, severity: siteSeverity },
+  ]
+
+  if (psi.mobileScore != null) {
+    const psiSeverity: ReportFinding["severity"] =
+      psi.mobileScore < 50
+        ? "critical"
+        : psi.mobileScore < 70
+          ? "high"
+          : "medium"
+    digitalFindings.push({
+      label: "Mobile site speed",
+      value: `Mobile site speed: ${psi.mobileScore}/100 (Lighthouse)`,
+      detail: [
+        psi.lcp ? `${TERMS.lcp}: ${psi.lcp}` : null,
+        psi.cls ? `${TERMS.cls}: ${psi.cls}` : null,
+        `Source: ${TERMS.pageSpeed} (mobile). 70+ is healthy; under 50 often feels broken on phones.`,
+      ]
+        .filter(Boolean)
+        .join(" "),
+      severity: psiSeverity,
+    })
+    digitalChecks.push({
+      availability: psi.mobileScore >= 70 ? "ok" : "negative",
+      severity: psiSeverity,
+    })
+  } else if (psi.limitation) {
+    const psiAvailability = classifyLimitationAvailability(psi.limitation)
+    digitalFindings.push({
+      label: "Mobile site speed",
+      value:
+        psiAvailability === "not_checked"
+          ? "Mobile site speed was not checked for this report"
+          : `${TERMS.pageSpeed} data unavailable`,
+      detail:
+        psiAvailability === "not_checked"
+          ? "PageSpeed runs on the full Action Roadmap report."
+          : customerLimitationText(psi.limitation, UNABLE_TO_VERIFY_DETAIL),
+      severity: "medium",
+    })
+    digitalChecks.push({ availability: psiAvailability, severity: "medium" })
+  }
+
+  const gbpNotChecked = isNotFetchedYet(gbp.limitation)
+  const gbpUnavailable =
+    !gbp.found &&
+    Boolean(gbp.limitation) &&
+    isInternalLimitation(gbp.limitation) &&
+    !gbpNotChecked
+
+  if (gbp.found) {
+    const gbpSeverity: ReportFinding["severity"] = gbpLocationMismatch(
+      intake,
+      gbp.address,
+    )
+      ? "high"
+      : (gbp.reviewCount ?? 0) < 5 || (gbp.rating ?? 5) < 4
+        ? "high"
+        : "good"
+    digitalFindings.push({
+      label: TERMS.gbp,
+      value:
+        gbp.rating != null
+          ? `${gbp.title ?? intake.primaryBusinessName} — ${gbp.rating}★ (${gbp.reviewCount ?? "?"} reviews)`
+          : (gbp.title ?? "Maps listing found"),
+      detail: [
+        gbp.address ? `Address: ${gbp.address}` : null,
+        gbp.category ? `Category: ${gbp.category}` : null,
+        gbpLocationMismatch(intake, gbp.address)
+          ? `Listed address may not match your stated market (${marketLocationLabel(intake)}). Confirm this is your location in Google Maps.`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" "),
+      severity: gbpSeverity,
+    })
+    digitalChecks.push({
+      availability: gbpSeverity === "good" ? "ok" : "negative",
+      severity: gbpSeverity,
+    })
+  } else {
+    const gbpSeverity: ReportFinding["severity"] =
+      gbpNotChecked || gbpUnavailable ? "medium" : "high"
+    digitalFindings.push({
+      label: TERMS.gbp,
+      value: customerGbpFindingValue(gbp, intake.primaryBusinessName),
+      detail: customerGbpFindingDetail(gbp, TERMS.gbp),
+      severity: gbpSeverity,
+    })
+    digitalChecks.push({
+      availability: gbpNotChecked
+        ? "not_checked"
+        : gbpUnavailable
+          ? "unavailable"
+          : "negative",
+      severity: gbpSeverity,
+    })
+  }
+
+  const socialBuilt = buildSocialFindings(bundle)
+  digitalFindings.push(...socialBuilt.findings)
+  digitalChecks.push(...socialBuilt.checks)
+
+  // Fix digital score rows for GBP not_checked
+  const digitalScoreRowsFixed: ScoreRow[] = digitalScoreRows.map((row) => {
+    if (row.label !== TERMS.gbp || gbp.found) return row
+    if (gbpNotChecked) {
+      return {
+        label: TERMS.gbp,
+        value: "Not checked on this tier",
+        percent: 50,
+        tone: "amber" as const,
+      }
+    }
+    if (gbpUnavailable) {
+      return {
+        label: TERMS.gbp,
+        value: "Unable to verify",
+        percent: 50,
+        tone: "amber" as const,
+      }
+    }
+    return row
+  })
 
   const runsAds = intake.hasActiveAdSpend === "yes"
   const funnelPsi = bundle.revenueFunnel.pageSpeed
-  const funnelFindings = [
+  const funnelFindings: ReportFinding[] = [
     {
       label: "Offer & conversion signals",
       value: `${intake.primaryService} · ${intake.pricePoint}`,
@@ -329,22 +437,33 @@ export function buildSectionsFromResearch(
         .join(" "),
       severity: site.hasCtaLanguage ? ("low" as const) : ("medium" as const),
     },
-    ...(runsAds
-      ? [
-          {
-            label: "Paid traffic → landing",
-            value: `Active ad spend (${intake.adPlatforms ?? "paid"} ~${intake.adBudget ?? "budget not specified"})`,
-            detail: [
-              "Prospects who click ads land on your site before they trust you from search.",
-              site.hasCtaLanguage
-                ? `Homepage shows some ${TERMS.cta} language; still verify message match with ad copy and offer.`
-                : `Weak homepage ${TERMS.cta} and trust signals increase wasted spend — consider pausing scale until landing is fixed.`,
-            ].join(" "),
-            severity: site.hasCtaLanguage ? ("high" as const) : ("critical" as const),
-          },
-        ]
-      : []),
   ]
+  const funnelChecks: SectionCheck[] = [
+    {
+      availability: "negative",
+      severity: site.hasCtaLanguage ? "low" : "medium",
+    },
+  ]
+  // Homepage CTA check is always "checked" from research — ok if strong CTA
+  funnelChecks[0]!.availability = site.hasCtaLanguage ? "ok" : "negative"
+
+  if (runsAds) {
+    const adSeverity: ReportFinding["severity"] = site.hasCtaLanguage
+      ? "high"
+      : "critical"
+    funnelFindings.push({
+      label: "Paid traffic → landing",
+      value: `Active ad spend (${intake.adPlatforms ?? "paid"} ~${intake.adBudget ?? "budget not specified"})`,
+      detail: [
+        "Prospects who click ads land on your site before they trust you from search.",
+        site.hasCtaLanguage
+          ? `Homepage shows some ${TERMS.cta} language; still verify message match with ad copy and offer.`
+          : `Weak homepage ${TERMS.cta} and trust signals increase wasted spend — consider pausing scale until landing is fixed.`,
+      ].join(" "),
+      severity: adSeverity,
+    })
+    funnelChecks.push({ availability: "negative", severity: adSeverity })
+  }
 
   const legacyDomains = bundle.competitiveContext.competitorDomains
   const compColumns =
@@ -462,7 +581,7 @@ export function buildSectionsFromResearch(
   const primaryCompetitorName =
     compColumns[0]?.title ?? compColumns[0]?.domain ?? null
 
-  const competitiveFindings = [
+  const competitiveFindings: ReportFinding[] = [
     {
       label: `Service search — "${serviceSearch?.query ?? intake.primaryService}"`,
       value:
@@ -483,18 +602,28 @@ export function buildSectionsFromResearch(
           : "Run a service-market search with identifiable business competitors to populate this section.",
       severity: "medium" as const,
     },
-    ...(compDomains.length === 0 && serviceSearch?.results.length
-      ? [
-          {
-            label: "Page 1 evidence (service search)",
-            value:
-              "Directories and platforms dominate page 1 — no peer business domains qualified for side-by-side comparison.",
-            detail: formatSerpEvidenceTable(serviceSearch.results),
-            severity: "medium" as const,
-          },
-        ]
-      : []),
   ]
+  const serviceUnavailable =
+    Boolean(serviceSearch) && isUnavailableSearchCheck(serviceSearch!)
+  const competitiveChecks: SectionCheck[] = [
+    {
+      availability: serviceUnavailable
+        ? classifyLimitationAvailability(serviceSearch?.limitation)
+        : "negative",
+      severity: "medium",
+    },
+  ]
+
+  if (compDomains.length === 0 && serviceSearch?.results.length) {
+    competitiveFindings.push({
+      label: "Page 1 evidence (service search)",
+      value:
+        "Directories and platforms dominate page 1 — no peer business domains qualified for side-by-side comparison.",
+      detail: formatSerpEvidenceTable(serviceSearch.results),
+      severity: "medium",
+    })
+    competitiveChecks.push({ availability: "negative", severity: "medium" })
+  }
 
   const aiOverview = bundle.searchFootprint.searches.find((s) => s.aiOverview)?.aiOverview
 
@@ -502,7 +631,7 @@ export function buildSectionsFromResearch(
     {
       id: "search_footprint",
       label: "Search footprint",
-      ...scoreFromFindings(searchFindings),
+      ...scoreSectionFromChecks(searchChecks),
       findings: searchFindings,
       aiPreview: [
         {
@@ -521,26 +650,26 @@ export function buildSectionsFromResearch(
     {
       id: "online_reputation",
       label: "Reputation",
-      ...scoreFromFindings(reputationFindings),
+      ...scoreSectionFromChecks(reputationChecks),
       findings: reputationFindings,
     },
     {
       id: "digital_presence",
       label: "Digital presence",
-      ...scoreFromFindings(digitalFindings),
+      ...scoreSectionFromChecks(digitalChecks),
       findings: digitalFindings,
-      scoreRows: digitalScoreRows,
+      scoreRows: digitalScoreRowsFixed,
     },
     {
       id: "revenue_funnel",
       label: "Revenue funnel diagnosis",
-      ...scoreFromFindings(funnelFindings),
+      ...scoreSectionFromChecks(funnelChecks),
       findings: funnelFindings,
     },
     {
       id: "competitive_context",
       label: competitiveSectionLabel(comparisonMode),
-      ...scoreFromFindings(competitiveFindings),
+      ...scoreSectionFromChecks(competitiveChecks),
       findings: competitiveFindings,
       competitiveGrid,
     },
@@ -650,8 +779,9 @@ function buildReputationFindings(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
   buyerHost: string | null,
-): ReportSection["findings"] {
-  const findings: ReportSection["findings"] = []
+): { findings: ReportFinding[]; checks: SectionCheck[] } {
+  const findings: ReportFinding[] = []
+  const checks: SectionCheck[] = []
   const repContext = {
     businessName: intake.primaryBusinessName,
     ownerName: intake.ownerName,
@@ -670,24 +800,26 @@ function buildReputationFindings(
       const platformLabel = platform ?? "public listing"
 
       if (rating != null) {
+        const severity: ReportFinding["severity"] =
+          rating < 4 ? "critical" : rating < 4.2 ? "high" : "good"
         findings.push({
           label,
           value: `${rating}★${reviewCount != null ? ` (${reviewCount} reviews cited)` : ""} on ${platformLabel}`,
           detail: `Listing: ${hit.result.title.slice(0, 80)} · ${hit.result.link}. Google shows: ${hit.result.snippet.slice(0, 160)}`,
-          severity:
-            rating < 4
-              ? ("critical" as const)
-              : rating < 4.2
-                ? ("high" as const)
-                : ("good" as const),
+          severity,
+        })
+        checks.push({
+          availability: severity === "good" ? "ok" : "negative",
+          severity,
         })
       } else {
         findings.push({
           label,
           value: "No star rating or review count appeared in search results",
           detail: `Top relevant result: ${hit.result.title.slice(0, 80)} · ${hit.result.link}. Google shows: ${hit.result.snippet.slice(0, 160)}`,
-          severity: "high" as const,
+          severity: "high",
         })
+        checks.push({ availability: "negative", severity: "high" })
       }
     } else if (ownSite) {
       findings.push({
@@ -695,27 +827,33 @@ function buildReputationFindings(
         value:
           "No review profile found — your website ranks instead of third-party reviews",
         detail: `When prospects search for reviews, Google shows your homepage first: ${ownSite.link}. Google shows: ${ownSite.snippet.slice(0, 180)}`,
-        severity: "high" as const,
+        severity: "high",
       })
+      checks.push({ availability: "negative", severity: "high" })
     } else if (search.results.length > 0) {
       findings.push({
         label,
         value: `No review listings found for "${search.query.replace(/\s+reviews?$/i, "").trim()}"`,
         detail:
           "Unrelated directory and list pages were filtered out. Prospects searching for reviews may not see credible third-party proof.",
-        severity: "high" as const,
+        severity: "high",
       })
+      checks.push({ availability: "negative", severity: "high" })
     } else if (search.limitation) {
+      const availability = classifyLimitationAvailability(search.limitation)
       findings.push({
         label,
         value: customerLimitationText(search.limitation, UNABLE_TO_VERIFY_VALUE),
         detail: `We searched Google for: ${search.query}`,
         severity: "medium",
       })
+      checks.push({ availability, severity: "medium" })
     }
   }
 
   if (findings.length === 0) {
+    const severity: ReportFinding["severity"] =
+      intake.reputationScale <= 6 ? "high" : "medium"
     findings.push({
       label: "Review-oriented search",
       value: "No platform-specific review snippets captured.",
@@ -725,42 +863,68 @@ function buildReputationFindings(
       ]
         .filter(Boolean)
         .join(" "),
-      severity: intake.reputationScale <= 6 ? "high" : "medium",
+      severity,
     })
+    checks.push({ availability: "negative", severity })
   }
 
-  return findings.slice(0, 5)
+  return {
+    findings: findings.slice(0, 5),
+    checks: checks.slice(0, 5),
+  }
 }
 
 function buildSocialFindings(
   bundle: ResearchBundle,
-): ReportSection["findings"] {
+): { findings: ReportFinding[]; checks: SectionCheck[] } {
   const signals = bundle.digitalPresence.social.filter((s) => s.url)
   if (signals.length === 0) {
     const lim = bundle.digitalPresence.social[0]?.limitation
-    return lim
-      ? [
-          {
-            label: "Social profiles",
-            value: "Could not parse profile URLs",
-            detail: customerLimitationText(lim, UNABLE_TO_VERIFY_DETAIL),
-            severity: "medium" as const,
-          },
-        ]
-      : []
+    if (!lim) return { findings: [], checks: [] }
+    const availability = classifyLimitationAvailability(lim)
+    return {
+      findings: [
+        {
+          label: "Social profiles",
+          value:
+            availability === "not_checked"
+              ? "Social profiles were not checked for this report"
+              : "Could not parse profile URLs",
+          detail:
+            availability === "not_checked"
+              ? "Social profile checks run when profile URLs are provided on intake or on the full Action Roadmap."
+              : customerLimitationText(lim, UNABLE_TO_VERIFY_DETAIL),
+          severity: "medium",
+        },
+      ],
+      checks: [{ availability, severity: "medium" }],
+    }
   }
 
-  return signals.map((s) => ({
-    label: s.platform,
-    value: s.pageTitle ?? s.url,
-    detail: [
-      s.recencyHint,
-      s.limitation
-        ? customerLimitationText(s.limitation, UNABLE_TO_VERIFY_DETAIL)
-        : null,
-    ]
-      .filter(Boolean)
-      .join(" "),
-    severity: s.limitation ? ("medium" as const) : ("good" as const),
-  }))
+  const findings: ReportFinding[] = []
+  const checks: SectionCheck[] = []
+  for (const s of signals) {
+    const hasLim = Boolean(s.limitation)
+    const availability: SectionCheck["availability"] = hasLim
+      ? classifyLimitationAvailability(s.limitation)
+      : "ok"
+    findings.push({
+      label: s.platform,
+      value: s.pageTitle ?? s.url,
+      detail: [
+        s.recencyHint,
+        s.limitation
+          ? customerLimitationText(s.limitation, UNABLE_TO_VERIFY_DETAIL)
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" "),
+      severity: hasLim ? ("medium" as const) : ("good" as const),
+    })
+    checks.push({
+      availability: hasLim && availability === "unavailable" ? "unavailable" : hasLim ? availability : "ok",
+      severity: hasLim ? "medium" : "good",
+    })
+  }
+  return { findings, checks }
 }

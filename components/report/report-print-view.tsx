@@ -88,13 +88,29 @@ function ReportPrintViewFull({ report }: ReportPrintViewProps) {
                 className="rounded border border-gray-200 p-3 break-inside-avoid"
               >
                 <p className="font-semibold">
-                  {section.score}
-                  <span className="text-xs font-normal text-gray-500">/100</span>
+                  {typeof section.score === "number" &&
+                  section.status !== "insufficient_data" ? (
+                    <>
+                      {section.score}
+                      <span className="text-xs font-normal text-gray-500">/100</span>
+                    </>
+                  ) : (
+                    <span className="text-xs font-medium text-gray-600">
+                      Insufficient data
+                    </span>
+                  )}
                 </p>
                 <div className="h-1.5 rounded-full bg-gray-200 my-1.5 overflow-hidden">
                   <span
                     className="block h-full rounded-full"
-                    style={{ width: `${section.score}%`, backgroundColor: accent.bar }}
+                    style={{
+                      width:
+                        typeof section.score === "number" &&
+                        section.status !== "insufficient_data"
+                          ? `${section.score}%`
+                          : "0%",
+                      backgroundColor: accent.bar,
+                    }}
                   />
                 </div>
                 <p className="text-xs text-gray-700">{section.label}</p>
@@ -180,7 +196,10 @@ function ReportPrintViewFull({ report }: ReportPrintViewProps) {
       {contentSections.map((section) => (
         <section key={section.id} className="mb-8 break-inside-avoid">
           <h2 className="text-base font-semibold uppercase mb-2">
-            {section.label} ({section.score}/100)
+            {typeof section.score === "number" &&
+            section.status !== "insufficient_data"
+              ? `${section.label} (${section.score}/100)`
+              : `${section.label} (Insufficient data)`}
           </h2>
           {section.aiPreview && section.aiPreview.length > 0 ? (
             <div className="mb-4">

@@ -28,11 +28,18 @@ function signalRows(signals: AuditScoreBundle["signals"]) {
   return signals.map((s) => ({
     label: s.label,
     value: s.status.toUpperCase(),
-    percent: s.status === "pass" ? 100 : s.status === "warning" ? 50 : 0,
+    percent:
+      s.status === "pass"
+        ? 100
+        : s.status === "warning"
+          ? 50
+          : s.status === "unavailable"
+            ? 50
+            : 0,
     tone:
       s.status === "pass"
         ? ("green" as const)
-        : s.status === "warning"
+        : s.status === "warning" || s.status === "unavailable"
           ? ("amber" as const)
           : ("red" as const),
   }))

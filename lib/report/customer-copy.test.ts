@@ -4,11 +4,14 @@ import {
   customerGbpFindingDetail,
   customerGbpFindingValue,
   customerLimitationText,
+  GBP_NOT_CHECKED_DETAIL,
+  GBP_NOT_CHECKED_VALUE,
   GBP_NOT_FOUND_VALUE,
   isCustomerFacingFinding,
   isInternalLimitation,
   isSafeCustomerLimitation,
   polishCustomerFindingCopy,
+  UNABLE_TO_VERIFY_DETAIL,
   UNABLE_TO_VERIFY_VALUE,
 } from "@/lib/report/customer-copy"
 
@@ -47,7 +50,7 @@ describe("customer-copy", () => {
     ).toContain("No Google Maps listing found")
   })
 
-  it("never returns Not fetched yet as GBP finding value", () => {
+  it("uses distinct not-checked copy for tier-skipped GBP (P1-2)", () => {
     const value = customerGbpFindingValue(
       {
         found: false,
@@ -58,26 +61,41 @@ describe("customer-copy", () => {
       },
       "Test Co",
     )
-    expect(value).toBe(GBP_NOT_FOUND_VALUE)
+    expect(value).toBe(GBP_NOT_CHECKED_VALUE)
     expect(value).not.toContain("Not fetched yet")
+    expect(value).not.toBe(GBP_NOT_FOUND_VALUE)
   })
 
-  it("uses actionable detail when limitation is internal", () => {
+  it("uses not-checked detail when GBP was never fetched", () => {
     const detail = customerGbpFindingDetail(
       { found: false, limitation: "Not fetched yet." },
       "Google Business Profile (GBP)",
     )
-    expect(detail).toContain("Claim and complete your Google Business Profile")
+    expect(detail).toBe(GBP_NOT_CHECKED_DETAIL)
     expect(detail).not.toContain("Not fetched yet")
   })
 
-  it("does not surface raw provider errors in GBP detail", () => {
+  it("uses unable-to-verify for GBP provider errors", () => {
     const detail = customerGbpFindingDetail(
       { found: false, limitation: "Internal SE Server Error." },
       "Google Business Profile (GBP)",
     )
     expect(detail).not.toContain("Internal SE Server Error")
-    expect(detail).toContain("Claim and complete your Google Business Profile")
+    expect(detail).toBe(UNABLE_TO_VERIFY_DETAIL)
+  })
+
+  it("uses not-found copy when GBP was checked and missing", () => {
+    const value = customerGbpFindingValue(
+      {
+        found: false,
+        title: null,
+        rating: null,
+        reviewCount: null,
+        limitation: 'No Google Maps listing found for "Test Co".',
+      },
+      "Test Co",
+    )
+    expect(value).toBe(GBP_NOT_FOUND_VALUE)
   })
 
   it("rejects placeholder strings from executive summary selection", () => {

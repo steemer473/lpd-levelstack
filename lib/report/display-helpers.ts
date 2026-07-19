@@ -171,10 +171,14 @@ export function outcomeIconForCategory(category?: string): LucideIcon {
 export function sectionDotClass(status: ReportSection["status"]): string {
   if (status === "critical") return "bg-lpd-critical"
   if (status === "attention") return "bg-lpd-attention"
+  if (status === "insufficient_data") return "bg-lpd-attention"
   return "bg-lpd-good"
 }
 
 export function sectionStatusBadge(section: ReportSection): string {
+  if (section.status === "insufficient_data" || section.score == null) {
+    return "Insufficient data"
+  }
   if (section.id === "revenue_funnel") {
     return `Funnel readiness: ${section.score}%`
   }
@@ -212,8 +216,13 @@ export function biggestProblemSections(
   limit = 3,
 ): ReportSection[] {
   return [...sections]
-    .filter((s) => s.id !== "action_plan")
-    .sort((a, b) => a.score - b.score)
+    .filter(
+      (s) =>
+        s.id !== "action_plan" &&
+        typeof s.score === "number" &&
+        Number.isFinite(s.score),
+    )
+    .sort((a, b) => (a.score as number) - (b.score as number))
     .slice(0, limit)
 }
 

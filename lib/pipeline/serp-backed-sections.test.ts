@@ -303,3 +303,166 @@ describe("buildSectionsFromResearch competitive grid", () => {
     expect(competitive.findings[0]?.value).toContain("levelagency.com")
   })
 })
+
+describe("buildSectionsFromResearch P1-2 insufficient data", () => {
+  it("does not score Reputation 62 when ≥50% of checks failed", () => {
+    const bundle = emptyResearchBundle()
+    bundle.reputation.searches = [
+      {
+        query: "Level Play Digital reviews",
+        results: [],
+        aiOverview: null,
+        limitation: "Internal SE Server Error.",
+      },
+      {
+        query: "Level Play Digital yelp",
+        results: [],
+        aiOverview: null,
+        limitation: "Internal SE Server Error.",
+      },
+      {
+        query: "Level Play Digital bbb",
+        results: [
+          {
+            query: "Level Play Digital bbb",
+            position: 1,
+            title: "Unrelated directory",
+            link: "https://example.com/list",
+            snippet: "Directory listing",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+      {
+        query: "Level Play Digital clutch",
+        results: [
+          {
+            query: "Level Play Digital clutch",
+            position: 1,
+            title: "Another directory",
+            link: "https://example.com/other",
+            snippet: "More listings",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const reputation = sections.find((s) => s.id === "online_reputation")!
+
+    expect(reputation.status).toBe("insufficient_data")
+    expect(reputation.score).toBeNull()
+    expect(
+      reputation.findings.some((f) => f.value === UNABLE_TO_VERIFY_VALUE),
+    ).toBe(true)
+  })
+
+  it("scores Reputation from real negatives when only 1/4 checks failed", () => {
+    const bundle = emptyResearchBundle()
+    bundle.reputation.searches = [
+      {
+        query: "Level Play Digital reviews",
+        results: [],
+        aiOverview: null,
+        limitation: "Internal SE Server Error.",
+      },
+      {
+        query: "Level Play Digital yelp",
+        results: [
+          {
+            query: "Level Play Digital yelp",
+            position: 1,
+            title: "Unrelated directory",
+            link: "https://example.com/list",
+            snippet: "Directory listing",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+      {
+        query: "Level Play Digital bbb",
+        results: [
+          {
+            query: "Level Play Digital bbb",
+            position: 1,
+            title: "Unrelated directory 2",
+            link: "https://example.com/list2",
+            snippet: "Directory listing",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+      {
+        query: "Level Play Digital clutch",
+        results: [
+          {
+            query: "Level Play Digital clutch",
+            position: 1,
+            title: "Unrelated directory 3",
+            link: "https://example.com/list3",
+            snippet: "Directory listing",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const reputation = sections.find((s) => s.id === "online_reputation")!
+
+    expect(reputation.status).toBe("attention")
+    expect(reputation.score).toBe(62)
+  })
+
+  it("distinguishes tier-skipped GBP from checked-not-found", () => {
+    const skipped = emptyResearchBundle()
+    // emptyGbp already Not fetched yet
+    const skippedSections = buildSectionsFromResearch(intake, skipped)
+    const skippedDigital = skippedSections.find((s) => s.id === "digital_presence")!
+    const skippedGbp = skippedDigital.findings.find((f) =>
+      /business profile|gbp/i.test(f.label),
+    )
+    expect(skippedGbp?.value).toContain("not checked")
+    expect(skippedGbp?.severity).toBe("medium")
+
+    const checked = emptyResearchBundle()
+    checked.digitalPresence.gbp = {
+      found: false,
+      title: null,
+      rating: null,
+      reviewCount: null,
+      address: null,
+      category: null,
+      limitation: 'No Google Maps listing found for "Level Play Digital".',
+    }
+    checked.digitalPresence.website = {
+      ...checked.digitalPresence.website,
+      url: intake.websiteUrl,
+      title: "Level Play Digital",
+      metaDescription: "Agency",
+      h1: "Home",
+      limitation: null,
+    }
+    checked.digitalPresence.pageSpeed = {
+      mobileScore: 80,
+      lcp: null,
+      cls: null,
+      limitation: null,
+    }
+
+    const checkedSections = buildSectionsFromResearch(intake, checked)
+    const checkedDigital = checkedSections.find((s) => s.id === "digital_presence")!
+    const checkedGbp = checkedDigital.findings.find((f) =>
+      /business profile|gbp/i.test(f.label),
+    )
+    expect(checkedGbp?.value).toContain("No confirmed Google Business Profile")
+    expect(checkedGbp?.severity).toBe("high")
+    expect(checkedGbp?.value).not.toBe(skippedGbp?.value)
+  })
+})

@@ -230,8 +230,11 @@ describe("extractUpgradeTeasers", () => {
       searchFootprint,
     )
     const diagnostic = report.sections.filter((s) => s.id !== "action_plan")
+    const scored = diagnostic.filter(
+      (s) => typeof s.score === "number" && Number.isFinite(s.score),
+    )
     const expected = Math.round(
-      diagnostic.reduce((sum, s) => sum + s.score, 0) / diagnostic.length,
+      scored.reduce((sum, s) => sum + (s.score as number), 0) / scored.length,
     )
     expect(report.meta.overallScore).toBe(expected)
     expect(report.meta.overallScore).not.toBe(audit.overallScore)

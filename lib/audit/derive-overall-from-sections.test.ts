@@ -43,4 +43,22 @@ describe("deriveOverallFromSections", () => {
     expect(derived.overallScore).toBe(0)
     expect(derived.letterGrade).toBe("F")
   })
+
+  it("excludes insufficient_data / null-score sections from the mean (P1-2)", () => {
+    const derived = deriveOverallFromSections([
+      { id: "search_footprint", score: 80, status: "good" },
+      {
+        id: "online_reputation",
+        score: null,
+        status: "insufficient_data",
+      },
+      { id: "digital_presence", score: 60, status: "attention" },
+    ])
+    expect(derived.overallScore).toBe(70)
+    expect(derived.includedSectionIds).toEqual([
+      "search_footprint",
+      "digital_presence",
+    ])
+    expect(derived.includedSectionIds).not.toContain("online_reputation")
+  })
 })

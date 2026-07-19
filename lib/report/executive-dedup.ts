@@ -33,7 +33,10 @@ export function normalizeFindingKey(text: string): string {
     .slice(0, 120)
 }
 
-type FindingWithSection = ReportFinding & { sectionId: string; sectionScore: number }
+type FindingWithSection = ReportFinding & {
+  sectionId: string
+  sectionScore: number | null
+}
 
 function flattenFindings(sections: ReportSection[]): FindingWithSection[] {
   return sections.flatMap((section) =>
@@ -66,7 +69,7 @@ function sortUrgent(findings: FindingWithSection[]): FindingWithSection[] {
     const aOrder = aIdx === -1 ? 99 : aIdx
     const bOrder = bIdx === -1 ? 99 : bIdx
     if (aOrder !== bOrder) return aOrder - bOrder
-    return a.sectionScore - b.sectionScore
+    return (a.sectionScore ?? 999) - (b.sectionScore ?? 999)
   })
 }
 
@@ -179,7 +182,15 @@ export function computeDistinctHighlightsFromSections(
         ? options.highlights.highestLeverageOpportunity
         : undefined) ??
       (positive.find((f) => isCustomerFacingFinding(f.value))?.value ??
-        `Improve ${sectionLabel(sections.sort((a, b) => a.score - b.score)[0]?.id ?? "search_footprint")} to strengthen how prospects evaluate ${businessName}.`),
+        `Improve ${sectionLabel(
+          [...sections]
+            .filter(
+              (s) =>
+                typeof s.score === "number" && Number.isFinite(s.score),
+            )
+            .sort((a, b) => (a.score as number) - (b.score as number))[0]
+            ?.id ?? "search_footprint",
+        )} to strengthen how prospects evaluate ${businessName}.`),
   )
 
   if (highestLeverageOpportunity) {
@@ -239,9 +250,14 @@ export function computeDistinctHighlightsFromSections(
 
   if (strengths.length === 0) {
     const bestSection = [...sections]
-      .filter((s) => s.id !== "action_plan")
-      .sort((a, b) => b.score - a.score)[0]
-    if (bestSection && bestSection.score >= 50) {
+      .filter(
+        (s) =>
+          s.id !== "action_plan" &&
+          typeof s.score === "number" &&
+          Number.isFinite(s.score),
+      )
+      .sort((a, b) => (b.score as number) - (a.score as number))[0]
+    if (bestSection && (bestSection.score as number) >= 50) {
       const fallback = `${bestSection.label} scored ${bestSection.score}/100 — your strongest area in this snapshot.`
       const key = normalizeFindingKey(fallback)
       if (!usedKeys.has(key)) {
@@ -262,8 +278,13 @@ export function computeDistinctHighlightsFromSections(
 
   if (topOpportunities.length === 0) {
     const weakerSections = [...sections]
-      .filter((s) => s.id !== "action_plan")
-      .sort((a, b) => a.score - b.score)
+      .filter(
+        (s) =>
+          s.id !== "action_plan" &&
+          typeof s.score === "number" &&
+          Number.isFinite(s.score),
+      )
+      .sort((a, b) => (a.score as number) - (b.score as number))
     for (const section of weakerSections) {
       const finding = section.findings.find((f) => isCustomerFacingFinding(f.value))
       if (!finding) continue
@@ -281,8 +302,13 @@ export function computeDistinctHighlightsFromSections(
 
   if (topOpportunities.length === 0) {
     const weakest = [...sections]
-      .filter((s) => s.id !== "action_plan")
-      .sort((a, b) => a.score - b.score)[0]
+      .filter(
+        (s) =>
+          s.id !== "action_plan" &&
+          typeof s.score === "number" &&
+          Number.isFinite(s.score),
+      )
+      .sort((a, b) => (a.score as number) - (b.score as number))[0]
     if (weakest) {
       const fallback = `Focus next on ${sectionLabel(weakest.id)} (${weakest.score}/100) — your lowest-scoring area in this snapshot.`
       const key = normalizeFindingKey(fallback)

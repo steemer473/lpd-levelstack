@@ -261,7 +261,14 @@ function ExecutiveBento({
         ))}
       </div>
       <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {contentSections.map((s) => (
+        {contentSections.map((s) => {
+          const score =
+            s.status !== "insufficient_data" &&
+            typeof s.score === "number" &&
+            Number.isFinite(s.score)
+              ? s.score
+              : null
+          return (
           <button
             key={s.id}
             type="button"
@@ -274,18 +281,23 @@ function ExecutiveBento({
                 className="h-1.5 flex-1 max-w-[120px] rounded-full bg-muted overflow-hidden"
                 aria-hidden
               >
-                <span
-                  className="block h-full rounded-full"
-                  style={{
-                    width: `${s.score}%`,
-                    backgroundColor: scoreBarColor(s.score),
-                  }}
-                />
+                {score != null ? (
+                  <span
+                    className="block h-full rounded-full"
+                    style={{
+                      width: `${score}%`,
+                      backgroundColor: scoreBarColor(score),
+                    }}
+                  />
+                ) : null}
               </span>
-              <span className="text-sm font-semibold tabular-nums">{s.score}</span>
+              <span className="text-sm font-semibold tabular-nums">
+                {score != null ? score : "—"}
+              </span>
             </div>
           </button>
-        ))}
+          )
+        })}
       </div>
       <div className="mt-4 hidden lg:block">
         <ReportDashboard report={report} />
