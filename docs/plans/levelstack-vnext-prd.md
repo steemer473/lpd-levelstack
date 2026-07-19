@@ -9,7 +9,7 @@
 - `lpd-planning` tracking files (`PRODUCT_ROADMAP.md`, `CURRENT_SPRINT_GOALS.md`, `STRATEGY.md`, `FUNNELS_AND_MARKETING.md`, `REPORT_VALUE_DELIVERY.md`, `COPY_BANK.md`) — cross-referenced in §10 and folded into §7's Open Decisions where they conflict with or duplicate critique/audit findings
 - `level-play-brand-os` (company doctrine, one level above `lpd-planning` per its own `BRAND_SOURCE.md` hierarchy) — specifically `product/AI_PRINCIPLES.md`, `ai/AI_CONSTITUTION.md`, `product/PRODUCT_ARCHITECTURE.md`, `product/PRODUCT_HIERARCHY.md`, `product/PRODUCT_DECISION_FRAMEWORK.md`, `brand/LANGUAGE_RULES.md`, `company/OPERATING_MODEL.md` — checked after drafting, cross-referenced in §10 and folded into §7 as OD-14
 
-**How to read this doc:** Requirements (§4) are scoped to critique §15's P0/P1/P2 items only. P3 and all V2/V3 modules are listed in the Appendix as explicitly out of scope for this PRD. Section 7 ("Open Decisions") contains every point where the critique's recommended architecture, the audit's findings about current code, and `lpd-planning`'s existing tracking/locked decisions do not agree, or where the audit could not confirm something a requirement depends on. **Ten of fourteen (OD-1 through OD-4, OD-9 through OD-14) are resolved** — marked RESOLVED in §7, with the resolution reflected in the affected requirements. **The remaining four (OD-5 through OD-8) are still open** and are gating questions for you to close before engineering starts on the affected requirement(s). §10 maps this PRD against `lpd-planning`'s existing tickets and locked decisions, and against `level-play-brand-os` doctrine, directly.
+**How to read this doc:** Requirements (§4) are scoped to critique §15's P0/P1/P2 items only. P3 and all V2/V3 modules are listed in the Appendix as explicitly out of scope for this PRD. Section 7 ("Open Decisions") contains every point where the critique's recommended architecture, the audit's findings about current code, and `lpd-planning`'s existing tracking/locked decisions do not agree, or where the audit could not confirm something a requirement depends on. **Eleven of fourteen (OD-1 through OD-4, OD-7, OD-9 through OD-14) are resolved** — marked RESOLVED in §7, with the resolution reflected in the affected requirements. **The remaining three (OD-5, OD-6, OD-8) are still open** and are gating questions for you to close before engineering starts on the affected requirement(s). §10 maps this PRD against `lpd-planning`'s existing tickets and locked decisions, and against `level-play-brand-os` doctrine, directly.
 
 ---
 
@@ -384,9 +384,9 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 - Where the concept is referenced externally at all, it is explicitly and repeatedly scoped (e.g., "decision roadmap for your public presence") rather than left to stand alone.
 - Internal architecture conversations may continue to use "Decision Intelligence" as a philosophy/architecture term — this restriction is external-facing only.
 
-**Audit references:** None. The codebase audit's stated scope was the product app plus the specific marketing files it cites for the free/paid mismatch (`levelstackPlans.ts`, `/free/page.tsx`) — it did not search `lpd-redesign` copy, investor decks, or sales materials for the phrase "Decision Intelligence." **Whether this phrase currently appears anywhere in external materials is unconfirmed** — flagged in §7.
+**Audit references:** OD-7 audit pass completed 2026-07-18 (see §7). In-repo search across `lpd-redesign`, `lpd-planning`, `level-play-brand-os`, and `lpd-levelstack` found **zero** customer-facing / marketing uses of "Decision Intelligence" or "Decision Intelligence Platform." Hits exist only in this PRD and `levelstack-vnext-critique.md` (internal architecture docs — allowed). Residual gap: investor decks / sales PDFs outside these repositories were not available to search.
 
-**Planning cross-reference:** a search of `lpd-planning` (`STRATEGY.md`, `COPY_BANK.md`, `PRODUCT_ROADMAP.md`, `FUNNELS_AND_MARKETING.md`) found zero uses of "Decision Intelligence." This confirms the phrase isn't in LPD's own strategy/copy source of truth, but `lpd-planning` doesn't cover `lpd-redesign`'s full marketing copy, investor decks, or sales materials either — OD-7's gap stands. Separately, this requirement's own new terminology (Recommendation Object, Decision Roadmap, confidence bands) will need new entries in `COPY_BANK.md` and the `lint:customer-copy` / `lint-customer-copy.mjs` rule set before any of it ships customer-facing — not currently an acceptance criterion here, added as OD-9's resolution dependency.
+**Planning cross-reference:** a search of `lpd-planning` (`STRATEGY.md`, `COPY_BANK.md`, `PRODUCT_ROADMAP.md`, `FUNNELS_AND_MARKETING.md`) found zero uses of "Decision Intelligence." The 2026-07-18 OD-7 pass also cleared `lpd-redesign` marketing copy. Separately, this requirement's own new terminology (Recommendation Object, Decision Roadmap, confidence bands) will need new entries in `COPY_BANK.md` and the `lint:customer-copy` / `lint-customer-copy.mjs` rule set before any of it ships customer-facing — not currently an acceptance criterion here, added as OD-9's resolution dependency.
 
 **Dependency:** None (independent copy/positioning workstream, no code dependency).
 
@@ -457,7 +457,7 @@ Per critique §16.4: the Decision Roadmap is **web-dashboard-primary**, not PDF-
 
 ## 7. Open Decisions
 
-Every point below is a place where the critique's recommended architecture and the audit's findings about current code diverge, where `lpd-planning` or `level-play-brand-os` doctrine conflicts with or wasn't checked against a requirement, or where the audit could not confirm something a requirement above depends on. **OD-1 through OD-4 and OD-9 through OD-14 are marked RESOLVED below** with the founder's decision and rationale; the remaining four (OD-5 through OD-8) are still open.
+Every point below is a place where the critique's recommended architecture and the audit's findings about current code diverge, where `lpd-planning` or `level-play-brand-os` doctrine conflicts with or wasn't checked against a requirement, or where the audit could not confirm something a requirement above depends on. **OD-1 through OD-4, OD-7, and OD-9 through OD-14 are marked RESOLVED below** with the founder's decision and rationale (OD-7 via the 2026-07-18 audit pass); the remaining three (OD-5, OD-6, OD-8) are still open.
 
 ### OD-1 — RESOLVED: Option A — derive Overall mathematically from displayed section scores
 
@@ -517,11 +517,12 @@ Every point below is a place where the critique's recommended architecture and t
 
 
 
-### OD-7 — Was "Decision Intelligence" ever used externally, and where?
+### OD-7 — RESOLVED: no in-repo external uses of "Decision Intelligence" (2026-07-18)
 
-- Critique §13/§15 (P2-6) recommends auditing marketing/investor copy for "Decision Intelligence" as a category label.
-- The codebase audit did not search `lpd-redesign` marketing copy, investor materials, or sales collateral for this specific phrase — its stated scope was the product app plus the specific files cited for the free/paid mismatch.
-- **This is an "unable to determine" gap, not a resolved finding:** whether the phrase currently appears anywhere external is unconfirmed by either source document. P2-6's acceptance criteria can't be verified as complete until this audit pass happens — recommend scoping it as the first step of P2-6's execution, not assuming it's already known.
+- Critique §13/§15 (P2-6) recommended auditing marketing/investor copy for "Decision Intelligence" as a category label.
+- **Resolution (audit pass, 2026-07-18):** Case-insensitive search for "Decision Intelligence" and "Decision Intelligence Platform" across `lpd-redesign`, `lpd-planning`, `level-play-brand-os`, and `lpd-levelstack` found **zero** customer-facing / marketing hits. The only occurrences are in this PRD and `docs/plans/levelstack-vnext-critique.md` (internal architecture documents — allowed under P2-6). Baseline external count in-repo: **0**; no copy corrections required.
+- **Residual gap (documented, not blocking):** investor decks / sales PDFs outside these four repositories were not available to search. If such materials are introduced later, they must not use an unscoped "Decision Intelligence" category label for LevelStack.
+- **No longer blocks:** P2-6's acceptance-criteria completeness for in-repo external materials. P2-6 itself remains satisfied for shipped product/marketing code; keep the phrase internal-only going forward.
 
 
 
@@ -608,7 +609,7 @@ Every point below is a place where the critique's recommended architecture and t
 | P1-4 (category taxonomy)            | % of businesses classified outside the generic default bucket ("General business services" or equivalent)                                                                                                                               | No baseline exists; today's system has no taxonomy to measure against.                                                                                                          |
 | P2-1 (Recommendation Object schema) | % of Search + Trust recommendations (post P2-4 rebuild) with all required schema fields populated (evidence, confidence, dependencies, roi, automatability, owner, urgency, consequenceOfInaction, artifact where applicable) — target 100%, since partial population defeats the schema's purpose | Also sample for the OD-14 guardrail: no `confidence: Low` recommendation should render `urgency`/`consequenceOfInaction` language equivalent in severity to a `confidence: High` recommendation. |
 | P2-5 (Decision Roadmap)             | Dashboard engagement (sessions, status-tracking actions taken on recommendations) vs. today's report-view-only behavior                                                                                                                 | No current dashboard exists to baseline against; this would be a new metric category.                                                                                           |
-| P2-6 (naming audit)                 | Count of external "Decision Intelligence" category-label usages found and corrected                                                                                                                                                     | Depends on OD-7 being resolved (audit pass) before a baseline count exists.                                                                                                     |
+| P2-6 (naming audit)                 | Count of external "Decision Intelligence" category-label usages found and corrected                                                                                                                                                     | **OD-7 resolved 2026-07-18:** in-repo external baseline = 0 (no corrections). Residual: out-of-repo investor/sales PDFs not searched.                                                                                                           |
 
 
 ---
@@ -626,7 +627,7 @@ Build order below groups requirements by what blocks what; it does not assign da
 3. **P1-4** (category taxonomy) — standalone.
 4. **P2-2** (evidence provenance standard) — foundational, no dependencies.
 5. **P2-3** (confidence methodology) — foundational, no dependencies.
-6. **P2-6** (naming/copy audit) — standalone, but should start with OD-7's audit pass first since its own completeness can't be verified otherwise.
+6. **P2-6** (naming/copy audit) — standalone; OD-7 audit pass completed 2026-07-18 (in-repo external uses = 0).
 
 **Track 2 — Scoring integrity (OD-1 and OD-2 resolved):**
 7. **P1-1** (scoring methodology + reconciliation) — OD-1 Option A (Overall derived from displayed section scores) and OD-2 Option A (signals path canonical) are locked; blocks P2-1.
@@ -653,7 +654,7 @@ Build order below groups requirements by what blocks what; it does not assign da
 
 ## 10. Planning Cross-Reference
 
-This PRD was checked against `lpd-planning`'s tracking files (`PRODUCT_ROADMAP.md`, `CURRENT_SPRINT_GOALS.md`, `STRATEGY.md`, `FUNNELS_AND_MARKETING.md`, `REPORT_VALUE_DELIVERY.md`, `COPY_BANK.md`) after drafting, and later against `level-play-brand-os` doctrine (see "Brand OS cross-reference" below). This section summarizes what those checks found; the individual conflicts are folded into §7 as OD-9 through OD-14 and into the affected requirements in §4/§5 as "Planning cross-reference" notes. Nothing here is new analysis beyond those — this is the index. **OD-1 through OD-4 and OD-9 through OD-14 have since been resolved by the founder** (see §7); this index is kept as a record of what was found, not a live list of open items — check §7 for current status. Remaining open: OD-5 through OD-8.
+This PRD was checked against `lpd-planning`'s tracking files (`PRODUCT_ROADMAP.md`, `CURRENT_SPRINT_GOALS.md`, `STRATEGY.md`, `FUNNELS_AND_MARKETING.md`, `REPORT_VALUE_DELIVERY.md`, `COPY_BANK.md`) after drafting, and later against `level-play-brand-os` doctrine (see "Brand OS cross-reference" below). This section summarizes what those checks found; the individual conflicts are folded into §7 as OD-9 through OD-14 and into the affected requirements in §4/§5 as "Planning cross-reference" notes. Nothing here is new analysis beyond those — this is the index. **OD-1 through OD-4, OD-7, and OD-9 through OD-14 have since been resolved** (see §7); this index is kept as a record of what was found, not a live list of open items — check §7 for current status. Remaining open: OD-5, OD-6, OD-8.
 
 **Updates to `lpd-planning` itself, generated by these resolutions — made 2026-07-18:**
 
@@ -690,7 +691,7 @@ Both planning tickets now point back to this PRD as the merged, authoritative sc
 
 ### Checked and found no conflict
 
-- "Decision Intelligence" as a category-label phrase does not appear anywhere in `lpd-planning` — consistent with P2-6/OD-7, though this doesn't cover `lpd-redesign` marketing copy or investor materials, which remain unaudited.
+- "Decision Intelligence" as a category-label phrase does not appear anywhere in `lpd-planning` or `lpd-redesign` marketing copy — **OD-7 resolved 2026-07-18** (in-repo external baseline = 0). Residual: investor/sales PDFs outside these repos were not searched.
 - Planning's canonical free-tier section names ("Search footprint," "Social & off-site presence") align with critique §14's proposed restructuring direction — no conflict, just adopted directly in P0-3.
 
 ### Brand OS cross-reference (checked 2026-07-18)
@@ -702,7 +703,7 @@ Both planning tickets now point back to this PRD as the merged, authoritative sc
 - **OD-9's resolution is doctrinally grounded, not just a naming compromise.** `company/OPERATING_MODEL.md` names LevelStack's own stage in the company's five-stage model literally as "Decide" ("LevelStack prioritizes the work, clarifies why it matters, and produces an actionable roadmap"). "Decision Roadmap" as internal shorthand maps directly onto this.
 - **OD-10's tension is real but this PRD doesn't cross the line.** `product/PRODUCT_ARCHITECTURE.md` and `product/PRODUCT_HIERARCHY.md` lock LevelStack as diagnostic-only ("Understand • Explain • Prioritize"); "execute, fix, deploy, monitor" is reserved for Automator Pro. None of this PRD's P0–P2 requirements have LevelStack executing or fixing anything — they're scoring/evidence/recommendation-structure work — so nothing here needs revision on this point. **OD-10 is now resolved** (Option A exemption + OD-3 JSONB persistence) for the separate "additive vs. rebuild" architecture question; that resolution is not a product-boundary violation.
 - **The `automatability` field is safe.** `ai/AI_CONSTITUTION.md` Rule 6 ("require appropriate authority before consequential actions") is satisfied because the field is informational — it flags what could be automated by Automator Pro, not LevelStack automating it itself.
-- **OD-7 gets supporting evidence, not resolution.** `brand/LANGUAGE_RULES.md`'s avoid-list already bans "operational intelligence" by name, a near-identical phrase to "Decision Intelligence." Brand-os doesn't name "Decision Intelligence" specifically, so OD-7 stays open, but existing doctrine already leans toward the same caution the critique raises.
+- **OD-7 is resolved (2026-07-18 audit pass).** `brand/LANGUAGE_RULES.md`'s avoid-list already bans "operational intelligence" by name, a near-identical phrase to "Decision Intelligence." The in-repo search confirmed zero customer-facing uses; doctrine and audit now agree.
 
 **Surfaced a gap — now resolved:**
 
