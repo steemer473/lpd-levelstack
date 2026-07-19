@@ -4,6 +4,8 @@ import {
   bestReputationHit,
   findOwnSiteReputationResult,
   formatReputationQueryLabel,
+  isB2bReviewDirectoryPlatform,
+  platformFromQuery,
 } from "@/lib/research/reputation-parse"
 import type { CompetitiveComparisonMode } from "@/lib/research/serp/competitor-resolve"
 import {
@@ -783,6 +785,216 @@ function gbpLocationMismatch(
   return !address.toLowerCase().includes(city.toLowerCase())
 }
 
+type ReputationSearch = ResearchBundle["reputation"]["searches"][number]
+
+type ReputationHitContext = {
+  businessName: string
+  ownerName: string
+  buyerHost: string | null
+}
+
+function pushFindingFromReputationSearch(
+  search: ReputationSearch,
+  repContext: ReputationHitContext,
+  findings: ReportFinding[],
+  checks: SectionCheck[],
+): void {
+  if (!search.results.length && !search.limitation) return
+
+  const hit = bestReputationHit(search.results, search.query, repContext)
+  const ownSite = findOwnSiteReputationResult(search.results, repContext)
+  const label = formatReputationQueryLabel(search.query)
+
+  if (hit) {
+    const { rating, reviewCount, platform } = hit.parsed
+    const platformLabel = platform ?? "public listing"
+
+    if (rating != null) {
+      const severity: ReportFinding["severity"] =
+        rating < 4 ? "critical" : rating < 4.2 ? "high" : "good"
+      findings.push({
+        label,
+        value: `${rating}★${reviewCount != null ? ` (${reviewCount} reviews cited)` : ""} on ${platformLabel}`,
+        detail: `Listing: ${hit.result.title.slice(0, 80)} · ${hit.result.link}. Google shows: ${hit.result.snippet.slice(0, 160)}`,
+        severity,
+      })
+      checks.push({
+        availability: severity === "good" ? "ok" : "negative",
+        severity,
+      })
+    } else {
+      findings.push({
+        label,
+        value: "No star rating or review count appeared in search results",
+        detail: `Top relevant result: ${hit.result.title.slice(0, 80)} · ${hit.result.link}. Google shows: ${hit.result.snippet.slice(0, 160)}`,
+        severity: "high",
+      })
+      checks.push({ availability: "negative", severity: "high" })
+    }
+  } else if (ownSite) {
+    findings.push({
+      label,
+      value:
+        "No review profile found — your website ranks instead of third-party reviews",
+      detail: `When prospects search for reviews, Google shows your homepage first: ${ownSite.link}. Google shows: ${ownSite.snippet.slice(0, 180)}`,
+      severity: "high",
+    })
+    checks.push({ availability: "negative", severity: "high" })
+  } else if (search.results.length > 0) {
+    findings.push({
+      label,
+      value: `No review listings found for "${search.query.replace(/\s+reviews?$/i, "").trim()}"`,
+      detail:
+        "Unrelated directory and list pages were filtered out. Prospects searching for reviews may not see credible third-party proof.",
+      severity: "high",
+    })
+    checks.push({ availability: "negative", severity: "high" })
+  } else if (search.limitation) {
+    const availability = classifyLimitationAvailability(search.limitation)
+    findings.push({
+      label,
+      value: customerLimitationText(search.limitation, UNABLE_TO_VERIFY_VALUE),
+      detail: `We searched Google for: ${search.query}`,
+      severity: "medium",
+    })
+    checks.push({ availability, severity: "medium" })
+  }
+}
+
+type B2bPlatformStatus = {
+  platform: string
+  status: "found" | "missing" | "unavailable" | "not_checked"
+  link?: string
+  rating?: number | null
+  reviewCount?: number | null
+  severity?: ReportFinding["severity"]
+}
+
+function buildB2bDirectoryClusterFinding(
+  searches: ReputationSearch[],
+  repContext: ReputationHitContext,
+): { finding: ReportFinding; check: SectionCheck } | null {
+  if (searches.length === 0) return null
+
+  const statuses: B2bPlatformStatus[] = []
+
+  for (const search of searches) {
+    const platform = platformFromQuery(search.query) ?? "Directory"
+    if (!search.results.length && !search.limitation) {
+      statuses.push({ platform, status: "not_checked" })
+      continue
+    }
+
+    const hit = bestReputationHit(search.results, search.query, repContext)
+    if (hit) {
+      const { rating, reviewCount } = hit.parsed
+      const severity: ReportFinding["severity"] =
+        rating == null
+          ? "high"
+          : rating < 4
+            ? "critical"
+            : rating < 4.2
+              ? "high"
+              : "good"
+      statuses.push({
+        platform,
+        status: "found",
+        link: hit.result.link,
+        rating,
+        reviewCount,
+        severity,
+      })
+    } else if (search.limitation) {
+      const availability = classifyLimitationAvailability(search.limitation)
+      statuses.push({
+        platform,
+        status: availability === "not_checked" ? "not_checked" : "unavailable",
+      })
+    } else {
+      statuses.push({ platform, status: "missing", severity: "high" })
+    }
+  }
+
+  const found = statuses.filter((s) => s.status === "found")
+  const missing = statuses.filter((s) => s.status === "missing")
+  const blocked = statuses.filter(
+    (s) => s.status === "unavailable" || s.status === "not_checked",
+  )
+
+  const detailParts = statuses.map((s) => {
+    if (s.status === "found") {
+      const stars =
+        s.rating != null
+          ? `${s.rating}★${s.reviewCount != null ? ` (${s.reviewCount} reviews)` : ""}`
+          : "listing found"
+      return `${s.platform}: ${stars}${s.link ? ` · ${s.link}` : ""}`
+    }
+    if (s.status === "missing") return `${s.platform}: no matching profile on page 1`
+    if (s.status === "not_checked") return `${s.platform}: not checked for this report`
+    return `${s.platform}: unable to verify`
+  })
+
+  if (blocked.length === statuses.length) {
+    return {
+      finding: {
+        label: "B2B review directories (Clutch / G2 / Capterra)",
+        value: customerLimitationText(null, UNABLE_TO_VERIFY_VALUE),
+        detail: detailParts.join(" · "),
+        severity: "medium",
+      },
+      check: {
+        availability: blocked.every((s) => s.status === "not_checked")
+          ? "not_checked"
+          : "unavailable",
+        severity: "medium",
+      },
+    }
+  }
+
+  const worstFoundSeverity = found.reduce<ReportFinding["severity"]>(
+    (worst, s) => {
+      const sev = s.severity ?? "high"
+      const rank = { critical: 4, high: 3, medium: 2, low: 1, good: 0 }
+      return rank[sev] > rank[worst] ? sev : worst
+    },
+    "good",
+  )
+
+  let severity: ReportFinding["severity"] = "high"
+  let value: string
+  if (found.length > 0 && missing.length === 0) {
+    severity = worstFoundSeverity
+    value =
+      severity === "good"
+        ? `Profiles found on ${found.map((s) => s.platform).join(", ")}`
+        : `Weak or incomplete B2B review presence (${found.map((s) => s.platform).join(", ")})`
+  } else if (found.length > 0) {
+    severity =
+      worstFoundSeverity === "good" && missing.length > 0
+        ? "high"
+        : worstFoundSeverity === "good"
+          ? "medium"
+          : worstFoundSeverity
+    value = `Found on ${found.map((s) => s.platform).join(", ")}; missing ${missing.map((s) => s.platform).join(", ")}`
+  } else {
+    severity = "high"
+    value = `No Clutch / G2 / Capterra profiles found (${missing.map((s) => s.platform).join(", ") || "searched"})`
+  }
+
+  return {
+    finding: {
+      label: "B2B review directories (Clutch / G2 / Capterra)",
+      value,
+      detail: detailParts.join(" · "),
+      severity,
+    },
+    check: {
+      availability: severity === "good" ? "ok" : "negative",
+      severity,
+    },
+  }
+}
+
 function buildReputationFindings(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
@@ -790,73 +1002,32 @@ function buildReputationFindings(
 ): { findings: ReportFinding[]; checks: SectionCheck[] } {
   const findings: ReportFinding[] = []
   const checks: SectionCheck[] = []
-  const repContext = {
+  const repContext: ReputationHitContext = {
     businessName: intake.primaryBusinessName,
     ownerName: intake.ownerName,
     buyerHost,
   }
 
+  const b2bSearches: ReputationSearch[] = []
+  const otherSearches: ReputationSearch[] = []
+
   for (const search of bundle.reputation.searches) {
-    if (!search.results.length && !search.limitation) continue
-
-    const hit = bestReputationHit(search.results, search.query, repContext)
-    const ownSite = findOwnSiteReputationResult(search.results, repContext)
-    const label = formatReputationQueryLabel(search.query)
-
-    if (hit) {
-      const { rating, reviewCount, platform } = hit.parsed
-      const platformLabel = platform ?? "public listing"
-
-      if (rating != null) {
-        const severity: ReportFinding["severity"] =
-          rating < 4 ? "critical" : rating < 4.2 ? "high" : "good"
-        findings.push({
-          label,
-          value: `${rating}★${reviewCount != null ? ` (${reviewCount} reviews cited)` : ""} on ${platformLabel}`,
-          detail: `Listing: ${hit.result.title.slice(0, 80)} · ${hit.result.link}. Google shows: ${hit.result.snippet.slice(0, 160)}`,
-          severity,
-        })
-        checks.push({
-          availability: severity === "good" ? "ok" : "negative",
-          severity,
-        })
-      } else {
-        findings.push({
-          label,
-          value: "No star rating or review count appeared in search results",
-          detail: `Top relevant result: ${hit.result.title.slice(0, 80)} · ${hit.result.link}. Google shows: ${hit.result.snippet.slice(0, 160)}`,
-          severity: "high",
-        })
-        checks.push({ availability: "negative", severity: "high" })
-      }
-    } else if (ownSite) {
-      findings.push({
-        label,
-        value:
-          "No review profile found — your website ranks instead of third-party reviews",
-        detail: `When prospects search for reviews, Google shows your homepage first: ${ownSite.link}. Google shows: ${ownSite.snippet.slice(0, 180)}`,
-        severity: "high",
-      })
-      checks.push({ availability: "negative", severity: "high" })
-    } else if (search.results.length > 0) {
-      findings.push({
-        label,
-        value: `No review listings found for "${search.query.replace(/\s+reviews?$/i, "").trim()}"`,
-        detail:
-          "Unrelated directory and list pages were filtered out. Prospects searching for reviews may not see credible third-party proof.",
-        severity: "high",
-      })
-      checks.push({ availability: "negative", severity: "high" })
-    } else if (search.limitation) {
-      const availability = classifyLimitationAvailability(search.limitation)
-      findings.push({
-        label,
-        value: customerLimitationText(search.limitation, UNABLE_TO_VERIFY_VALUE),
-        detail: `We searched Google for: ${search.query}`,
-        severity: "medium",
-      })
-      checks.push({ availability, severity: "medium" })
+    const platform = platformFromQuery(search.query)
+    if (isB2bReviewDirectoryPlatform(platform)) {
+      b2bSearches.push(search)
+    } else {
+      otherSearches.push(search)
     }
+  }
+
+  const clustered = buildB2bDirectoryClusterFinding(b2bSearches, repContext)
+  if (clustered) {
+    findings.push(clustered.finding)
+    checks.push(clustered.check)
+  }
+
+  for (const search of otherSearches) {
+    pushFindingFromReputationSearch(search, repContext, findings, checks)
   }
 
   if (findings.length === 0) {

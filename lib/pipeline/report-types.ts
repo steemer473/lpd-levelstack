@@ -1,5 +1,19 @@
 import { z } from "zod"
 
+import { recommendationObjectSchema } from "@/lib/pipeline/recommendation-types"
+
+export {
+  recommendationObjectSchema,
+  evidenceItemSchema,
+  confidenceSchema,
+  CONFIDENCE_METHODOLOGY_REF,
+} from "@/lib/pipeline/recommendation-types"
+export type {
+  RecommendationObject,
+  EvidenceItem,
+  Confidence,
+} from "@/lib/pipeline/recommendation-types"
+
 export const severitySchema = z.enum(["critical", "high", "medium", "low", "good"])
 
 export const findingSchema = z.object({
@@ -173,6 +187,8 @@ export const levelstackReportJsonSchema = z.object({
   executiveSummary: executiveSummarySchema,
   sections: z.array(reportSectionSchema),
   actionPlan: actionPlanSchema,
+  /** P2-1 Recommendation Objects — optional until P2-4 dual-write. */
+  recommendations: z.array(recommendationObjectSchema).optional(),
   signalRows: z.array(signalStatusRowSchema).optional(),
   insights: z.array(insightBlockSchema).optional(),
 })
@@ -180,3 +196,4 @@ export const levelstackReportJsonSchema = z.object({
 export type LevelstackReportJson = z.infer<typeof levelstackReportJsonSchema>
 export type ReportFinding = z.infer<typeof findingSchema>
 export type ReportSection = z.infer<typeof reportSectionSchema>
+export type ReportActionItem = z.infer<typeof actionItemSchema>

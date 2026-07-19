@@ -37,6 +37,7 @@ import { planIdToReportTier, type ReportTier } from "@/lib/levelstack-plans"
 import { resolveReportPlanId } from "@/lib/pipeline/resolve-report-plan-id"
 import { validateResearchQuality } from "@/lib/pipeline/research-quality"
 import { sanitizeReportJson } from "@/lib/pipeline/sanitize-report-sections"
+import { attachSearchReputationRecommendations } from "@/lib/pipeline/build-recommendations"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 const STEP_DELAY_MS = 50
@@ -280,6 +281,12 @@ export async function runReportPipeline({
       await failPipeline(admin, jobId, reportId, researchQuality.userMessage)
       return
     }
+
+    // P2-4 — dual-write Search + Reputation Recommendation Objects (findings remain UI-canonical).
+    reportJson = attachSearchReputationRecommendations(reportJson, bundle, {
+      generatedAt: new Date().toISOString(),
+      intake: parsed.data,
+    })
 
     reportJson = sanitizeReportJson(reportJson)
 

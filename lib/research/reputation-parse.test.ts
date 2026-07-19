@@ -243,6 +243,9 @@ describe("reputation relevance", () => {
 
   it("formats reputation query labels", () => {
     expect(formatReputationQueryLabel("Level Play Digital yelp")).toBe("Yelp visibility")
+    expect(formatReputationQueryLabel("site:clutch.co Level Play Digital")).toBe(
+      "Clutch visibility",
+    )
     expect(formatReputationQueryLabel("Level Play Digital Atlanta reviews")).toBe(
       "Review search: Level Play Digital Atlanta",
     )

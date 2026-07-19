@@ -53,6 +53,9 @@ export function parseRatingFromText(text: string): ParsedReputationSnippet {
   if (/yelp/i.test(text)) platform = "Yelp"
   else if (/bbb/i.test(text)) platform = "BBB"
   else if (/trustpilot/i.test(text)) platform = "Trustpilot"
+  else if (/clutch/i.test(text)) platform = "Clutch"
+  else if (/\bg2\b/i.test(text)) platform = "G2"
+  else if (/capterra/i.test(text)) platform = "Capterra"
   else if (/google/i.test(text)) platform = "Google"
 
   return { rating, reviewCount, platform }
@@ -62,7 +65,17 @@ export function platformFromQuery(query: string): string | null {
   if (/yelp/i.test(query)) return "Yelp"
   if (/bbb/i.test(query)) return "BBB"
   if (/trustpilot/i.test(query)) return "Trustpilot"
+  if (/clutch/i.test(query)) return "Clutch"
+  if (/g2\.com|\bg2\b/i.test(query)) return "G2"
+  if (/capterra/i.test(query)) return "Capterra"
   return null
+}
+
+/** Clutch / G2 / Capterra are clustered into one Reputation finding (P2-4 / OD-13). */
+export function isB2bReviewDirectoryPlatform(
+  platform: string | null,
+): boolean {
+  return platform === "Clutch" || platform === "G2" || platform === "Capterra"
 }
 
 export function isReviewPlatformUrl(link: string): boolean {
