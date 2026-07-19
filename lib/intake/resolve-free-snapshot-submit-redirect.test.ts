@@ -42,4 +42,33 @@ describe("resolveFreeSnapshotSubmitRedirect", () => {
       }),
     ).toEqual({ type: "welcome_back", signInUrl: "https://example.com/magic" })
   })
+
+  it("returns paid_owner_refresh before welcome_back / immediate redirect", () => {
+    expect(
+      resolveFreeSnapshotSubmitRedirect({
+        branch: "paid_owner_refresh",
+        existingUser: true,
+        redirectImmediately: true,
+        reportId: "free-1",
+        actionRoadmapReportId: "paid-1",
+        signInUrl: "https://example.com/magic",
+      }),
+    ).toEqual({
+      type: "paid_owner_refresh",
+      reportId: "free-1",
+      actionRoadmapReportId: "paid-1",
+      signInUrl: "https://example.com/magic",
+      redirectImmediately: true,
+    })
+  })
+
+  it("requires both report ids for paid_owner_refresh", () => {
+    expect(
+      resolveFreeSnapshotSubmitRedirect({
+        branch: "paid_owner_refresh",
+        existingUser: true,
+        reportId: "free-1",
+      }),
+    ).toEqual({ type: "welcome_back", signInUrl: undefined })
+  })
 })

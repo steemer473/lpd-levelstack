@@ -6,29 +6,26 @@ import { ProductShell } from "@/components/layout/product-shell"
 import { LevelstackReportView } from "@/components/report/levelstack-report-view"
 import { RegenerateReportButton } from "@/components/report/regenerate-report-button"
 import { ReportGenerating } from "@/components/report/report-generating"
+import { ReportScoreDisclaimer } from "@/components/report/report-score-disclaimer"
 import { RetryReportButton } from "@/components/report/retry-report-button"
 import { Button } from "@/components/ui/button"
 import { FormPanel } from "@/components/ui/form-panel"
 import { reportAccessCookieName } from "@/lib/auth/report-access-token"
 import { isDevReportPreviewEnabled } from "@/lib/dev-report-preview"
 import { requirePaidIntakeAccess } from "@/lib/levelstack-access"
-import type { NavVariant } from "@/lib/nav-variant"
 import { isPlaceholderReport } from "@/lib/pipeline/placeholder-report"
 import { levelstackReportJsonSchema } from "@/lib/pipeline/report-types"
+import {
+  resolvePaidOwnerFreeChrome,
+  resolveReportNavVariant,
+} from "@/lib/reports/paid-owner-report-chrome"
+import { hydrateMissingSocialOffsite } from "@/lib/report/hydrate-social-offsite"
 import { resolveReportAccess } from "@/lib/reports/get-report"
+import { getLatestReadyPaidReportForUser } from "@/lib/reports/get-latest-report-for-intake"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"
-
-function resolveReportNavVariant(
-  paidPendingIntake: boolean,
-  reportTier: string | undefined,
-): NavVariant {
-  if (paidPendingIntake) return "paidPendingIntake"
-  if (reportTier === "free_snapshot") return "freeReport"
-  return "default"
-}
 
 type PageProps = {
   params: Promise<{ reportId: string }>
@@ -158,21 +155,42 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
     )
   }
 
+  const freeBackupParsed = levelstackReportJsonSchema.safeParse(
+    report.free_snapshot_json,
+  )
+  const displayReport = hydrateMissingSocialOffsite(
+    parsed.data,
+    freeBackupParsed.success ? freeBackupParsed.data : null,
+  )
+
   const isDev = process.env.NODE_ENV === "development"
-  const isStalePlaceholder = isPlaceholderReport(parsed.data)
-  const paidPendingIntake =
-    user &&
-    report.report_tier === "free_snapshot" &&
-    report.status === "ready" &&
-    (await requirePaidIntakeAccess(supabase, user.id))
+  const isStalePlaceholder = isPlaceholderReport(displayReport)
+
+  const paidAccess = user
+    ? await requirePaidIntakeAccess(supabase, user.id)
+    : false
+  const readyPaidReport =
+    user && paidAccess && report.report_tier === "free_snapshot"
+      ? await getLatestReadyPaidReportForUser(supabase, user.id)
+      : null
+
+  const { paidOwnerFree, paidPendingIntake } = resolvePaidOwnerFreeChrome({
+    paidAccess: Boolean(paidAccess),
+    reportTier: report.report_tier,
+    status: report.status,
+    readyPaidReportId: readyPaidReport?.id,
+  })
 
   const navVariant = resolveReportNavVariant(
-    Boolean(paidPendingIntake),
-    parsed.data.meta.reportTier,
+    paidPendingIntake,
+    paidOwnerFree,
+    displayReport.meta.reportTier,
   )
   const showSignOut = navVariant === "default" && Boolean(user)
   const navReportId =
-    navVariant === "freeReport" || navVariant === "paidPendingIntake"
+    navVariant === "freeReport" ||
+    navVariant === "paidPendingIntake" ||
+    navVariant === "paidOwnerFree"
       ? reportId
       : undefined
 
@@ -181,6 +199,7 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
       showSignOut={showSignOut}
       navVariant={navVariant}
       reportId={navReportId}
+      actionRoadmapReportId={readyPaidReport?.id}
       resultsStyle
     >
       <div className="space-y-4 w-full">
@@ -190,6 +209,26 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
             <Link href={`/reports/${reportId}`} className="text-brand-orange font-medium hover:underline">
               Return to report status
             </Link>
+          </div>
+        ) : null}
+        {paidOwnerFree && readyPaidReport?.id ? (
+          <div className="rounded-lg border border-brand-orange/30 bg-brand-orange/5 px-4 py-3 text-sm space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <p className="font-medium">
+                  This is a free Visibility Snapshot. You already have an Action Roadmap.
+                </p>
+                <p className="text-muted-foreground mt-0.5">
+                  Locked sections stay out of this free view — open your Action Roadmap for the full diagnostic.
+                </p>
+              </div>
+              <Button variant="brand" asChild className="shrink-0">
+                <Link href={`/reports/${readyPaidReport.id}`}>
+                  View your Action Roadmap
+                </Link>
+              </Button>
+            </div>
+            <ReportScoreDisclaimer />
           </div>
         ) : null}
         {paidPendingIntake ? (
@@ -211,7 +250,12 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
             isStalePlaceholder={isStalePlaceholder}
           />
         )}
-        <LevelstackReportView report={parsed.data} reportId={reportId} />
+        <LevelstackReportView
+          report={displayReport}
+          reportId={reportId}
+          suppressLevelstackPurchaseCtas={paidOwnerFree}
+          actionRoadmapReportId={readyPaidReport?.id}
+        />
       </div>
     </ProductShell>
   )

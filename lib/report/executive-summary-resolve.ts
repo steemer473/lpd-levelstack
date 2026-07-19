@@ -111,7 +111,7 @@ export function resolveExecutiveContent(
 
   return {
     insights,
-    structuredInsights: buildFreeTierStructuredExecutiveInsights(report) ?? undefined,
+    structuredInsights: buildFreeTierStructuredExecutiveInsights(report),
     highlights: {
       criticalIssue,
       businessImpact: distinct.businessImpact,

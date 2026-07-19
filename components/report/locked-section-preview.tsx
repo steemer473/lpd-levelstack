@@ -5,6 +5,7 @@ import { Lock } from "lucide-react"
 
 import { LockedSectionUnlockModal } from "@/components/report/locked-section-unlock-modal"
 import { SapBridgeBlock } from "@/components/report/sap-bridge-block"
+import { usePaidOwnerReportChrome } from "@/components/report/paid-owner-report-context"
 import { Button } from "@/components/ui/button"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
 import { LOCKED_SECTION_LABELS } from "@/lib/report/display-helpers"
@@ -12,6 +13,8 @@ import {
   resolveCompetitiveSnapshot,
   resolveExecutiveContent,
 } from "@/lib/report/executive-summary-resolve"
+import { teaserRecommendations } from "@/lib/report/roadmap-from-recommendations"
+import { LEVELSTACK_UNLOCK_97_CTA } from "@/lib/reports/paid-owner-report-chrome"
 import { cn } from "@/lib/utils"
 
 const LOCKED_SECTION_FALLBACK: Record<string, string> = {
@@ -126,10 +129,10 @@ function CompetitiveContextPreview({ report }: { report: LevelstackReportJson })
 }
 
 function ActionPlanPreview({ report }: { report: LevelstackReportJson }) {
-  const count = report.meta.teaserActionCount ?? 0
-  const teaserItems = report.actionPlan.thisWeek.slice(0, 3)
+  const teaser = teaserRecommendations(report, 3)
+  const count = teaser.count
 
-  if (count <= 0 && teaserItems.length === 0) {
+  if (count <= 0 && teaser.titles.length === 0) {
     return (
       <p className="text-muted-foreground text-sm max-w-md mx-auto">
         Your prioritized action plan unlocks with the Action Roadmap.
@@ -145,12 +148,12 @@ function ActionPlanPreview({ report }: { report: LevelstackReportJson }) {
   return (
     <div className="space-y-3 max-w-lg mx-auto text-left">
       <p className="text-sm font-medium text-center">{headline}</p>
-      {teaserItems.length > 0 ? (
+      {teaser.titles.length > 0 ? (
         <BlurredTeaser>
           <ul className="space-y-2 list-none pl-0">
-            {teaserItems.map((item, i) => (
+            {teaser.titles.map((title, i) => (
               <li key={i} className="text-sm text-foreground">
-                {item.task}
+                {title}
               </li>
             ))}
             <li className="text-sm text-muted-foreground">+ more in Action Roadmap…</li>
@@ -168,6 +171,10 @@ export function LockedSectionPreview({
 }: LockedSectionPreviewProps) {
   const label = LOCKED_SECTION_LABELS[sectionId] ?? "This section"
   const [unlockModalOpen, setUnlockModalOpen] = useState(false)
+  const { suppressLevelstackPurchaseCtas, actionRoadmapReportId } =
+    usePaidOwnerReportChrome()
+  const paidOwner =
+    suppressLevelstackPurchaseCtas && Boolean(actionRoadmapReportId)
 
   return (
     <div className="px-6 py-8 text-center">
@@ -182,21 +189,33 @@ export function LockedSectionPreview({
         <ActionPlanPreview report={report} />
       ) : (
         <p className="text-muted-foreground text-sm max-w-md mx-auto mb-4">
-          {LOCKED_SECTION_FALLBACK[sectionId] ??
-            "Included in the Full LevelStack Report ($97)."}
+          {paidOwner
+            ? "Included in your Action Roadmap — not part of this free Visibility Snapshot."
+            : (LOCKED_SECTION_FALLBACK[sectionId] ??
+              "Included in the Full LevelStack Report ($97).")}
         </p>
       )}
 
-      <Button variant="brand" className="mt-6" onClick={() => setUnlockModalOpen(true)}>
-        Unlock Action Roadmap — $97
-      </Button>
+      {paidOwner && actionRoadmapReportId ? (
+        <Button variant="brand" className="mt-6" asChild>
+          <a href={`/reports/${actionRoadmapReportId}`}>
+            View your Action Roadmap
+          </a>
+        </Button>
+      ) : (
+        <Button variant="brand" className="mt-6" onClick={() => setUnlockModalOpen(true)}>
+          {LEVELSTACK_UNLOCK_97_CTA}
+        </Button>
+      )}
 
       <SapBridgeBlock placement="freeLocked" reportId={reportId} />
-      <LockedSectionUnlockModal
-        open={unlockModalOpen}
-        onOpenChange={setUnlockModalOpen}
-        reportId={reportId}
-      />
+      {!paidOwner ? (
+        <LockedSectionUnlockModal
+          open={unlockModalOpen}
+          onOpenChange={setUnlockModalOpen}
+          reportId={reportId}
+        />
+      ) : null}
     </div>
   )
 }

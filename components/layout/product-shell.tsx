@@ -12,6 +12,7 @@ type ProductShellProps = {
   showSignOut?: boolean
   navVariant?: NavVariant
   reportId?: string
+  actionRoadmapReportId?: string
   className?: string
   /** Marketing pages: navy hero band (seo /results/ report hero uses --hero-bg inside report card) */
   hero?: {
@@ -39,6 +40,7 @@ export function ProductShell({
   showSignOut = false,
   navVariant = "default",
   reportId,
+  actionRoadmapReportId,
   className,
   hero,
   overlapHero = false,
@@ -58,6 +60,7 @@ export function ProductShell({
         showSignOut={showSignOut}
         navVariant={navVariant}
         reportId={reportId}
+        actionRoadmapReportId={actionRoadmapReportId}
       />
 
       {hero && (

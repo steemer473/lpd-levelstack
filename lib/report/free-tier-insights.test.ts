@@ -232,12 +232,24 @@ describe("free-tier-insights", () => {
     expect(content.structuredInsights?.reputationGap.some((p) => p.kind === "muted")).toBe(true)
   })
 
-  it("leaves paid reports unchanged", () => {
+  it("applies finding-driven insights on paid without $97 upgrade teasers", () => {
     const paid = {
       ...freeReport,
       meta: { ...freeReport.meta, reportTier: "full_report" as const },
     }
     const result = applyFreeTierExecutiveInsights(paid, paid.executiveSummary.insights!)
-    expect(result.reputationGap).toBe(paid.executiveSummary.insights!.reputationGap)
+    expect(result.whatProspectsSee).toContain("From public research:")
+    expect(result.reputationGap).toContain("Social presence compares")
+    expect(result.reputationGap).not.toMatch(/\$97/)
+    expect(result.revenueRisk).not.toMatch(/\$97/)
+    expect(result.revenueRisk).not.toContain("does not ask about")
+
+    const content = resolveExecutiveContent(paid)
+    expect(content.structuredInsights?.reputationGap.some((p) => p.kind === "muted")).toBe(
+      false,
+    )
+    expect(content.structuredInsights?.revenueRisk.some((p) => p.kind === "muted")).toBe(
+      false,
+    )
   })
 })

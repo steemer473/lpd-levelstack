@@ -87,3 +87,25 @@ export function formatRoiLine(tier: string): string | null {
   const annual = midpoint * 12
   return `At your contract tier, one missed lead per month could represent roughly $${annual.toLocaleString()}/year — based on the range you selected.`
 }
+
+/**
+ * Combined product + score-basis + methodology note (dogfood UX).
+ * Free Overall uses Search + Social only; paid uses all scored diagnostics.
+ */
+export const SCORE_DISCLAIMER = {
+  title: "About these scores",
+  product:
+    `${PRODUCT_NAMES.free} is a limited free view (Search footprint and Social & off-site). ${PRODUCT_NAMES.paid} is the full paid diagnostic with every unlocked section.`,
+  scoreBasis:
+    "Free and paid Overall scores often differ because they average different section sets — not because one run is “wrong.”",
+  methodology:
+    "Scores summarize public presence signals at the time of the run. They are estimates, not a guarantee of ranking, traffic, or revenue.",
+} as const
+
+export function scoreDisclaimerParagraphs(): string[] {
+  return [
+    SCORE_DISCLAIMER.product,
+    SCORE_DISCLAIMER.scoreBasis,
+    SCORE_DISCLAIMER.methodology,
+  ]
+}

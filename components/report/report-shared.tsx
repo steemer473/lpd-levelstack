@@ -23,7 +23,9 @@ import { ExecutiveSummaryConversion } from "@/components/report/executive-summar
 import { ExecutiveSummaryDashboard } from "@/components/report/executive-summary-dashboard"
 import { ActionItemMatrixRow } from "@/components/report/action-item-matrix-row"
 import { LockedSectionPreview } from "@/components/report/locked-section-preview"
+import { RecommendationMatrixRow } from "@/components/report/recommendation-matrix-row"
 import { SapBridgeBlock } from "@/components/report/sap-bridge-block"
+import { usePaidOwnerReportChrome } from "@/components/report/paid-owner-report-context"
 import { FindingCard, FindingSeverityBlock } from "@/components/report/finding-card"
 import {
   DataPanel,
@@ -46,6 +48,10 @@ import {
 } from "@/lib/report/display-helpers"
 import { REPORT_INTRO } from "@/lib/report/section-guides"
 import { UPGRADE_BANNER } from "@/lib/report/outcome-copy"
+import {
+  ownerRoleLabel,
+  roadmapBucketsFromReport,
+} from "@/lib/report/roadmap-from-recommendations"
 import { getHubCartUrl, getHubSeoWaitlistUrl, getHubWorkflowWaitlistUrl } from "@/lib/urls"
 import { cn } from "@/lib/utils"
 
@@ -220,9 +226,34 @@ export function UpgradeBanner({
 }) {
   if (report.meta.reportTier !== "free_snapshot") return null
 
+  const { suppressLevelstackPurchaseCtas, actionRoadmapReportId } =
+    usePaidOwnerReportChrome()
+
   const issueCount =
     report.meta.issueCountForUpgrade ??
     report.meta.criticalCount + report.meta.highCount
+
+  if (suppressLevelstackPurchaseCtas && actionRoadmapReportId) {
+    return (
+      <div className="rpt-upsell flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-sm leading-relaxed">
+          <p className="font-medium text-white">
+            You already have an Action Roadmap
+          </p>
+          <p className="mt-1 text-white/80">
+            This page is a free Visibility Snapshot. Open your full Action Roadmap
+            anytime.
+          </p>
+        </div>
+        <Button variant="brand" asChild className="min-h-10 shrink-0">
+          <Link href={`/reports/${actionRoadmapReportId}`}>
+            View your Action Roadmap
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        </Button>
+      </div>
+    )
+  }
 
   const upgradeUrl = getHubCartUrl({ reportId, source: "levelstack_report" })
 
@@ -372,6 +403,27 @@ export function ReportDashboard({ report }: { report: LevelstackReportJson }) {
   )
 }
 
+const ACTION_PLAN_GROUPS = [
+  {
+    key: "week" as const,
+    label: "This week",
+    className:
+      "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-200",
+  },
+  {
+    key: "month" as const,
+    label: "This month",
+    className:
+      "bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200",
+  },
+  {
+    key: "quarter" as const,
+    label: "This quarter",
+    className:
+      "bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-200",
+  },
+] as const
+
 export function ActionPlanPanel({
   report,
   reportId,
@@ -380,66 +432,119 @@ export function ActionPlanPanel({
   reportId?: string
 }) {
   const isFree = report.meta.reportTier === "free_snapshot"
-  const groups = [
-    {
-      key: "week",
-      label: "This week",
-      className:
-        "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-200",
-    },
-    {
-      key: "month",
-      label: "This month",
-      className:
-        "bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200",
-    },
-    {
-      key: "quarter",
-      label: "This quarter",
-      className:
-        "bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-200",
-    },
-  ] as const
+  const recBuckets = roadmapBucketsFromReport(report)
+
+  if (recBuckets) {
+    const flat = [
+      ...recBuckets.week.map((rec) => ({ bucket: "week" as const, rec })),
+      ...recBuckets.month.map((rec) => ({ bucket: "month" as const, rec })),
+      ...recBuckets.quarter.map((rec) => ({ bucket: "quarter" as const, rec })),
+    ]
+    const numberById = new Map(flat.map((row, i) => [row.rec.id, i + 1]))
+
+    return (
+      <div className="space-y-5">
+        {ACTION_PLAN_GROUPS.map((g) => (
+          <div key={g.key}>
+            <span
+              className={cn(
+                "mb-2 inline-block rounded px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider",
+                g.className,
+              )}
+            >
+              {g.label}
+            </span>
+            <div className="space-y-2">
+              {recBuckets[g.key].map((rec) => (
+                <div key={rec.id}>
+                  <RecommendationMatrixRow
+                    recommendation={rec}
+                    itemNumber={numberById.get(rec.id) ?? 1}
+                    reportId={reportId}
+                  />
+                  {rec.sourceSectionId ? (
+                    <p className="mt-1 text-[10px] text-muted-foreground/80">
+                      From: {rec.sourceSectionId.replaceAll("_", " ")}
+                    </p>
+                  ) : null}
+                  {rec.automatability.automatable ? (
+                    <AutomatorFlagCallout
+                      product={rec.automatability.lpdProduct ?? "seo"}
+                      reportId={reportId}
+                    />
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+        {!isFree ? (
+          <SapBridgeBlock placement="fullActionPlan" reportId={reportId} />
+        ) : null}
+      </div>
+    )
+  }
 
   const items = {
     week: report.actionPlan.thisWeek,
     month: report.actionPlan.thisMonth,
     quarter: report.actionPlan.thisQuarter,
   }
-
-  let num = 0
+  const legacyFlat = [
+    ...items.week.map((item, i) => ({ key: "week" as const, item, n: i })),
+    ...items.month.map((item, i) => ({
+      key: "month" as const,
+      item,
+      n: items.week.length + i,
+    })),
+    ...items.quarter.map((item, i) => ({
+      key: "quarter" as const,
+      item,
+      n: items.week.length + items.month.length + i,
+    })),
+  ]
 
   return (
     <div className="space-y-5">
-      {groups.map((g) => (
+      {ACTION_PLAN_GROUPS.map((g) => (
         <div key={g.key}>
           <span
             className={cn(
-              "text-[10px] uppercase tracking-wider font-medium px-2.5 py-1 rounded inline-block mb-2",
+              "mb-2 inline-block rounded px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider",
               g.className,
             )}
           >
             {g.label}
           </span>
           <div className="space-y-2">
-            {items[g.key].map((item) => {
-            num += 1
-            return (
-              <div key={`${g.key}-${num}`}>
-                <ActionItemMatrixRow item={item} itemNumber={num} reportId={reportId} />
-                {item.findingRef ? (
-                  <p className="mt-1 text-[10px] text-muted-foreground/80">From: {item.findingRef}</p>
-                ) : null}
-                {item.automatorFlag ? (
-                  <AutomatorFlagCallout product={item.automatorProduct ?? "seo"} reportId={reportId} />
-                ) : null}
-              </div>
-            )
-            })}
+            {legacyFlat
+              .filter((row) => row.key === g.key)
+              .map((row) => (
+                <div key={`${g.key}-${row.n}`}>
+                  <ActionItemMatrixRow
+                    item={row.item}
+                    itemNumber={row.n + 1}
+                    reportId={reportId}
+                  />
+                  {row.item.findingRef ? (
+                    <p className="mt-1 text-[10px] text-muted-foreground/80">
+                      From: {row.item.findingRef}
+                    </p>
+                  ) : null}
+                  {row.item.automatorFlag ? (
+                    <AutomatorFlagCallout
+                      product={row.item.automatorProduct ?? "seo"}
+                      reportId={reportId}
+                    />
+                  ) : null}
+                </div>
+              ))}
           </div>
         </div>
       ))}
-      {!isFree ? <SapBridgeBlock placement="fullActionPlan" reportId={reportId} /> : null}
+      {!isFree ? (
+        <SapBridgeBlock placement="fullActionPlan" reportId={reportId} />
+      ) : null}
     </div>
   )
 }
@@ -451,23 +556,21 @@ export function ActionPlanKanban({
   report: LevelstackReportJson
   reportId?: string
 }) {
+  const recBuckets = roadmapBucketsFromReport(report)
   const columns = [
     {
       key: "week" as const,
       label: "This week",
-      items: report.actionPlan.thisWeek,
       accent: "border-t-red-500 bg-red-50/50 dark:bg-red-950/20",
     },
     {
       key: "month" as const,
       label: "This month",
-      items: report.actionPlan.thisMonth,
       accent: "border-t-amber-500 bg-amber-50/40 dark:bg-amber-950/20",
     },
     {
       key: "quarter" as const,
       label: "This quarter",
-      items: report.actionPlan.thisQuarter,
       accent: "border-t-green-600 bg-green-50/40 dark:bg-green-950/20",
     },
   ]
@@ -477,28 +580,63 @@ export function ActionPlanKanban({
       {columns.map((col) => (
         <div
           key={col.key}
-          className={cn("rounded-lg border border-border border-t-4 p-3", col.accent)}
+          className={cn(
+            "rounded-lg border border-border border-t-4 p-3",
+            col.accent,
+          )}
         >
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+          <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             {col.label}
           </p>
           <ul className="space-y-3">
-            {col.items.map((item, i) => (
-              <li
-                key={i}
-                className="rounded-md border border-border/80 bg-card p-3 text-sm shadow-sm"
-              >
-                <p className="font-medium leading-snug">{item.task}</p>
-                {item.sub ? (
-                  <p className="text-xs text-muted-foreground mt-1">{item.sub}</p>
-                ) : null}
-                <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
-                  <span>{item.who}</span>
-                  <span>·</span>
-                  <span>{item.time}</span>
-                </div>
-              </li>
-            ))}
+            {recBuckets
+              ? recBuckets[col.key].map((rec) => (
+                  <li
+                    key={rec.id}
+                    className="rounded-md border border-border/80 bg-card p-3 text-sm shadow-sm"
+                  >
+                    <div className="mb-1 flex flex-wrap gap-1.5">
+                      <span className="text-[10px] font-semibold text-muted-foreground">
+                        {rec.priority}
+                      </span>
+                    </div>
+                    <p className="font-medium leading-snug">{rec.title}</p>
+                    {rec.summary ? (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {rec.summary}
+                      </p>
+                    ) : null}
+                    <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+                      <span>{ownerRoleLabel(rec.owner.role)}</span>
+                      <span>·</span>
+                      <span>{rec.effortHint ?? "—"}</span>
+                    </div>
+                  </li>
+                ))
+              : report.actionPlan[
+                  col.key === "week"
+                    ? "thisWeek"
+                    : col.key === "month"
+                      ? "thisMonth"
+                      : "thisQuarter"
+                ].map((item, i) => (
+                  <li
+                    key={i}
+                    className="rounded-md border border-border/80 bg-card p-3 text-sm shadow-sm"
+                  >
+                    <p className="font-medium leading-snug">{item.task}</p>
+                    {item.sub ? (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {item.sub}
+                      </p>
+                    ) : null}
+                    <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+                      <span>{item.who}</span>
+                      <span>·</span>
+                      <span>{item.time}</span>
+                    </div>
+                  </li>
+                ))}
           </ul>
         </div>
       ))}
@@ -848,7 +986,13 @@ export function ReportTabContent({
   onSelectTab?: (tabId: string) => void
   reportId?: string
 }) {
-  const { sections, actionPlan } = report
+  const { sections, actionPlan, recommendations } = report
+  const roadmapItemCount =
+    (recommendations?.length ?? 0) > 0
+      ? recommendations!.length
+      : actionPlan.thisWeek.length +
+        actionPlan.thisMonth.length +
+        actionPlan.thisQuarter.length
 
   if (activeTab === "executive_summary") {
     const onTab = onSelectTab ?? (() => {})
@@ -881,10 +1025,7 @@ export function ReportTabContent({
           tabId="action_plan"
           trailing={
             <span className="text-[11px] font-medium px-2.5 py-1 rounded bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-200">
-              {actionPlan.thisWeek.length +
-                actionPlan.thisMonth.length +
-                actionPlan.thisQuarter.length}{" "}
-              items
+              {roadmapItemCount} items
             </span>
           }
         />
@@ -912,7 +1053,33 @@ export function ReportTabContent({
     )
   }
 
-  return sections
-    .filter((s) => s.id === activeTab)
-    .map((s) => <SectionPanel key={s.id} section={s} reportDate={reportDate} />)
+  const matching = sections.filter((s) => s.id === activeTab)
+  if (matching.length === 0) {
+    const tabLabel =
+      SECTION_TAB_ORDER.find((t) => t.id === activeTab)?.label ?? activeTab
+    return (
+      <div className="rounded-lg border border-border bg-muted/30 px-4 py-8 text-center space-y-3">
+        <h3 className="text-base font-semibold text-foreground">{tabLabel}</h3>
+        <p className="text-sm text-muted-foreground max-w-md mx-auto">
+          This section wasn&apos;t included in this report version. Rebuild the
+          report from your latest intake to refresh findings, or open a newer
+          Visibility Snapshot if you have one.
+        </p>
+        {reportId ? (
+          <p className="text-sm">
+            <a
+              href={`/reports/${reportId}?view=snapshot`}
+              className="text-brand-orange font-medium underline-offset-4 hover:underline"
+            >
+              Try free snapshot backup
+            </a>
+          </p>
+        ) : null}
+      </div>
+    )
+  }
+
+  return matching.map((s) => (
+    <SectionPanel key={s.id} section={s} reportDate={reportDate} />
+  ))
 }

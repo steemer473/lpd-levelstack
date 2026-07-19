@@ -1,6 +1,6 @@
 # LevelStack vNext — PRD
 
-**Status:** In progress — P0 Wave A closed 2026-07-19 (P0-1…P0-4); **P1-3 shipped 2026-07-19**; **P2-2 + P2-3 locked 2026-07-19**; **P2-1 schema shipped 2026-07-19**; **P2-4 dual-write shipped 2026-07-19** (Search + Reputation → `recommendations[]`; Clutch/G2/Capterra cluster); **next engineering: P2-5** (Action Roadmap UI). Open ODs: OD-5, OD-6, OD-8.
+**Status:** In progress — P0 Wave A closed 2026-07-19 (P0-1…P0-4); **P1-3 shipped 2026-07-19**; **P2-2 + P2-3 locked 2026-07-19**; **P2-1 schema shipped 2026-07-19**; **P2-4 dual-write shipped 2026-07-19**; **P2-5 Action Roadmap UI shipped 2026-07-19** (OD-5 Option B). Open ODs: OD-6, OD-8.
 **Date:** 2026-07-18 (P0-3 status updated 2026-07-19)
 **Inputs:**
 
@@ -9,7 +9,7 @@
 - `lpd-planning` tracking files (`PRODUCT_ROADMAP.md`, `CURRENT_SPRINT_GOALS.md`, `STRATEGY.md`, `FUNNELS_AND_MARKETING.md`, `REPORT_VALUE_DELIVERY.md`, `COPY_BANK.md`) — cross-referenced in §10 and folded into §7's Open Decisions where they conflict with or duplicate critique/audit findings
 - `level-play-brand-os` (company doctrine, one level above `lpd-planning` per its own `BRAND_SOURCE.md` hierarchy) — specifically `product/AI_PRINCIPLES.md`, `ai/AI_CONSTITUTION.md`, `product/PRODUCT_ARCHITECTURE.md`, `product/PRODUCT_HIERARCHY.md`, `product/PRODUCT_DECISION_FRAMEWORK.md`, `brand/LANGUAGE_RULES.md`, `company/OPERATING_MODEL.md` — checked after drafting, cross-referenced in §10 and folded into §7 as OD-14
 
-**How to read this doc:** Requirements (§4) are scoped to critique §15's P0/P1/P2 items only. P3 and all V2/V3 modules are listed in the Appendix as explicitly out of scope for this PRD. Section 7 ("Open Decisions") contains every point where the critique's recommended architecture, the audit's findings about current code, and `lpd-planning`'s existing tracking/locked decisions do not agree, or where the audit could not confirm something a requirement depends on. **Eleven of fourteen (OD-1 through OD-4, OD-7, OD-9 through OD-14) are resolved** — marked RESOLVED in §7, with the resolution reflected in the affected requirements. **The remaining three (OD-5, OD-6, OD-8) are still open** and are gating questions for you to close before engineering starts on the affected requirement(s). §10 maps this PRD against `lpd-planning`'s existing tickets and locked decisions, and against `level-play-brand-os` doctrine, directly.
+**How to read this doc:** Requirements (§4) are scoped to critique §15's P0/P1/P2 items only. P3 and all V2/V3 modules are listed in the Appendix as explicitly out of scope for this PRD. Section 7 ("Open Decisions") contains every point where the critique's recommended architecture, the audit's findings about current code, and `lpd-planning`'s existing tracking/locked decisions do not agree, or where the audit could not confirm something a requirement depends on. **Twelve of fourteen (OD-1 through OD-5, OD-7, OD-9 through OD-14) are resolved** — marked RESOLVED in §7, with the resolution reflected in the affected requirements. **The remaining two (OD-6, OD-8) are still open** and are gating questions for you to close before engineering starts on the affected requirement(s). §10 maps this PRD against `lpd-planning`'s existing tickets and locked decisions, and against `level-play-brand-os` doctrine, directly.
 
 ---
 
@@ -369,12 +369,14 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 
 #### P2-5 — `[PRODUCT]` Ship the Decision Roadmap as the primary UI surface, positioned as the paid-tier differentiator
 
+**Status:** **Shipped 2026-07-19** — Action Roadmap UI over `recommendations[]`; OD-5 Option B (capped free teaser). Findings/actionPlan remain for section UI and legacy fallback.
+
 **Description:** Ship the Decision Roadmap — the ranked Recommendation Object list — as the primary product surface, replacing the current findings/action-plan report, and position it as the concrete added value of the $97 tier (per critique §14.4, shifting paid value toward prioritization/sequencing rather than raw finding count).
 
 **Acceptance criteria:**
 
 - A dashboard-style Decision Roadmap UI exists, surfacing ranked Recommendation Objects from P2-4's rebuilt Search + Trust output.
-- The Roadmap is gated to paid tier in a way that is consistent (no repeat of the audit's finding that `PAID_ONLY_SECTION_IDS` includes `action_plan` while free tier renders a capped version anyway) — see Open Decision in §7 on exact free-tier treatment.
+- The Roadmap is gated to paid tier with an intentional free capped teaser (OD-5 Option B) — top 3 titles on free exec; blurred on locked Action Plan tab; Who/Time/ROI/evidence/artifact stay paid. Consistent with `STRATEGY.md` teaser pattern; not a full Roadmap unlock.
 - Per §6 (UX/Format), the Roadmap is web-dashboard-primary; PDF/CSV are secondary exports of the same underlying Recommendation Objects, not separate content.
 
 **Audit references:**
@@ -473,7 +475,7 @@ Per critique §16.4: the Decision Roadmap is **web-dashboard-primary**, not PDF-
 
 ## 7. Open Decisions
 
-Every point below is a place where the critique's recommended architecture and the audit's findings about current code diverge, where `lpd-planning` or `level-play-brand-os` doctrine conflicts with or wasn't checked against a requirement, or where the audit could not confirm something a requirement above depends on. **OD-1 through OD-4, OD-7, and OD-9 through OD-14 are marked RESOLVED below** with the founder's decision and rationale (OD-7 via the 2026-07-18 audit pass); the remaining three (OD-5, OD-6, OD-8) are still open.
+Every point below is a place where the critique's recommended architecture and the audit's findings about current code diverge, where `lpd-planning` or `level-play-brand-os` doctrine conflicts with or wasn't checked against a requirement, or where the audit could not confirm something a requirement above depends on. **OD-1 through OD-5, OD-7, and OD-9 through OD-14 are marked RESOLVED below** with the founder's decision and rationale (OD-7 via the 2026-07-18 audit pass); the remaining two (OD-6, OD-8) are still open.
 
 ### OD-1 — RESOLVED: Option A — derive Overall mathematically from displayed section scores
 
@@ -515,12 +517,13 @@ Every point below is a place where the critique's recommended architecture and t
 
 
 
-### OD-5 — Free-tier treatment of the Decision Roadmap
+### OD-5 — RESOLVED: Option B — capped free teaser; full Action Roadmap paid
 
 - The audit flagged that `PAID_ONLY_SECTION_IDS` includes `action_plan` today, yet free tier renders a capped preview of it anyway (`thisWeek.slice(0,4)`) — the constant doesn't fully gate real behavior.
-- **Option A: Decision Roadmap is fully paid-gated, zero preview on free tier.** *Tradeoff: cleanest paywall and matches critique §14.4's intent to give the $97 tier "real added weight," but is a harder sell/conversion motion than a teaser.*
-- **Option B: Free tier gets a capped/teaser Roadmap** (consistent with today's `action_plan` pattern). *Tradeoff: consistent with existing free-tier upsell mechanics, but risks recreating the exact "advertised as paid, ships free" problem the audit found with Reputation/Digital Presence (P0-3) — this time for the Roadmap itself.*
-- Neither source document picks one. **Blocks:** P2-5's acceptance criteria on gating.
+- **Resolution:** Option B. Free Visibility Snapshot shows a capped teaser over `recommendations[]` (top 3 titles on free exec; blurred titles on the locked Action Plan tab). Who / Time / ROI / evidence / artifact / urgency / consequence / confidence rationale stay paid-only. Full ranked Action Roadmap UI is the $97 differentiator.
+- **Rationale:** Matches `STRATEGY.md` Decision table (“Paid (capped teaser on free)”) and existing conversion mechanics. Documented teaser rules make the intentional preview explicit so it is not confused with the P0-3 “advertised paid, ships free” bug.
+- **Action:** P2-5 acceptance criteria treat free Roadmap as teaser-only; `PAID_ONLY_SECTION_IDS` still marks `action_plan` paid while UI may render the capped preview.
+- **No longer blocks:** P2-5 gating.
 
 
 
@@ -662,7 +665,7 @@ Build order below groups requirements by what blocks what; it does not assign da
 
 **Critical path:** P1-1 → P2-1 → P2-4 → P2-5. Everything in Track 4 is gated on the scoring-integrity work in Track 2. **OD-1, OD-2, OD-3, OD-10, and OD-14 are all resolved** — P2-1 is no longer blocked on Open Decisions; it waits only on P1-1 (scoring methodology), P2-2 (evidence provenance standard), and P2-3 (confidence methodology). Persistence is JSONB + Zod (OD-3); schema/provenance work is exempt from the 2026-06-26 additive-only lock but must not introduce a premature evidence-snapshot table (OD-10).
 
-**Track 4 authorization:** OD-12 (the 3-paying-customer validation gate) is resolved — the founder, as sole approver, elects to proceed with the full P0–P2 sequence without waiting for the gate to clear. The former technical Open Decision blockers for Track 4 (OD-1, OD-2, OD-3, OD-10) are also resolved. OD-9 (naming) is resolved — "Action Roadmap" stays as the customer-facing name, no rename required. OD-13 is resolved — Report Value Slice 3 pauses and folds into P2-1/P2-4. OD-14 is resolved — schema adds `urgency`/`consequenceOfInaction` with the required guardrail (see §5, P2-1). Remaining open decisions that still affect Track 4 timing/scope are OD-5 (free-tier Roadmap teaser) and OD-6 (four-pillar IA timing).
+**Track 4 authorization:** OD-12 (the 3-paying-customer validation gate) is resolved — the founder, as sole approver, elects to proceed with the full P0–P2 sequence without waiting for the gate to clear. The former technical Open Decision blockers for Track 4 (OD-1, OD-2, OD-3, OD-10) are also resolved. OD-9 (naming) is resolved — "Action Roadmap" stays as the customer-facing name, no rename required. OD-13 is resolved — Report Value Slice 3 pauses and folds into P2-1/P2-4. OD-14 is resolved — schema adds `urgency`/`consequenceOfInaction` with the required guardrail (see §5, P2-1). OD-5 is resolved — free Roadmap teaser (Option B). Remaining open decision that still affects Track 4 timing/scope is OD-6 (four-pillar IA timing).
 
 ---
 
@@ -670,7 +673,7 @@ Build order below groups requirements by what blocks what; it does not assign da
 
 ## 10. Planning Cross-Reference
 
-This PRD was checked against `lpd-planning`'s tracking files (`PRODUCT_ROADMAP.md`, `CURRENT_SPRINT_GOALS.md`, `STRATEGY.md`, `FUNNELS_AND_MARKETING.md`, `REPORT_VALUE_DELIVERY.md`, `COPY_BANK.md`) after drafting, and later against `level-play-brand-os` doctrine (see "Brand OS cross-reference" below). This section summarizes what those checks found; the individual conflicts are folded into §7 as OD-9 through OD-14 and into the affected requirements in §4/§5 as "Planning cross-reference" notes. Nothing here is new analysis beyond those — this is the index. **OD-1 through OD-4, OD-7, and OD-9 through OD-14 have since been resolved** (see §7); this index is kept as a record of what was found, not a live list of open items — check §7 for current status. Remaining open: OD-5, OD-6, OD-8.
+This PRD was checked against `lpd-planning`'s tracking files (`PRODUCT_ROADMAP.md`, `CURRENT_SPRINT_GOALS.md`, `STRATEGY.md`, `FUNNELS_AND_MARKETING.md`, `REPORT_VALUE_DELIVERY.md`, `COPY_BANK.md`) after drafting, and later against `level-play-brand-os` doctrine (see "Brand OS cross-reference" below). This section summarizes what those checks found; the individual conflicts are folded into §7 as OD-9 through OD-14 and into the affected requirements in §4/§5 as "Planning cross-reference" notes. Nothing here is new analysis beyond those — this is the index. **OD-1 through OD-5, OD-7, and OD-9 through OD-14 have since been resolved** (see §7); this index is kept as a record of what was found, not a live list of open items — check §7 for current status. Remaining open: OD-6, OD-8.
 
 **Updates to `lpd-planning` itself, generated by these resolutions — made 2026-07-18:**
 

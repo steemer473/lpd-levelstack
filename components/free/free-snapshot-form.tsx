@@ -26,6 +26,15 @@ import {
 import { resolveFreeSnapshotSubmitRedirect } from "@/lib/intake/resolve-free-snapshot-submit-redirect"
 import { getHubPricingUrl } from "@/lib/urls"
 
+type PaidOwnerRefreshState = {
+  message: string
+  actionRoadmapReportId: string
+  freeReportId: string
+  signInUrl?: string
+  /** Session already matches — can open free report without magic link. */
+  canOpenFreeDirectly: boolean
+}
+
 export function FreeSnapshotForm() {
   const router = useRouter()
   const form = useForm<FreeSnapshotFormValues>({
@@ -39,18 +48,22 @@ export function FreeSnapshotForm() {
   const [existingUserSignInUrl, setExistingUserSignInUrl] = useState<string | null>(
     null,
   )
+  const [paidOwnerRefresh, setPaidOwnerRefresh] = useState<PaidOwnerRefreshState | null>(
+    null,
+  )
   const [submitting, setSubmitting] = useState(false)
   const noticeRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!submitNotice) return
+    if (!submitNotice && !paidOwnerRefresh) return
     noticeRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
-  }, [submitNotice])
+  }, [submitNotice, paidOwnerRefresh])
 
   async function onSubmit(values: FreeSnapshotFormValues) {
     setSubmitError(null)
     setSubmitNotice(null)
     setExistingUserSignInUrl(null)
+    setPaidOwnerRefresh(null)
 
     setSubmitting(true)
     try {
@@ -66,6 +79,8 @@ export function FreeSnapshotForm() {
         signInUrl?: string
         existingUser?: boolean
         redirectImmediately?: boolean
+        branch?: string
+        actionRoadmapReportId?: string
       }
 
       if (!res.ok) {
@@ -76,6 +91,18 @@ export function FreeSnapshotForm() {
       const action = resolveFreeSnapshotSubmitRedirect(json)
 
       switch (action?.type) {
+        case "paid_owner_refresh": {
+          setPaidOwnerRefresh({
+            message:
+              json.message ??
+              "You already have an Action Roadmap. Continue with this free snapshot when you're ready.",
+            actionRoadmapReportId: action.actionRoadmapReportId,
+            freeReportId: action.reportId,
+            signInUrl: action.signInUrl,
+            canOpenFreeDirectly: Boolean(action.redirectImmediately),
+          })
+          return
+        }
         case "redirect_report":
         case "redirect_report_fallback":
           router.push(`/reports/${action.reportId}`)
@@ -101,6 +128,8 @@ export function FreeSnapshotForm() {
       setSubmitting(false)
     }
   }
+
+  const formLocked = Boolean(submitNotice) || Boolean(paidOwnerRefresh)
 
   return (
     <Form {...form}>
@@ -165,6 +194,36 @@ export function FreeSnapshotForm() {
           )}
         />
 
+        {paidOwnerRefresh && (
+          <div
+            ref={noticeRef}
+            className="rounded-md bg-muted border border-border p-4 space-y-3"
+            role="status"
+          >
+            <p className="text-sm text-muted-foreground">{paidOwnerRefresh.message}</p>
+            <div className="flex flex-col gap-2">
+              <Button variant="brand" asChild className="w-full">
+                <Link href={`/reports/${paidOwnerRefresh.actionRoadmapReportId}`}>
+                  View your Action Roadmap
+                </Link>
+              </Button>
+              {paidOwnerRefresh.canOpenFreeDirectly || !paidOwnerRefresh.signInUrl ? (
+                <Button variant="outline" asChild className="w-full">
+                  <Link href={`/reports/${paidOwnerRefresh.freeReportId}`}>
+                    Continue with this free snapshot
+                  </Link>
+                </Button>
+              ) : (
+                <Button variant="outline" asChild className="w-full">
+                  <a href={paidOwnerRefresh.signInUrl}>
+                    Continue with this free snapshot
+                  </a>
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
         {submitNotice && (
           <div
             ref={noticeRef}
@@ -189,26 +248,30 @@ export function FreeSnapshotForm() {
           </p>
         )}
 
-        <Button
-          type="submit"
-          variant="brand"
-          className="w-full"
-          disabled={submitting || Boolean(submitNotice)}
-        >
-          {submitting
-            ? "Running your snapshot…"
-            : submitNotice
-              ? "Use the link above to continue"
-              : "Run my snapshot"}
-        </Button>
+        {!paidOwnerRefresh && (
+          <Button
+            type="submit"
+            variant="brand"
+            className="w-full"
+            disabled={submitting || formLocked}
+          >
+            {submitting
+              ? "Running your snapshot…"
+              : submitNotice
+                ? "Use the link above to continue"
+                : "Run my snapshot"}
+          </Button>
+        )}
 
-        <p className="text-muted-foreground text-xs text-center">
-          Action Roadmap from{" "}
-          <Link href={getHubPricingUrl()} className="underline">
-            $97
-          </Link>
-          . No credit card required for the snapshot.
-        </p>
+        {!paidOwnerRefresh && (
+          <p className="text-muted-foreground text-xs text-center">
+            Action Roadmap from{" "}
+            <Link href={getHubPricingUrl()} className="underline">
+              $97
+            </Link>
+            . No credit card required for the snapshot.
+          </p>
+        )}
       </form>
     </Form>
   )

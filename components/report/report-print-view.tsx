@@ -7,6 +7,10 @@ import {
   sectionScoreAccent,
 } from "@/lib/report/display-helpers"
 import { resolveExecutiveContent } from "@/lib/report/executive-summary-resolve"
+import {
+  ownerRoleLabel,
+  roadmapBucketsFromReport,
+} from "@/lib/report/roadmap-from-recommendations"
 import { FormattedReportText } from "@/components/report/formatted-report-text"
 import { ReportPrintViewFree } from "@/components/report/report-print-view-free"
 
@@ -43,6 +47,7 @@ function ReportPrintViewFull({ report }: ReportPrintViewProps) {
   const intro =
     executiveSummary.paragraphs[0] ??
     "Your digital presence shows opportunities to improve visibility, trust signals, and conversion."
+  const recBuckets = roadmapBucketsFromReport(report)
 
   return (
     <article className="max-w-4xl mx-auto p-8 text-black bg-white text-sm leading-relaxed print:p-6">
@@ -150,10 +155,49 @@ function ReportPrintViewFull({ report }: ReportPrintViewProps) {
           </div>
         </div>
 
-        {actionPlan.thisWeek.length +
-          actionPlan.thisMonth.length +
-          actionPlan.thisQuarter.length >
-        0 ? (
+        {recBuckets ? (
+          <>
+            <h3 className="font-medium mb-2">Prioritized action plan</h3>
+            {(
+              [
+                { label: "This week", items: recBuckets.week },
+                { label: "This month", items: recBuckets.month },
+                { label: "This quarter", items: recBuckets.quarter },
+              ] as const
+            )
+              .filter((g) => g.items.length > 0)
+              .map((group) => (
+                <div key={group.label} className="mb-4 break-inside-avoid">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                    {group.label}
+                  </p>
+                  <table className="w-full text-xs border-collapse border border-gray-200 mb-2">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200">
+                        <th className="text-left py-2 px-2 font-semibold">Action</th>
+                        <th className="text-left py-2 px-2 font-semibold">Who</th>
+                        <th className="text-left py-2 px-2 font-semibold">Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.items.map((item) => (
+                        <tr key={item.id} className="border-b border-gray-100">
+                          <td className="py-2 px-2">{item.title}</td>
+                          <td className="py-2 px-2">
+                            {ownerRoleLabel(item.owner.role)}
+                          </td>
+                          <td className="py-2 px-2">{item.effortHint ?? "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+          </>
+        ) : actionPlan.thisWeek.length +
+            actionPlan.thisMonth.length +
+            actionPlan.thisQuarter.length >
+          0 ? (
           <>
             <h3 className="font-medium mb-2">Prioritized action plan</h3>
             {(

@@ -4,7 +4,9 @@ import type { ReactNode } from "react"
 import { Lock } from "lucide-react"
 import Link from "next/link"
 
+import { usePaidOwnerReportChrome } from "@/components/report/paid-owner-report-context"
 import { Button } from "@/components/ui/button"
+import { LEVELSTACK_UNLOCK_97_CTA } from "@/lib/reports/paid-owner-report-chrome"
 import { getHubCartUrl, type HubUpgradeSource } from "@/lib/urls"
 import { cn } from "@/lib/utils"
 
@@ -23,7 +25,18 @@ export function UpsellBlurOverlay({
   reportId,
   source = "levelstack_report",
 }: UpsellBlurOverlayProps) {
-  const upgradeUrl = getHubCartUrl({ reportId, source })
+  const { suppressLevelstackPurchaseCtas, actionRoadmapReportId } =
+    usePaidOwnerReportChrome()
+
+  const ctaHref =
+    suppressLevelstackPurchaseCtas && actionRoadmapReportId
+      ? `/reports/${actionRoadmapReportId}`
+      : getHubCartUrl({ reportId, source })
+  const ctaLabel =
+    suppressLevelstackPurchaseCtas && actionRoadmapReportId
+      ? "View your Action Roadmap"
+      : LEVELSTACK_UNLOCK_97_CTA
+
   return (
     <div className={cn("grid overflow-hidden rounded-lg", className)}>
       <div
@@ -36,7 +49,7 @@ export function UpsellBlurOverlay({
         <Lock className="h-5 w-5 shrink-0 text-brand-orange" aria-hidden />
         <p className="text-sm font-medium text-foreground max-w-xs">{message}</p>
         <Button variant="brand" size="sm" asChild className="shrink-0">
-          <Link href={upgradeUrl}>Unlock Action Roadmap — $97</Link>
+          <Link href={ctaHref}>{ctaLabel}</Link>
         </Button>
       </div>
     </div>

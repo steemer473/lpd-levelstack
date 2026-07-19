@@ -22,6 +22,7 @@ import {
 } from "@/lib/pipeline/serp-backed-sections"
 import { SYNTHESIS_SYSTEM_PROMPT } from "@/lib/pipeline/synthesis-prompts"
 import type { ResearchBundle } from "@/lib/pipeline/research-types"
+import { ensureSocialOffsiteSection } from "@/lib/report/hydrate-social-offsite"
 
 const synthesisExecutiveSchema = executiveSummarySchema.extend({
   paragraphs: z.array(z.string()).min(2).max(5),
@@ -74,6 +75,15 @@ function compactBundleForPrompt(bundle: ResearchBundle): string {
       pageSpeed: bundle.digitalPresence.pageSpeed,
       gbp: bundle.digitalPresence.gbp,
       social: bundle.digitalPresence.social,
+    },
+    socialSearch: {
+      platforms: bundle.socialSearch.platforms.slice(0, 8).map((p) => ({
+        platform: p.platform,
+        found: p.found,
+        title: p.title,
+        url: p.url,
+        source: p.source,
+      })),
     },
     revenueFunnel: {
       intakeNotes: bundle.revenueFunnel.intakeNotes,
@@ -231,7 +241,7 @@ Produce sections, executiveSummary, and actionPlan per schema.`
         : actionPlan.thisWeek.map((a) => a.task)
     return finalizeSynthesis(
       intake,
-      fullParsed.data.sections,
+      ensureSocialOffsiteSection(fullParsed.data.sections, baselineSections),
       { ...fullParsed.data.executiveSummary, firstSteps },
       actionPlan,
       true,
@@ -244,10 +254,14 @@ Produce sections, executiveSummary, and actionPlan per schema.`
   })
   if (coreParsed.success) {
     console.warn("[synthesis] actionPlan missing or invalid; using finding-linked fallback")
-    const actionPlan = buildActionPlanFromSections(coreParsed.data.sections, intake)
+    const sections = ensureSocialOffsiteSection(
+      coreParsed.data.sections,
+      baselineSections,
+    )
+    const actionPlan = buildActionPlanFromSections(sections, intake)
     return finalizeSynthesis(
       intake,
-      coreParsed.data.sections,
+      sections,
       {
         ...coreParsed.data.executiveSummary,
         firstSteps: actionPlan.thisWeek.map((a) => a.task),

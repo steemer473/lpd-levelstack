@@ -7,6 +7,7 @@ import { useEffect, useState } from "react"
 import { SignOutButton } from "@/components/layout/sign-out-button"
 import { buildReportResendSignInUrl } from "@/lib/auth/magic-link-callback"
 import type { NavVariant } from "@/lib/nav-variant"
+import { LEVELSTACK_UNLOCK_97_CTA } from "@/lib/reports/paid-owner-report-chrome"
 import { cn } from "@/lib/utils"
 import { getHubCartUrl, getHubPricingUrl } from "@/lib/urls"
 
@@ -15,6 +16,8 @@ type GlassNavigationProps = {
   productLabel?: string
   navVariant?: NavVariant
   reportId?: string
+  /** Ready paid Action Roadmap id (paidOwnerFree nav CTA). */
+  actionRoadmapReportId?: string
 }
 
 const navLinkClass = (active: boolean) =>
@@ -30,6 +33,7 @@ export function GlassNavigation({
   productLabel = "LevelStack",
   navVariant = "default",
   reportId,
+  actionRoadmapReportId,
 }: GlassNavigationProps) {
   const pathname = usePathname()
   const [scrollProgress, setScrollProgress] = useState(0)
@@ -87,7 +91,7 @@ export function GlassNavigation({
                   href={unlockUrl}
                   className="inline-flex items-center rounded-md bg-brand-orange px-2.5 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 sm:px-3 sm:text-sm"
                 >
-                  Unlock Action Roadmap — $97
+                  {LEVELSTACK_UNLOCK_97_CTA}
                 </a>
               </li>
               <li>
@@ -102,6 +106,22 @@ export function GlassNavigation({
                   </Link>
                 </li>
               ) : null}
+            </>
+          ) : navVariant === "paidOwnerFree" && actionRoadmapReportId ? (
+            <>
+              <li>
+                <Link
+                  href={`/reports/${actionRoadmapReportId}`}
+                  className="inline-flex items-center rounded-md bg-brand-orange px-2.5 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 sm:px-3 sm:text-sm"
+                >
+                  View your Action Roadmap
+                </Link>
+              </li>
+              <li>
+                <a href="#action-roadmap-faqs" className={navLinkClass(false)}>
+                  Questions
+                </a>
+              </li>
             </>
           ) : navVariant === "paidPendingIntake" ? (
             <>

@@ -16,6 +16,7 @@ import {
   resolveExecutiveContent,
 } from "@/lib/report/executive-summary-resolve"
 import { shouldUseAlarmSeverity } from "@/lib/report/severity-presentation"
+import { teaserRecommendations } from "@/lib/report/roadmap-from-recommendations"
 import { getHubUpgradeUrl } from "@/lib/urls"
 import { cn } from "@/lib/utils"
 
@@ -102,7 +103,7 @@ function KpiStrip({
 }
 
 export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreeProps) {
-  const { meta, sections, actionPlan } = report
+  const { meta, sections } = report
   const content = resolveExecutiveContent(report)
   const competitive = resolveCompetitiveSnapshot(report)
   const headlineParts = executiveConversionHeadlineParts(report)
@@ -114,6 +115,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
   const search = sections.find((s) => s.id === "search_footprint")
   const searchFinding = search?.findings[0]
   const previewCompetitor = competitive?.rows[0]
+  const teaser = teaserRecommendations(report, 3)
 
   const insightRows = [
     {
@@ -132,8 +134,6 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
       body: content.insights.revenueRisk,
     },
   ]
-
-  const actionItems = actionPlan.thisWeek.slice(0, 3)
 
   return (
     <article className="max-w-4xl mx-auto p-8 text-black bg-white text-sm leading-relaxed print:p-6">
@@ -328,13 +328,15 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
         <div className="grid sm:grid-cols-2 gap-6 mb-6 break-inside-avoid">
           <div>
             <h3 className="font-medium mb-2">Your next decisions</h3>
-            {actionItems.length > 0 ? (
+            {teaser.titles.length > 0 ? (
               <ul className="list-none pl-0 space-y-2">
-                {actionItems.map((item, i) => (
+                {teaser.titles.map((title, i) => (
                   <li key={i} className="border-b border-gray-100 pb-2 last:border-0">
-                    <p className="font-medium text-gray-900">{item.task}</p>
-                    {item.sub ? (
-                      <p className="text-xs text-gray-500 mt-0.5">{item.sub}</p>
+                    <p className="font-medium text-gray-900">{title}</p>
+                    {teaser.summaries[i] ? (
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {teaser.summaries[i]}
+                      </p>
                     ) : null}
                   </li>
                 ))}
