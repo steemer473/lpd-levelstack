@@ -101,6 +101,8 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 
 #### P0-2 — `[FEATURE]` Minimal AI answer-engine visibility check in free tier
 
+**Status:** **Shipped 2026-07-18** — `lpd-levelstack` [#90](https://github.com/steemer473/lpd-levelstack/pull/90). Live Google AI Overview from cached brand SERP (+0 extra calls); ChatGPT/Perplexity clients deferred to V2 Search Intelligence.
+
 **Description:** Build a real check for business presence in ChatGPT / Perplexity / Google AI Overview responses and ship it in the free tier, replacing the current hardcoded disclaimer text. Cache/batch per business on a refresh cycle rather than calling live per report view.
 
 **Acceptance criteria:**
