@@ -582,3 +582,82 @@ describe("buildSectionsFromResearch AI Overview (P0-2)", () => {
     expect(search.aiPreview?.[0]?.result).not.toMatch(/No Google AI Overview/i)
   })
 })
+
+describe("buildSectionsFromResearch P2-4 B2B reputation cluster", () => {
+  it("clusters Clutch / G2 / Capterra into one finding", () => {
+    const bundle = emptyResearchBundle()
+    bundle.reputation.searches = [
+      {
+        query: "site:clutch.co Level Play Digital",
+        results: [],
+        aiOverview: null,
+        limitation: null,
+      },
+      {
+        query: "site:g2.com Level Play Digital",
+        results: [],
+        aiOverview: null,
+        limitation: null,
+      },
+      {
+        query: "site:capterra.com Level Play Digital",
+        results: [],
+        aiOverview: null,
+        limitation: null,
+      },
+      {
+        query: "Level Play Digital yelp",
+        results: [],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+
+    // Empty results with no limitation are skipped for yelp; seed yelp as a real miss
+    bundle.reputation.searches[3] = {
+      query: "Level Play Digital yelp",
+      results: [
+        {
+          query: "Level Play Digital yelp",
+          position: 1,
+          title: "Unrelated directory",
+          link: "https://example.com/list",
+          snippet: "Directory listing",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+
+    // B2B with empty results + no limitation are skipped in cluster as not_checked —
+    // give them empty organic so they count as missing
+    for (let i = 0; i < 3; i++) {
+      bundle.reputation.searches[i] = {
+        ...bundle.reputation.searches[i]!,
+        results: [
+          {
+            query: bundle.reputation.searches[i]!.query,
+            position: 1,
+            title: "Unrelated list page",
+            link: "https://example.com/agencies",
+            snippet: "Top agencies near Atlanta",
+          },
+        ],
+      }
+    }
+
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const reputation = sections.find((s) => s.id === "online_reputation")!
+
+    const b2b = reputation.findings.filter((f) =>
+      /B2B review directories/i.test(f.label),
+    )
+    expect(b2b).toHaveLength(1)
+    expect(b2b[0]?.value).toMatch(/No Clutch|missing|G2|Capterra/i)
+
+    const separateClutch = reputation.findings.filter((f) =>
+      /^Clutch visibility$/i.test(f.label),
+    )
+    expect(separateClutch).toHaveLength(0)
+  })
+})

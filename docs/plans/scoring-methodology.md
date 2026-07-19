@@ -4,6 +4,8 @@ Internal methodology for customer-facing section scores and Overall.
 Locked decisions: OD-1 Option A, OD-2 Option A (`levelstack-vnext-prd.md` §7).
 P1-3 presentation rules (letter grade + severity chrome) are documented below.
 
+**Track 4 foundation (docs locked 2026-07-19; P2-1 schema shipped):** evidence provenance → [`evidence-provenance.md`](./evidence-provenance.md) (P2-2); confidence bands → [`confidence-methodology.md`](./confidence-methodology.md) (P2-3); Recommendation Object → [`recommendation-object.md`](./recommendation-object.md) (P2-1).
+
 ## Overall score (customer-facing)
 
 **Rule:** equal-weight rounded arithmetic mean of **displayed diagnostic section scores that have a numeric score**.
