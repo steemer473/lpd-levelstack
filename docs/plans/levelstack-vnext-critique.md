@@ -2,7 +2,7 @@
 
 *Prepared as input to PRD development. Market context current as of July 2026.*
 
-**Live status:** This document is a frozen strategic input. Implementation status, open decisions (OD-6, OD-8), and remaining backlog (including P1-4 taxonomy) live in [`levelstack-vnext-prd.md`](./levelstack-vnext-prd.md) and `lpd-planning/CURRENT_SPRINT_GOALS.md`. Do not treat §15 checkboxes as a live tracker — as of 2026-07-19, PRD P0–P2 through P2-5 (OD-5 Option B) are shipped; ChatGPT/Perplexity AI-visibility remains V2; Brand Intelligence light and four-pillar IA remain open ODs.
+**Live status:** This document is a frozen strategic input. Implementation status and remaining backlog live in [`levelstack-vnext-prd.md`](./levelstack-vnext-prd.md) and `lpd-planning/CURRENT_SPRINT_GOALS.md`. Do not treat §15 checkboxes as a live tracker — as of 2026-07-19, PRD P0–P2 through P2-5 (OD-5 Option B) are shipped; all ODs resolved (OD-6 Option B: four-pillar IA → V2; OD-8: Brand Intelligence light → V2); remaining open: P1-4 taxonomy + dogfood paid regen. ChatGPT/Perplexity AI-visibility remains V2.
 
 ---
 

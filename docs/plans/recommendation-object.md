@@ -85,4 +85,4 @@ Intensity of `urgency` and `consequenceOfInaction` scales with `confidence.band`
 ## Next
 
 - Optional: remove dual-write / deprecate `actionPlan` UI once all live reports have `recommendations`.
-- P2-7 / OD-6 — four-pillar nav (still open).
+- P2-7 / OD-6 — four-pillar nav **deferred to V2** (OD-6 Option B, 2026-07-19).

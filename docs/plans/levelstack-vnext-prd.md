@@ -1,7 +1,7 @@
 # LevelStack vNext — PRD
 
-**Status:** In progress — P0 Wave A closed 2026-07-19 (P0-1…P0-4); **P1-1…P1-3 shipped**; **P1-4 still open** (category taxonomy); **P2-2 + P2-3 locked 2026-07-19**; **P2-1 schema shipped 2026-07-19**; **P2-4 dual-write shipped 2026-07-19**; **P2-5 Action Roadmap UI shipped 2026-07-19** (OD-5 Option B; [#99](https://github.com/steemer473/lpd-levelstack/pull/99)). Open ODs: OD-6, OD-8. P2-7 gated on OD-6.
-**Date:** 2026-07-18 (P0-3 status updated 2026-07-19)
+**Status:** In progress — P0 Wave A closed 2026-07-19 (P0-1…P0-4); **P1-1…P1-3 shipped**; **P1-4 still open** (category taxonomy); **P2-2 + P2-3 locked 2026-07-19**; **P2-1 schema shipped 2026-07-19**; **P2-4 dual-write shipped 2026-07-19**; **P2-5 Action Roadmap UI shipped 2026-07-19** (OD-5 Option B; [#99](https://github.com/steemer473/lpd-levelstack/pull/99)). **All fourteen ODs resolved** (OD-6 Option B + OD-8 out-of-PRD locked 2026-07-19). **P2-7 deferred to V2.** **Next:** dogfood paid regen + P1-4.
+**Date:** 2026-07-18 (OD-6 / OD-8 resolved 2026-07-19)
 **Inputs:**
 
 - `docs/plans/levelstack-vnext-critique.md` (strategic critique, live funnel/report audit §14, fix backlog §15)
@@ -9,7 +9,7 @@
 - `lpd-planning` tracking files (`PRODUCT_ROADMAP.md`, `CURRENT_SPRINT_GOALS.md`, `STRATEGY.md`, `FUNNELS_AND_MARKETING.md`, `REPORT_VALUE_DELIVERY.md`, `COPY_BANK.md`) — cross-referenced in §10 and folded into §7's Open Decisions where they conflict with or duplicate critique/audit findings
 - `level-play-brand-os` (company doctrine, one level above `lpd-planning` per its own `BRAND_SOURCE.md` hierarchy) — specifically `product/AI_PRINCIPLES.md`, `ai/AI_CONSTITUTION.md`, `product/PRODUCT_ARCHITECTURE.md`, `product/PRODUCT_HIERARCHY.md`, `product/PRODUCT_DECISION_FRAMEWORK.md`, `brand/LANGUAGE_RULES.md`, `company/OPERATING_MODEL.md` — checked after drafting, cross-referenced in §10 and folded into §7 as OD-14
 
-**How to read this doc:** Requirements (§4) are scoped to critique §15's P0/P1/P2 items only. P3 and all V2/V3 modules are listed in the Appendix as explicitly out of scope for this PRD. Section 7 ("Open Decisions") contains every point where the critique's recommended architecture, the audit's findings about current code, and `lpd-planning`'s existing tracking/locked decisions do not agree, or where the audit could not confirm something a requirement depends on. **Twelve of fourteen (OD-1 through OD-5, OD-7, OD-9 through OD-14) are resolved** — marked RESOLVED in §7, with the resolution reflected in the affected requirements. **The remaining two (OD-6, OD-8) are still open** and are gating questions for you to close before engineering starts on the affected requirement(s). §10 maps this PRD against `lpd-planning`'s existing tickets and locked decisions, and against `level-play-brand-os` doctrine, directly.
+**How to read this doc:** Requirements (§4) are scoped to critique §15's P0/P1/P2 items only. P3 and all V2/V3 modules are listed in the Appendix as explicitly out of scope for this PRD. Section 7 ("Open Decisions") contains every point where the critique's recommended architecture, the audit's findings about current code, and `lpd-planning`'s existing tracking/locked decisions do not agree, or where the audit could not confirm something a requirement depends on. **All fourteen Open Decisions (OD-1 through OD-14) are resolved** — marked RESOLVED in §7, with the resolution reflected in the affected requirements. §10 maps this PRD against `lpd-planning`'s existing tickets and locked decisions, and against `level-play-brand-os` doctrine, directly.
 
 ---
 
@@ -60,7 +60,7 @@ This PRD exists to sequence the fix to that gap — not to scope the full nine-m
 
 Critique §15's P3 items and all V2/V3 modules from critique §7 are **out of scope** for this PRD and are listed in the Appendix for visibility only. They are not folded into any requirement below, and no requirement in §4 should be read as implicitly committing to them.
 
-**Note on "Brand Intelligence (light)":** it appears in critique §7's V1 module list, but no corresponding item exists in critique §15's P0/P1/P2 backlog, and the audit found no existing code path for website/LinkedIn brand scoring. Per this PRD's instruction to scope strictly to §15's P0–P2 items, **Brand Intelligence is not included as a requirement in §4** despite being named in §7's V1 list — it is listed in the Appendix as a V1-adjacent item pulled in from §7 but not yet backlogged with acceptance criteria. This is a gap in the source material, not a decision made here — flagged again in §7 (Open Decisions).
+**Note on "Brand Intelligence (light)":** it appears in critique §7's V1 module list, but no corresponding item exists in critique §15's P0/P1/P2 backlog, and the audit found no existing code path for website/LinkedIn brand scoring. **Resolved (OD-8, 2026-07-19):** out of this PRD — deferred to V2 Appendix with acceptance criteria to be written when that work is prioritized. Not a §4 requirement.
 
 ---
 
@@ -416,16 +416,18 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 
 #### P2-7 — `[IA]` Collapse navigation to four pillars
 
+**Status:** **Deferred to V2 (OD-6 Option B, 2026-07-19)** — not in this PRD's V1 ship set. Keep today's flat report-section nav (adapted for 2-section free tier + Action Roadmap). Revisit when Brand & Message and Revenue Readiness have real module content.
+
 **Description:** Collapse the originally-briefed nine-module navigation into four pillars — Visibility, Brand & Message, Trust, Revenue Readiness — feeding the Decision Roadmap, per critique §9.
 
 **Acceptance criteria:**
 
 - Product navigation reflects four pillars rather than a flat or nine-module structure, with granular "intelligence" concepts as sub-scores feeding each pillar and the Roadmap rather than separate destinations.
-- **This PRD does not mandate when this ships** — see Open Decision in §7 on whether four-pillar nav should ship in V1 at all, given that V1's actual module scope (Search + Trust + light Brand + Roadmap) leaves two of the four pillars (Brand & Message, Revenue Readiness) with little or no V1 content to organize.
+- **Not a V1 acceptance criterion** — OD-6 Option B defers this to V2. Criteria above apply when V2 work is prioritized.
 
 **Audit references:** None directly — the audit confirms the *current shipped* product has no nine-module nav to collapse in the first place; today's IA is six flat report sections (`search_footprint`, `online_reputation`, `digital_presence`, `revenue_funnel`, `competitive_context`, `action_plan`), not modules. The "nine modules" framing exists only in the original strategic brief the critique responded to, not in shipped code.
 
-**Dependency:** Depends on P2-5 (Decision Roadmap) being scoped, since the pillars are described as organizing content that feeds the Roadmap. Timing is an Open Decision (§7).
+**Dependency:** Deferred (OD-6 Option B). Revisit after P2-5 (shipped) when Brand & Message and Revenue Readiness have real module content.
 
 ---
 
@@ -477,7 +479,7 @@ Per critique §16.4: the Decision Roadmap is **web-dashboard-primary**, not PDF-
 
 ## 7. Open Decisions
 
-Every point below is a place where the critique's recommended architecture and the audit's findings about current code diverge, where `lpd-planning` or `level-play-brand-os` doctrine conflicts with or wasn't checked against a requirement, or where the audit could not confirm something a requirement above depends on. **OD-1 through OD-5, OD-7, and OD-9 through OD-14 are marked RESOLVED below** with the founder's decision and rationale (OD-7 via the 2026-07-18 audit pass); the remaining two (OD-6, OD-8) are still open.
+Every point below is a place where the critique's recommended architecture and the audit's findings about current code diverge, where `lpd-planning` or `level-play-brand-os` doctrine conflicts with or wasn't checked against a requirement, or where the audit could not confirm something a requirement above depends on. **All fourteen (OD-1 through OD-14) are marked RESOLVED below** with the founder's decision and rationale (OD-7 via the 2026-07-18 audit pass; OD-6 and OD-8 via the 2026-07-19 closeout).
 
 ### OD-1 — RESOLVED: Option A — derive Overall mathematically from displayed section scores
 
@@ -529,12 +531,14 @@ Every point below is a place where the critique's recommended architecture and t
 
 
 
-### OD-6 — Timing of four-pillar IA collapse
+### OD-6 — RESOLVED: Option B — defer four-pillar IA to V2
 
 - Critique §9 proposes four pillars now; but V1's actual module scope (§7: Search + Trust + light Brand + Roadmap) leaves **Brand & Message** (depends on Messaging/Intent Intelligence, both V2) and **Revenue Readiness** (no dedicated V1 module — Revenue Intelligence isn't in the V1 list) with little or no V1 content.
-- **Option A: Ship four-pillar nav in V1 anyway**, with two pillars intentionally sparse, as a forward-looking IA investment. *Tradeoff: avoids a second nav migration later, but ships a nav with two visibly empty/thin destinations at launch.*
-- **Option B: Defer pillar IA to V2**, keep V1's nav closer to today's flat section list (adapted for the 2-section free tier and Decision Roadmap). *Tradeoff: avoids shipping empty pillars, but means a second IA migration when V2 modules arrive.*
-- Also note: the audit confirms the *current shipped product* has no nine-module nav at all — it's six flat report sections — so "collapsing nine modules to four pillars" (critique §9's framing) doesn't map onto any nav migration that exists in code today; it maps onto the original brief's aspirational structure, not a live UI. **Blocks:** P2-7's timing and scope.
+- Also note: the audit confirms the *current shipped product* has no nine-module nav at all — it's six flat report sections — so "collapsing nine modules to four pillars" (critique §9's framing) doesn't map onto any nav migration that exists in code today; it maps onto the original brief's aspirational structure, not a live UI.
+- **Resolution:** Option B. Defer pillar IA to V2. Keep V1's nav as today's flat report-section list (adapted for the 2-section free tier and Action Roadmap). Do not ship empty Brand & Message / Revenue Readiness destinations.
+- **Rationale:** There is no live nine-module nav to collapse; shipping sparse pillars would be IA theater. A second migration when V2 modules arrive is cheaper than training customers on empty destinations now. Aligns with STRATEGY validation-gate re-application to net-new IA work after P2-5.
+- **Action:** P2-7 marked **Deferred to V2** in §4; no V1 engineering. Re-open when at least two of the four pillars have real module content.
+- **No longer blocks:** Track 4 closeout. P2-7 is out of this PRD's V1 ship set.
 
 
 
@@ -547,11 +551,14 @@ Every point below is a place where the critique's recommended architecture and t
 
 
 
-### OD-8 — Is "Brand Intelligence (light)" in or out of this PRD?
+### OD-8 — RESOLVED: Brand Intelligence (light) out of this PRD (deferred to V2)
 
 - Critique §7 lists Brand Intelligence (website + LinkedIn only) as part of the V1 module set. Critique §15's P0/P1/P2 backlog contains **no corresponding item** for it — it only appears in P3 as full/expanded Brand Intelligence (which is explicitly out of scope here, see Appendix).
 - Per this PRD's explicit instruction to scope requirements strictly to §15's P0–P2 items, Brand Intelligence light has no requirement entry in §4, no acceptance criteria, and no audit findings (the codebase audit found no website/LinkedIn brand-scoring code path at all).
-- **This is a gap between critique §7 and critique §15, not a decision made in this PRD.** If Brand Intelligence (light) is intended to ship as part of this V1 release, it needs its own backlog item with acceptance criteria before it can be added to §4 — it is not implicitly included by virtue of being named in §7.
+- **Resolution:** Out of this PRD. Confirmed deferred to V2 Appendix. Naming in critique §7 does not create a §4 requirement.
+- **Rationale:** No backlog item, no acceptance criteria, no existing code path — pulling it into V1 would reopen scope after P2-5 already shipped the core Recommendation Object + Action Roadmap deliverable. Website + LinkedIn brand scoring should be backlogged with criteria when V2 Brand work is prioritized (and pairs with OD-6's deferred pillars).
+- **Action:** Appendix V2 row is authoritative (no longer "provisional"). Do not add a §4 requirement unless a future PRD revision deliberately expands scope.
+- **No longer blocks:** V1 scope clarity. Brand Intelligence (light) is not engineering work under this PRD.
 
 
 
@@ -663,11 +670,11 @@ Build order below groups requirements by what blocks what; it does not assign da
 12. **P2-1** (Recommendation Object schema) — depends on P1-1 (explicit per critique §16.1), P2-2, and P2-3. OD-3 Option B (JSONB persistence) and OD-10 Option A (exempt from additive-only) are locked.
 13. **P2-4** (rebuild Search + Trust onto schema) — depends on P2-1, P1-2, P0-1, P1-1.
 14. **P2-5** (Action Roadmap dashboard UI, internally "Decision Roadmap" — see OD-9) — depends on P2-1, P2-4, and OD-5's resolution.
-15. **P2-7** (four-pillar nav) — depends on P2-5's scope being settled and OD-6's timing decision; may not be a V1 item at all depending on that decision.
+15. **P2-7** (four-pillar nav) — **Deferred to V2** (OD-6 Option B, 2026-07-19). Not in this PRD's V1 ship set.
 
 **Critical path:** P1-1 → P2-1 → P2-4 → P2-5. Everything in Track 4 is gated on the scoring-integrity work in Track 2. **OD-1, OD-2, OD-3, OD-10, and OD-14 are all resolved** — P2-1 is no longer blocked on Open Decisions; it waits only on P1-1 (scoring methodology), P2-2 (evidence provenance standard), and P2-3 (confidence methodology). Persistence is JSONB + Zod (OD-3); schema/provenance work is exempt from the 2026-06-26 additive-only lock but must not introduce a premature evidence-snapshot table (OD-10).
 
-**Track 4 authorization:** OD-12 (the 3-paying-customer validation gate) is resolved — the founder, as sole approver, elects to proceed with the full P0–P2 sequence without waiting for the gate to clear. The former technical Open Decision blockers for Track 4 (OD-1, OD-2, OD-3, OD-10) are also resolved. OD-9 (naming) is resolved — "Action Roadmap" stays as the customer-facing name, no rename required. OD-13 is resolved — Report Value Slice 3 pauses and folds into P2-1/P2-4. OD-14 is resolved — schema adds `urgency`/`consequenceOfInaction` with the required guardrail (see §5, P2-1). OD-5 is resolved — free Roadmap teaser (Option B). Remaining open decision that still affects Track 4 timing/scope is OD-6 (four-pillar IA timing).
+**Track 4 authorization:** OD-12 (the 3-paying-customer validation gate) is resolved — the founder, as sole approver, elects to proceed with the full P0–P2 sequence without waiting for the gate to clear. The former technical Open Decision blockers for Track 4 (OD-1, OD-2, OD-3, OD-10) are also resolved. OD-9 (naming) is resolved — "Action Roadmap" stays as the customer-facing name, no rename required. OD-13 is resolved — Report Value Slice 3 pauses and folds into P2-1/P2-4. OD-14 is resolved — schema adds `urgency`/`consequenceOfInaction` with the required guardrail (see §5, P2-1). OD-5 is resolved — free Roadmap teaser (Option B). OD-6 is resolved — four-pillar IA deferred to V2 (P2-7 out of V1). OD-8 is resolved — Brand Intelligence (light) out of this PRD. **No Open Decisions remain.**
 
 ---
 
@@ -675,7 +682,7 @@ Build order below groups requirements by what blocks what; it does not assign da
 
 ## 10. Planning Cross-Reference
 
-This PRD was checked against `lpd-planning`'s tracking files (`PRODUCT_ROADMAP.md`, `CURRENT_SPRINT_GOALS.md`, `STRATEGY.md`, `FUNNELS_AND_MARKETING.md`, `REPORT_VALUE_DELIVERY.md`, `COPY_BANK.md`) after drafting, and later against `level-play-brand-os` doctrine (see "Brand OS cross-reference" below). This section summarizes what those checks found; the individual conflicts are folded into §7 as OD-9 through OD-14 and into the affected requirements in §4/§5 as "Planning cross-reference" notes. Nothing here is new analysis beyond those — this is the index. **OD-1 through OD-5, OD-7, and OD-9 through OD-14 have since been resolved** (see §7); this index is kept as a record of what was found, not a live list of open items — check §7 for current status. Remaining open: OD-6, OD-8.
+This PRD was checked against `lpd-planning`'s tracking files (`PRODUCT_ROADMAP.md`, `CURRENT_SPRINT_GOALS.md`, `STRATEGY.md`, `FUNNELS_AND_MARKETING.md`, `REPORT_VALUE_DELIVERY.md`, `COPY_BANK.md`) after drafting, and later against `level-play-brand-os` doctrine (see "Brand OS cross-reference" below). This section summarizes what those checks found; the individual conflicts are folded into §7 as OD-9 through OD-14 and into the affected requirements in §4/§5 as "Planning cross-reference" notes. Nothing here is new analysis beyond those — this is the index. **All fourteen ODs (including OD-6 and OD-8) are resolved** (see §7); this index is kept as a record of what was found, not a live list of open items.
 
 **Updates to `lpd-planning` itself, generated by these resolutions — made 2026-07-18:**
 
@@ -743,7 +750,8 @@ Listed for visibility only. Nothing below is a requirement in this PRD, and noth
 
 - AI answer-engine / LLM visibility tracking as a full Search Intelligence module (P0-2 above ships a minimal version only; the full module is V2).
 - Outcome/feedback loop v1 — instrumenting Automator Pro executions to capture recommendation outcomes and feed back into confidence/ROI calibration.
-- Brand Intelligence (light) — website + LinkedIn scoring inside the new schema. *(Note: this is named in critique §7's V1 list but has no P0–P2 backlog item — see OD-8. Placed here provisionally as V2/deferred pending that decision, not because either source document explicitly assigns it to V2.)*
+- Brand Intelligence (light) — website + LinkedIn scoring inside the new schema. **(OD-8 resolved 2026-07-19: confirmed out of this PRD; V2.)**
+- Four-pillar product nav (P2-7) — Visibility / Brand & Message / Trust / Revenue Readiness. **(OD-6 Option B resolved 2026-07-19: deferred to V2; V1 keeps flat section nav.)**
 - Messaging Intelligence.
 - Single-competitor Competitive Intelligence.
 - Intent Intelligence pilot, with a small customer set, using banded (Low/Medium/High) alignment rather than fake-precise percentages.
