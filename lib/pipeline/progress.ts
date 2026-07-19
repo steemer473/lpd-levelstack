@@ -9,7 +9,7 @@ import type { ReportTier } from "@/lib/levelstack-plans"
 export function pipelineStepsForTier(reportTier: ReportTier) {
   if (reportTier === "free_snapshot") {
     return PIPELINE_STEPS.filter((s) =>
-      ["search_footprint", "online_reputation", "digital_presence"].includes(s.id),
+      ["search_footprint", "social_offsite"].includes(s.id),
     )
   }
   return PIPELINE_STEPS

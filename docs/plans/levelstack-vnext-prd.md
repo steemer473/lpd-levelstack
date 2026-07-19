@@ -130,6 +130,8 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 
 **Description:** Cut the free report to the two sections marketing actually promises — Search Footprint and Social & Off-site (with AI-search-presence built into one of them, per P0-2) — and move Reputation and Digital Presence behind the $97 paywall to match what's already marketed as locked.
 
+**Implementation note (P0-3):** Free Social & off-site scores from `bundle.socialSearch` (LinkedIn + Facebook SERP on free; six platforms on paid). Directory/review SERP removed from free ops. AI Overview remains on Search Footprint (+0 calls).
+
 **Acceptance criteria:**
 
 - Free-tier report output contains exactly two unlocked sections; Reputation and Digital Presence are no longer computed/displayed for free-tier users (or are shown only as a locked-state teaser, consistent with how Revenue Funnel/Competitive Context/Action Plan are currently teased — see Open Decision in §7 on exact locked-state treatment).

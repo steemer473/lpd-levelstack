@@ -10,6 +10,7 @@ import type { ResearchBundle } from "@/lib/pipeline/research-types"
 
 const SECTION_IDS = [
   "search_footprint",
+  "social_offsite",
   "online_reputation",
   "digital_presence",
   "revenue_funnel",

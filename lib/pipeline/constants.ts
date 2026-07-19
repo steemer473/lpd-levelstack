@@ -10,41 +10,42 @@ export const AUDIT_OPERATIONS = [
 
 export type AuditOperationId = (typeof AUDIT_OPERATIONS)[number]["id"]
 
-/** Report UI sections — Figma template taxonomy (6 diagnostic + action plan). */
+/** Report UI sections — diagnostic taxonomy + action plan (P0-3 adds social_offsite). */
 export const PIPELINE_STEPS = [
   { id: "search_footprint", label: "Search footprint", order: 0 },
-  { id: "online_reputation", label: "Reputation", order: 1 },
-  { id: "digital_presence", label: "Digital presence", order: 2 },
-  { id: "revenue_funnel", label: "Revenue funnel", order: 3 },
-  { id: "competitive_context", label: "Competitive context", order: 4 },
-  { id: "action_plan", label: "Action plan", order: 5 },
+  { id: "social_offsite", label: "Social & off-site presence", order: 1 },
+  { id: "online_reputation", label: "Reputation", order: 2 },
+  { id: "digital_presence", label: "Digital presence", order: 3 },
+  { id: "revenue_funnel", label: "Revenue funnel", order: 4 },
+  { id: "competitive_context", label: "Competitive context", order: 5 },
+  { id: "action_plan", label: "Action plan", order: 6 },
 ] as const
 
 export type PipelineStepId = (typeof PIPELINE_STEPS)[number]["id"]
 
 export const PIPELINE_STEP_IDS: PipelineStepId[] = PIPELINE_STEPS.map((s) => s.id)
 
-/** Free snapshot runs ops 1–5 only (no competitive deep-dive). */
+/** Free snapshot: brand + site + social + about/footer (no directory/review SERP). */
 export const FREE_TIER_OPERATION_IDS: AuditOperationId[] = [
   "brand_name_search",
   "primary_domain_fetch",
   "social_media_search",
   "about_footer_fetch",
-  "directory_review_search",
 ]
 
 export const FULL_TIER_OPERATION_IDS: AuditOperationId[] = AUDIT_OPERATIONS.map(
   (o) => o.id,
 )
 
-/** Sections visible on free snapshot (Executive Summary is always shown). */
+/** Sections visible on free snapshot (Executive Summary is always shown). P0-3: exactly two. */
 export const FREE_TIER_SECTION_IDS = new Set([
   "search_footprint",
-  "online_reputation",
-  "digital_presence",
+  "social_offsite",
 ])
 
 export const PAID_ONLY_SECTION_IDS = new Set([
+  "online_reputation",
+  "digital_presence",
   "revenue_funnel",
   "competitive_context",
   "action_plan",

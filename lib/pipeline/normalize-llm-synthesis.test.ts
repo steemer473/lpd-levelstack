@@ -33,6 +33,20 @@ const baseline: ReportSection[] = [
     ],
   },
   {
+    id: "social_offsite",
+    label: "Social & off-site presence",
+    status: "attention",
+    score: 62,
+    findings: [
+      {
+        label: "LinkedIn",
+        value: "No LinkedIn profile found in search",
+        detail: "Prospects may not find a clear LinkedIn profile.",
+        severity: "high",
+      },
+    ],
+  },
+  {
     id: "online_reputation",
     label: "Reputation",
     status: "attention",

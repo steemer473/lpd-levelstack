@@ -80,12 +80,14 @@ export function buildSectionsFromSignals(
       s.id,
     ),
   )
+  const socialSignals = audit.signals.filter((s) =>
+    ["social_platform_coverage"].includes(s.id),
+  )
   const reputationSignals = audit.signals.filter((s) =>
     ["directory_presence", "third_party_mentions"].includes(s.id),
   )
   const digitalSignals = audit.signals.filter((s) =>
     [
-      "social_platform_coverage",
       "subdomain_exposure",
       "infrastructure_leakage",
       "positioning_consistency",
@@ -130,40 +132,57 @@ export function buildSectionsFromSignals(
       scoreRows: signalRows(searchSignals),
     },
     {
-      id: "online_reputation",
-      label: "Reputation",
-      status: sectionStatus(reputationSignals),
-      score: scoreFromSignals(reputationSignals),
-      findings: [
-        ...reputationSignals.map(mapFinding),
-        ...reputationInsights,
-        ...(reputationSignals.length === 0 && reputationInsights.length === 0
-          ? [
+      id: "social_offsite",
+      label: "Social & off-site presence",
+      status: sectionStatus(socialSignals),
+      score: scoreFromSignals(socialSignals),
+      findings:
+        socialSignals.length > 0
+          ? socialSignals.map(mapFinding)
+          : [
               {
-                label: "Reputation self-assessment",
-                value: `You rated reputation ${intake.reputationScale}/10`,
-                detail: intake.complaintsAwareness.slice(0, 300),
-                severity:
-                  intake.reputationScale <= 6
-                    ? ("high" as const)
-                    : ("medium" as const),
+                label: "Social platforms",
+                value: "Social coverage not scored from signals",
+                detail: "Run live research for LinkedIn and Facebook search presence.",
+                severity: "medium" as const,
               },
-            ]
-          : []),
-      ],
-    },
-    {
-      id: "digital_presence",
-      label: "Digital presence",
-      status: sectionStatus(digitalSignals),
-      score: scoreFromSignals(digitalSignals),
-      findings: [...digitalSignals.map(mapFinding), ...digitalInsights],
-      scoreRows: signalRows(digitalSignals),
+            ],
     },
   ]
 
   if (reportTier !== "free_snapshot") {
     sections.push(
+      {
+        id: "online_reputation",
+        label: "Reputation",
+        status: sectionStatus(reputationSignals),
+        score: scoreFromSignals(reputationSignals),
+        findings: [
+          ...reputationSignals.map(mapFinding),
+          ...reputationInsights,
+          ...(reputationSignals.length === 0 && reputationInsights.length === 0
+            ? [
+                {
+                  label: "Reputation self-assessment",
+                  value: `You rated reputation ${intake.reputationScale}/10`,
+                  detail: intake.complaintsAwareness.slice(0, 300),
+                  severity:
+                    intake.reputationScale <= 6
+                      ? ("high" as const)
+                      : ("medium" as const),
+                },
+              ]
+            : []),
+        ],
+      },
+      {
+        id: "digital_presence",
+        label: "Digital presence",
+        status: sectionStatus(digitalSignals),
+        score: scoreFromSignals(digitalSignals),
+        findings: [...digitalSignals.map(mapFinding), ...digitalInsights],
+        scoreRows: signalRows(digitalSignals),
+      },
       {
         id: "revenue_funnel",
         label: "Revenue funnel diagnosis",

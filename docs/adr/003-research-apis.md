@@ -41,10 +41,12 @@ Implementation: `lib/research/serp/` (router, cache, providers).
 
 | Tier | Organic SERP queries (approx) |
 |------|-------------------------------|
-| Free snapshot | ~7 (brand 1, social 2, directory 4) |
+| Free snapshot | ~3 (brand 1, social LinkedIn + Facebook 2). Directory/review SERP removed from free path (P0-3). AI Overview +0 on brand query (P0-2). |
 | Full report | ~26 organic + 1 Maps (+ competitor lookups) |
 
 Cached queries within TTL cost **0** additional API calls.
+
+**P0-3 re-measure:** prior free cold baseline was ~7 SERP / ~12–14 total external calls (incl. directory SERP + site fetches). After P0-3, free cold SERP is ~3; website + about/footer + OpenAI remain. Reputation directory SERP, PageSpeed, and GBP stay off the free path.
 
 **Pipeline mode:** `research_mode: "prd-v2"` on completed jobs.
 

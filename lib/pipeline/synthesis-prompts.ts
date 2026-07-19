@@ -37,11 +37,12 @@ EXECUTIVE SUMMARY (required shape)
 - topOpportunities: 1–3 short bullets on highest-upside fixes (from high/critical findings).
 
 SECTIONS (exact ids, no action_plan section)
-search_footprint, online_reputation, digital_presence, revenue_funnel, competitive_context
+search_footprint, social_offsite, online_reputation, digital_presence, revenue_funnel, competitive_context
 - Each: status critical|attention|good, score 0-100, 2-4 findings (label, value headline, detail 2-4 sentences, severity).
 - Finding extras when evidence supports them: headline (short card title), bullets (1-3 concise points), riskCategory ("Revenue Risk" | "Visibility Leak" | "Competitor Advantage"), snippetBefore, snippetAfter.
 - search_footprint: include aiPreview only for Google AI Overview when RESEARCH JSON includes aiOverview evidence. Never invent ChatGPT or Perplexity citation checks.
-- digital_presence: optional scoreRows from website signals.
+- social_offsite: social platform presence from socialSearch only (LinkedIn, Facebook, etc.). Do not fold website/GBP/PageSpeed into this section.
+- digital_presence: website, PageSpeed, and Google Business Profile only — not social profiles. Optional scoreRows from website signals.
 - competitive_context: optional competitiveGrid (you vs competitor domains from research).
 - competitive_context: NEVER replace the first finding — it contains live service-search evidence (query, positions, URLs). Add at most 2 supplemental findings.
 - competitive_context: Do NOT use vague labels like "Competitor Landscape", "Market Differentiation", or "Social Media Competition". Every finding must cite a domain, position (#N), or query from research.

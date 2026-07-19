@@ -15,10 +15,11 @@ test.describe("Sample report — public marketing preview", () => {
     await expect(page.locator(".rpt-conv-kpi-strip")).toBeVisible()
   })
 
-  test("sidebar has seven tabs including executive summary", async ({ page }) => {
+  test("sidebar has eight tabs including executive summary", async ({ page }) => {
     const nav = page.getByRole("navigation", { name: "Report sections" })
     await expect(nav.getByRole("button", { name: /Executive Summary/i })).toBeVisible()
     await expect(nav.getByRole("button", { name: /Search footprint/i })).toBeVisible()
+    await expect(nav.getByRole("button", { name: /Social & off-site presence/i })).toBeVisible()
     await expect(nav.getByRole("button", { name: /Reputation/i })).toBeVisible()
     await expect(nav.getByRole("button", { name: /Digital presence/i })).toBeVisible()
     await expect(nav.getByRole("button", { name: /Revenue funnel/i })).toBeVisible()
@@ -26,13 +27,11 @@ test.describe("Sample report — public marketing preview", () => {
     await expect(nav.getByRole("button", { name: /Action plan/i })).toBeVisible()
   })
 
-  test("search footprint tab shows AI preview cards", async ({ page }) => {
+  test("search footprint tab shows Google AI Overview preview", async ({ page }) => {
     await page
       .getByRole("navigation", { name: "Report sections" })
       .getByRole("button", { name: /Search footprint/i })
       .click()
-    await expect(page.getByText(/ChatGPT/i)).toBeVisible()
-    await expect(page.getByText(/Perplexity/i)).toBeVisible()
     await expect(page.getByText(/Google AI Overview/i)).toBeVisible()
   })
 

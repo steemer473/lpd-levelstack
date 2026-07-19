@@ -8,6 +8,7 @@ import {
   Shield,
   Star,
   TrendingUp,
+  Users,
 } from "lucide-react"
 
 import type { LevelstackReportJson, ReportSection } from "@/lib/pipeline/report-types"
@@ -39,16 +40,16 @@ export function readinessHeadline(score: number): string {
   return "At risk"
 }
 
-/** Three free-tier section cards on conversion hybrid executive summary. */
+/** Two free-tier section cards on conversion hybrid executive summary. */
 export const FREE_EXECUTIVE_SECTION_ORDER: { id: string; label: string }[] = [
   { id: "search_footprint", label: "Search footprint" },
-  { id: "online_reputation", label: "Reputation" },
-  { id: "digital_presence", label: "Digital presence" },
+  { id: "social_offsite", label: "Social & off-site presence" },
 ]
 
-/** Six metric cards on Option A executive summary (excludes executive_summary tab). */
+/** Metric cards on Option A executive summary (excludes executive_summary tab). */
 export const EXECUTIVE_METRIC_CARD_ORDER: { id: string; label: string }[] = [
   { id: "search_footprint", label: "Search footprint" },
+  { id: "social_offsite", label: "Social & off-site presence" },
   { id: "online_reputation", label: "Reputation" },
   { id: "digital_presence", label: "Digital presence" },
   { id: "revenue_funnel", label: "Revenue funnel" },
@@ -94,6 +95,7 @@ export function executiveConversionHeadlineParts(report: LevelstackReportJson): 
 
 const SECTION_SCORE_ACCENTS: Record<string, { bar: string; icon: string }> = {
   search_footprint: { bar: "#3182ce", icon: "bg-blue-50 text-blue-600" },
+  social_offsite: { bar: "#ec4899", icon: "bg-pink-50 text-pink-700" },
   online_reputation: { bar: "#5cb85c", icon: "bg-green-50 text-green-700" },
   digital_presence: { bar: "#8b5cf6", icon: "bg-violet-50 text-violet-700" },
   revenue_funnel: { bar: "#ef4444", icon: "bg-red-50 text-red-700" },
@@ -132,6 +134,7 @@ export function readinessLabel(score: number): string {
 export const TAB_ICONS: Record<string, LucideIcon> = {
   executive_summary: LayoutGrid,
   search_footprint: Search,
+  social_offsite: Users,
   online_reputation: Star,
   digital_presence: Globe,
   revenue_funnel: TrendingUp,
@@ -238,6 +241,7 @@ export function priorityBreakdown(meta: LevelstackReportJson["meta"]) {
 export const SECTION_TAB_ORDER: { id: string; label: string }[] = [
   { id: "executive_summary", label: "Executive Summary" },
   { id: "search_footprint", label: "Search footprint" },
+  { id: "social_offsite", label: "Social & off-site presence" },
   { id: "online_reputation", label: "Reputation" },
   { id: "digital_presence", label: "Digital presence" },
   { id: "revenue_funnel", label: "Revenue funnel" },
@@ -246,12 +250,16 @@ export const SECTION_TAB_ORDER: { id: string; label: string }[] = [
 ]
 
 export const LOCKED_SECTION_LABELS: Record<string, string> = {
+  online_reputation: "Reputation review",
+  digital_presence: "Digital presence",
   revenue_funnel: "Revenue funnel diagnosis",
   competitive_context: "Competitive context snapshot",
   action_plan: "Full prioritized action plan",
 }
 
 export const PAID_TAB_IDS = new Set([
+  "online_reputation",
+  "digital_presence",
   "revenue_funnel",
   "competitive_context",
   "action_plan",
