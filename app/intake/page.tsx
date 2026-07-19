@@ -14,7 +14,10 @@ import {
 } from "@/components/ui/card"
 import { FormPanel } from "@/components/ui/form-panel"
 import { sendUpgradeNotifyEmailsIfNeeded } from "@/lib/email/upgrade-notify"
-import { getLatestReportForIntake } from "@/lib/reports/get-latest-report-for-intake"
+import {
+  getLatestReadyPaidReportForIntake,
+  getLatestReportForIntake,
+} from "@/lib/reports/get-latest-report-for-intake"
 import { sanitizeFreeSnapshotPrefill } from "@/lib/intake/upgrade-prefill"
 import { levelstackIntakeDefaults, type LevelstackIntakeFormValues } from "@/lib/intake/schema"
 import { getLevelStackPlanId, requirePaidIntakeAccess } from "@/lib/levelstack-access"
@@ -97,9 +100,49 @@ export default async function IntakePage({ searchParams }: PageProps) {
 
   if (existing) {
     const existingReport = await getLatestReportForIntake(supabase, existing.id)
+    const readyPaidReport = paidAccess
+      ? await getLatestReadyPaidReportForIntake(supabase, existing.id)
+      : null
 
+    // Paid owner with a ready Action Roadmap — never re-open upgrade intake
+    // just because a newer free snapshot is chronologically "latest".
+    if (paidAccess && readyPaidReport?.id) {
+      const latestIsFree =
+        existingReport?.report_tier === "free_snapshot" && existingReport.id
+
+      return (
+        <FormPanel className="max-w-2xl mx-auto">
+          <Card className="border-0 shadow-none">
+            <CardHeader>
+              <CardTitle>You&apos;re all set</CardTitle>
+              <CardDescription>
+                You already have an Action Roadmap. No need to submit intake again.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <Button variant="brand" asChild>
+                <Link href={`/reports/${readyPaidReport.id}`}>
+                  View your Action Roadmap
+                </Link>
+              </Button>
+              {latestIsFree ? (
+                <Button variant="outline" asChild>
+                  <Link href={`/reports/${existingReport!.id}`}>
+                    View latest free snapshot
+                  </Link>
+                </Button>
+              ) : null}
+            </CardContent>
+          </Card>
+        </FormPanel>
+      )
+    }
+
+    // First-time upgrade: paid entitlement, latest is still free, no paid report yet
     const isFreeUpgrade =
-      paidAccess && existingReport?.report_tier === "free_snapshot"
+      paidAccess &&
+      existingReport?.report_tier === "free_snapshot" &&
+      !readyPaidReport
 
     const reportGenerating =
       existingReport?.status === "pending" || existingReport?.status === "generating"

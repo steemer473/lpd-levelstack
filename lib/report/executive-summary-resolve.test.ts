@@ -106,9 +106,11 @@ const baseReport: LevelstackReportJson = {
 }
 
 describe("resolveExecutiveContent", () => {
-  it("uses structured fields when present", () => {
+  it("uses finding-driven insight copy and preserves distinct highlights", () => {
     const content = resolveExecutiveContent(baseReport)
-    expect(content.insights.whatProspectsSee).toBe("Structured prospects")
+    expect(content.insights.whatProspectsSee).toContain("When prospects search")
+    expect(content.insights.whatProspectsSee).toContain("From public research:")
+    expect(content.structuredInsights?.whatProspectsSee.length).toBeGreaterThan(0)
     expect(content.highlights.criticalIssue).toBe("Not in top 10")
     expect(content.highlights.highestLeverageOpportunity).not.toBe(
       content.highlights.criticalIssue,
@@ -116,7 +118,7 @@ describe("resolveExecutiveContent", () => {
     expect(content.strengths).toContain("Strong rank")
   })
 
-  it("falls back to paragraphs when insights missing", () => {
+  it("still builds insights when executiveSummary.insights is missing", () => {
     const legacy = {
       ...baseReport,
       executiveSummary: {
@@ -126,8 +128,8 @@ describe("resolveExecutiveContent", () => {
       },
     }
     const content = resolveExecutiveContent(legacy)
-    expect(content.insights.whatProspectsSee).toBe("Para 1")
-    expect(content.insights.reputationGap).toBe("Para 2")
+    expect(content.insights.whatProspectsSee).toContain("When prospects search")
+    expect(content.insights.reputationGap).toContain("Social presence compares")
   })
 
   it("falls back to urgent section finding when deduped criticalIssue is generic", () => {

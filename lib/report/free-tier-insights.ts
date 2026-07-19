@@ -214,10 +214,25 @@ export function buildFreeTierWhatProspectsSeeParts(
   return parts
 }
 
+export type ExecutiveInsightBuildOptions = {
+  /** Free-only muted upgrade lines. Off for paid Action Roadmap. */
+  includeUpgradeTeasers?: boolean
+}
+
+function shouldIncludeUpgradeTeasers(
+  report: LevelstackReportJson,
+  options?: ExecutiveInsightBuildOptions,
+): boolean {
+  if (options?.includeUpgradeTeasers != null) return options.includeUpgradeTeasers
+  return report.meta.reportTier === "free_snapshot"
+}
+
 export function buildFreeTierReputationGapParts(
   report: LevelstackReportJson,
+  options?: ExecutiveInsightBuildOptions,
 ): ExecutiveInsightPart[] {
   // P0-3: free snapshot no longer includes Reputation — social fills this insight slot.
+  const includeUpgradeTeasers = shouldIncludeUpgradeTeasers(report, options)
   const publicSignal =
     pickSocialPublicSignal(report) ?? pickReputationPublicSignal(report)
 
@@ -233,7 +248,9 @@ export function buildFreeTierReputationGapParts(
       kind: "finding",
       prefix: "From public research:",
       text: publicSignal,
-      suffix: "Open Social & off-site presence for all findings in this snapshot.",
+      suffix: includeUpgradeTeasers
+        ? "Open Social & off-site presence for all findings in this snapshot."
+        : "Open Social & off-site presence and Reputation for the full read.",
     })
   } else {
     parts.push({
@@ -242,23 +259,32 @@ export function buildFreeTierReputationGapParts(
     })
   }
 
-  parts.push(
-    {
-      kind: "muted",
-      text: `This free snapshot checks public social signals. Full review ratings, complaint patterns, and your self-assessment (${FREE_SNAPSHOT_INTAKE_GAP.reputation}) unlock in ${PRODUCT_NAMES.paid}.`,
-    },
-    {
-      kind: "muted",
-      text: `Upgrade to ${PRODUCT_NAMES.paid} ($97) for Reputation, Digital presence, and a side-by-side trust gap analysis.`,
-    },
-  )
+  if (includeUpgradeTeasers) {
+    parts.push(
+      {
+        kind: "muted",
+        text: `This free snapshot checks public social signals. Full review ratings, complaint patterns, and your self-assessment (${FREE_SNAPSHOT_INTAKE_GAP.reputation}) unlock in ${PRODUCT_NAMES.paid}.`,
+      },
+      {
+        kind: "muted",
+        text: `Upgrade to ${PRODUCT_NAMES.paid} ($97) for Reputation, Digital presence, and a side-by-side trust gap analysis.`,
+      },
+    )
+  } else {
+    parts.push({
+      kind: "text",
+      text: "Open Reputation for review ratings, complaint patterns, and how they compare with your intake self-assessment.",
+    })
+  }
 
   return parts
 }
 
 export function buildFreeTierRevenueRiskParts(
   report: LevelstackReportJson,
+  options?: ExecutiveInsightBuildOptions,
 ): ExecutiveInsightPart[] {
+  const includeUpgradeTeasers = shouldIncludeUpgradeTeasers(report, options)
   const publicSignal = pickRevenuePublicSignal(report)
 
   const parts: ExecutiveInsightPart[] = [
@@ -273,49 +299,65 @@ export function buildFreeTierRevenueRiskParts(
       kind: "finding",
       prefix: "From public research:",
       text: publicSignal,
-      suffix: "See Search footprint and Social & off-site presence for the full read.",
+      suffix: includeUpgradeTeasers
+        ? "See Search footprint and Social & off-site presence for the full read."
+        : "See Search footprint, Social & off-site presence, and Revenue funnel for the full read.",
     })
   } else {
     parts.push({
       kind: "text",
-      text: "See Search footprint and Social & off-site presence for conversion-related signals from public research.",
+      text: includeUpgradeTeasers
+        ? "See Search footprint and Social & off-site presence for conversion-related signals from public research."
+        : "See Search footprint, Social & off-site presence, and Revenue funnel for conversion-related signals.",
     })
   }
 
-  parts.push(
-    {
-      kind: "muted",
-      text: `This free snapshot does not ask about ${FREE_SNAPSHOT_INTAKE_GAP.revenue}.`,
-    },
-    {
-      kind: "muted",
-      text: `Upgrade to ${PRODUCT_NAMES.paid} ($97) for funnel and ad-spend intake plus a prioritized revenue-risk diagnosis.`,
-    },
-  )
+  if (includeUpgradeTeasers) {
+    parts.push(
+      {
+        kind: "muted",
+        text: `This free snapshot does not ask about ${FREE_SNAPSHOT_INTAKE_GAP.revenue}.`,
+      },
+      {
+        kind: "muted",
+        text: `Upgrade to ${PRODUCT_NAMES.paid} ($97) for funnel and ad-spend intake plus a prioritized revenue-risk diagnosis.`,
+      },
+    )
+  }
 
   return parts
 }
 
 export function buildFreeTierStructuredExecutiveInsights(
   report: LevelstackReportJson,
-): StructuredExecutiveInsights | null {
-  if (report.meta.reportTier !== "free_snapshot") return null
-
+  options?: ExecutiveInsightBuildOptions,
+): StructuredExecutiveInsights {
+  const includeUpgradeTeasers = shouldIncludeUpgradeTeasers(report, options)
   return {
     whatProspectsSee: buildFreeTierWhatProspectsSeeParts(report),
-    reputationGap: buildFreeTierReputationGapParts(report),
-    revenueRisk: buildFreeTierRevenueRiskParts(report),
+    reputationGap: buildFreeTierReputationGapParts(report, {
+      includeUpgradeTeasers,
+    }),
+    revenueRisk: buildFreeTierRevenueRiskParts(report, {
+      includeUpgradeTeasers,
+    }),
   }
 }
 
 export function buildFreeTierReputationGap(
   report: LevelstackReportJson,
+  options?: ExecutiveInsightBuildOptions,
 ): string {
-  return flattenExecutiveInsight(buildFreeTierReputationGapParts(report))
+  return flattenExecutiveInsight(
+    buildFreeTierReputationGapParts(report, options),
+  )
 }
 
-export function buildFreeTierRevenueRisk(report: LevelstackReportJson): string {
-  return flattenExecutiveInsight(buildFreeTierRevenueRiskParts(report))
+export function buildFreeTierRevenueRisk(
+  report: LevelstackReportJson,
+  options?: ExecutiveInsightBuildOptions,
+): string {
+  return flattenExecutiveInsight(buildFreeTierRevenueRiskParts(report, options))
 }
 
 export function buildFreeTierWhatProspectsSee(
@@ -341,12 +383,12 @@ export function applyFreeTierExecutiveInsights(
     reputationGap: string
     revenueRisk: string
   },
+  options?: ExecutiveInsightBuildOptions,
 ): typeof insights {
-  if (report.meta.reportTier !== "free_snapshot") return insights
-
+  const includeUpgradeTeasers = shouldIncludeUpgradeTeasers(report, options)
   return {
     whatProspectsSee: buildFreeTierWhatProspectsSee(report),
-    reputationGap: buildFreeTierReputationGap(report),
-    revenueRisk: buildFreeTierRevenueRisk(report),
+    reputationGap: buildFreeTierReputationGap(report, { includeUpgradeTeasers }),
+    revenueRisk: buildFreeTierRevenueRisk(report, { includeUpgradeTeasers }),
   }
 }

@@ -42,6 +42,35 @@ test.describe("Sample report — public marketing preview", () => {
       .click()
     await expect(page.getByRole("dialog")).toBeVisible()
   })
+
+  test("OD-5 B: free exec shows capped teaser titles without Who/Time matrix", async ({
+    page,
+  }) => {
+    const card = page.locator(".rpt-card").filter({
+      has: page.getByRole("heading", { name: /Your next decisions/i }),
+    })
+    await expect(card).toBeVisible()
+    await expect(card.getByText("Respond to both negative Google reviews")).toBeVisible()
+    await expect(
+      page.getByRole("button", { name: /View full action plan \(locked\)/i }),
+    ).toBeVisible()
+    await expect(card.getByText("Owner")).toHaveCount(0)
+    await expect(card.getByText("Time")).toHaveCount(0)
+  })
+
+  test("OD-5 B: action plan tab stays locked with blurred teaser", async ({ page }) => {
+    await page
+      .getByRole("navigation", { name: "Report sections" })
+      .getByRole("button", { name: /Action plan/i })
+      .click()
+    await expect(
+      page.getByRole("button", { name: /Unlock Action Roadmap — \$97/i }),
+    ).toBeVisible()
+    await expect(page.getByText(/prioritized action/i).first()).toBeVisible()
+    await expect(page.getByText("Respond to both negative Google reviews")).toBeVisible()
+    // Full matrix labels stay paid-only
+    await expect(page.getByText("If ignored")).toHaveCount(0)
+  })
 })
 
 test("legacy HTML path redirects to sample report", async ({ page }) => {

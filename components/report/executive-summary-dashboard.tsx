@@ -2,7 +2,9 @@
 
 import { AlertTriangle, ArrowRight, Check, Lock } from "lucide-react"
 
+import { ExecutiveInsightBody } from "@/components/report/executive-insight-body"
 import { FormattedReportText } from "@/components/report/formatted-report-text"
+import { ReportScoreDisclaimer } from "@/components/report/report-score-disclaimer"
 import { UpsellBlurOverlay } from "@/components/report/upsell-blur-overlay"
 import type { LevelstackReportJson, ReportSection } from "@/lib/pipeline/report-types"
 import {
@@ -14,6 +16,7 @@ import {
   TAB_ICONS,
 } from "@/lib/report/display-helpers"
 import { resolveExecutiveContent } from "@/lib/report/executive-summary-resolve"
+import { priorityActionsFromReport } from "@/lib/report/roadmap-from-recommendations"
 import { cn } from "@/lib/utils"
 
 type ExecutiveSummaryDashboardProps = {
@@ -163,10 +166,11 @@ export function ExecutiveSummaryDashboard({
   report,
   onSelectTab,
 }: ExecutiveSummaryDashboardProps) {
-  const { meta, sections, actionPlan } = report
+  const { meta, sections } = report
   const isFree = meta.reportTier === "free_snapshot"
   const content = resolveExecutiveContent(report)
   const sectionById = new Map(sections.map((s) => [s.id, s]))
+  const priorityActions = priorityActionsFromReport(report)
   const intro = executiveDashboardIntro(report)
 
   const strengths = content.strengths
@@ -175,6 +179,24 @@ export function ExecutiveSummaryDashboard({
   const hiddenStrengths = isFree ? strengths.slice(3) : []
   const visibleOpps = isFree ? opportunities.slice(0, 3) : opportunities
   const hiddenOpps = isFree ? opportunities.slice(3) : []
+
+  const insightRows = [
+    {
+      label: "What prospects see",
+      parts: content.structuredInsights?.whatProspectsSee,
+      body: content.insights.whatProspectsSee,
+    },
+    {
+      label: "Social presence",
+      parts: content.structuredInsights?.reputationGap,
+      body: content.insights.reputationGap,
+    },
+    {
+      label: "Revenue risk",
+      parts: content.structuredInsights?.revenueRisk,
+      body: content.insights.revenueRisk,
+    },
+  ]
 
   return (
     <div className="rpt-dash-panel">
@@ -186,6 +208,8 @@ export function ExecutiveSummaryDashboard({
         </div>
         <OverallScoreCard meta={meta} />
       </div>
+
+      {!isFree ? <ReportScoreDisclaimer className="mb-4" /> : null}
 
       <div className="rpt-section-score-strip">
         {EXECUTIVE_METRIC_CARD_ORDER.map(({ id, label }) => {
@@ -201,6 +225,27 @@ export function ExecutiveSummaryDashboard({
             />
           )
         })}
+      </div>
+
+      <div className="rpt-conv-insights mb-6">
+        {insightRows.map((row) => (
+          <div key={row.label} className="rpt-conv-insight-row">
+            <p className="rpt-conv-insight-label">{row.label}</p>
+            {row.parts ? (
+              <ExecutiveInsightBody
+                parts={row.parts}
+                paragraphClassName="text-sm text-[var(--rpt-body)]"
+                mutedClassName="text-sm text-[var(--rpt-muted)]"
+              />
+            ) : (
+              <FormattedReportText
+                text={row.body}
+                paragraphClassName="text-sm text-[var(--rpt-body)]"
+                emphasizeLeadIn={false}
+              />
+            )}
+          </div>
+        ))}
       </div>
 
       <div className="rpt-strengths-opps">
@@ -277,7 +322,7 @@ export function ExecutiveSummaryDashboard({
         </div>
       </div>
 
-      {actionPlan.thisWeek.length > 0 ? (
+      {priorityActions.length > 0 ? (
         <div className="rpt-priority-section">
           <h3 className="rpt-priority-title">Priority actions</h3>
           <div className="overflow-x-auto">
@@ -291,17 +336,17 @@ export function ExecutiveSummaryDashboard({
                 </tr>
               </thead>
               <tbody>
-                {actionPlan.thisWeek.map((item, i) => {
+                {priorityActions.map((item, i) => {
                   const badges = deriveActionBadges(i)
                   return (
                     <tr key={i}>
                       <td>
                         <p className="font-medium text-[var(--rpt-heading)] leading-snug">
-                          {item.task}
+                          {item.title}
                         </p>
-                        {item.sub ? (
+                        {item.summary ? (
                           <p className="text-xs text-[var(--rpt-muted)] mt-0.5 line-clamp-2">
-                            {item.sub}
+                            {item.summary}
                           </p>
                         ) : null}
                       </td>
@@ -312,7 +357,9 @@ export function ExecutiveSummaryDashboard({
                         <PriorityBadge level={badges.effort} />
                       </td>
                       <td>
-                        <PriorityBadge level={badges.priority} />
+                        <span className="rpt-badge rpt-badge-high">
+                          {item.priority}
+                        </span>
                       </td>
                     </tr>
                   )

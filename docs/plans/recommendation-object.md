@@ -3,7 +3,7 @@
 Reusable core data model for Action Roadmap decisions.
 Persistence: nested Zod inside existing `report_json` JSONB (OD-3 Option B). No recommendation/evidence tables in V1 (OD-10).
 
-**Status:** Schema shipped 2026-07-19. **P2-4 dual-write live** for Search Footprint + Reputation (`attachSearchReputationRecommendations`). Roadmap UI deferred to P2-5.
+**Status:** Schema shipped 2026-07-19. **P2-4 dual-write live** for Search Footprint + Reputation (`attachSearchReputationRecommendations`). **P2-5 Action Roadmap UI** consumes `recommendations[]` (OD-5 Option B: capped free teaser).
 
 **Companions:** [`evidence-provenance.md`](./evidence-provenance.md) (P2-2), [`confidence-methodology.md`](./confidence-methodology.md) (P2-3), [`scoring-methodology.md`](./scoring-methodology.md) (P1).
 
@@ -16,18 +16,26 @@ Persistence: nested Zod inside existing `report_json` JSONB (OD-3 Option B). No 
 | Migration helpers | `lib/pipeline/map-to-recommendation.ts` |
 | Dual-write (Search + Reputation) | `lib/pipeline/build-recommendations.ts` → hooked in `run-report-pipeline.ts` before sanitize |
 | Reputation Clutch/G2/Capterra cluster | `buildReputationFindings` in `serp-backed-sections.ts` |
+| Roadmap UI helpers | `lib/report/roadmap-from-recommendations.ts` |
 
 ## Dual-schema period
 
-Until P2-5:
-
 | Surface | Canonical |
 |---------|-----------|
-| Section findings, scores, free/paid UI | `findingSchema` / `reportSectionSchema` |
-| Action plan buckets (thisWeek / thisMonth / thisQuarter) | `actionItemSchema` / `actionPlanSchema` |
+| Section findings, scores, free/paid section UI | `findingSchema` / `reportSectionSchema` |
+| Action Roadmap tab + free/paid teasers (when `recommendations` present) | `recommendations[]` |
+| Legacy Action Plan buckets (fallback when `recommendations` empty/missing) | `actionItemSchema` / `actionPlanSchema` |
 | Ranked decisions (Search + Reputation) | `recommendations[]` dual-written on every ready report |
 
-Existing stored reports without `recommendations` remain valid. Do not remove findings/actionPlan until P2-5 UI consumes Recommendations.
+Existing stored reports without `recommendations` remain valid and fall back to `actionPlan` UI. Do not remove findings/actionPlan from the pipeline in P2-5.
+
+### Free teaser contract (OD-5 Option B)
+
+| Surface | Shows | Hides |
+|---------|-------|-------|
+| Free exec “Your next decisions” | Top 3 recommendation **titles** (optional short summary) | Owner, time, ROI, evidence, artifact, urgency, consequence, confidence rationale |
+| Locked Action Plan tab | Count + blurred top 3 titles | Full matrix / Who-Time-Impact |
+| Free `recommendations[]` data | Search-only (P2-4) | Reputation recs |
 
 ## Field table (V1)
 
@@ -49,6 +57,14 @@ Existing stored reports without `recommendations` remain valid. Do not remove fi
 | `sourceSectionId` | string? | `search_footprint` or `online_reputation` |
 | `effortHint` | string? | From `actionItem.time` when mapped |
 
+## Roadmap bucketing (P2-5)
+
+| UI bucket | Priorities |
+|-----------|------------|
+| This week | `P0` |
+| This month | `P1` |
+| This quarter | `P2` + `P3` |
+
 ## Mapping: Finding / ActionItem → Recommendation
 
 | Legacy | Recommendation |
@@ -68,4 +84,5 @@ Intensity of `urgency` and `consequenceOfInaction` scales with `confidence.band`
 
 ## Next
 
-- **P2-5** — Action Roadmap UI over `recommendations[]`.
+- Optional: remove dual-write / deprecate `actionPlan` UI once all live reports have `recommendations`.
+- P2-7 / OD-6 — four-pillar nav (still open).

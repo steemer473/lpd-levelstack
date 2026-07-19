@@ -14,6 +14,7 @@ import {
   useReportTabs,
 } from "@/components/report/report-shared"
 import { LockedSectionUnlockModal } from "@/components/report/locked-section-unlock-modal"
+import { PaidOwnerReportProvider } from "@/components/report/paid-owner-report-context"
 import { ReportFaqSection } from "@/components/report/report-faq-section"
 import { ReportSidebar } from "@/components/report/report-sidebar"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
@@ -23,12 +24,17 @@ type LevelstackReportViewProps = {
   report: LevelstackReportJson
   reportId?: string
   defaultUnlockModalOpen?: boolean
+  /** Paid customer viewing a free snapshot — suppress LevelStack buy CTAs. */
+  suppressLevelstackPurchaseCtas?: boolean
+  actionRoadmapReportId?: string
 }
 
 export function LevelstackReportView({
   report,
   reportId,
   defaultUnlockModalOpen = false,
+  suppressLevelstackPurchaseCtas = false,
+  actionRoadmapReportId,
 }: LevelstackReportViewProps) {
   const [nav, reportRef] = useReportTabs(report)
   const { meta } = nav
@@ -36,7 +42,12 @@ export function LevelstackReportView({
   const [unlockModalOpen, setUnlockModalOpen] = useState(defaultUnlockModalOpen)
 
   return (
-    <>
+    <PaidOwnerReportProvider
+      value={{
+        suppressLevelstackPurchaseCtas,
+        actionRoadmapReportId,
+      }}
+    >
       <div
         ref={reportRef}
         className="levelstack-report rpt-dashboard-layout overflow-x-hidden scroll-mt-24"
@@ -99,6 +110,6 @@ export function LevelstackReportView({
         onOpenChange={setUnlockModalOpen}
         reportId={reportId}
       />
-    </>
+    </PaidOwnerReportProvider>
   )
 }

@@ -24,6 +24,7 @@ import {
   resolveExecutiveContent,
 } from "@/lib/report/executive-summary-resolve"
 import { shouldUseAlarmSeverity } from "@/lib/report/severity-presentation"
+import { teaserRecommendations } from "@/lib/report/roadmap-from-recommendations"
 import { cn } from "@/lib/utils"
 
 type ExecutiveSummaryConversionProps = {
@@ -311,7 +312,7 @@ export function ExecutiveSummaryConversion({
   onSelectTab,
   reportId,
 }: ExecutiveSummaryConversionProps) {
-  const { meta, sections, actionPlan } = report
+  const { meta, sections } = report
   const content = resolveExecutiveContent(report)
   const competitive = resolveCompetitiveSnapshot(report)
   const sectionById = new Map(sections.map((s) => [s.id, s]))
@@ -319,7 +320,7 @@ export function ExecutiveSummaryConversion({
   const headlineParts = executiveConversionHeadlineParts(report)
   const alarmSeverity = shouldUseAlarmSeverity(report)
 
-  const actionItems = actionPlan.thisWeek.slice(0, 3)
+  const teaser = teaserRecommendations(report, 3)
 
   const insightRows = [
     {
@@ -444,12 +445,14 @@ export function ExecutiveSummaryConversion({
       <div className="rpt-conv-bottom-row">
         <div className="rpt-card p-5">
           <h3 className="rpt-card-title mb-4">Your next decisions</h3>
-          {actionItems.length > 0 ? (
+          {teaser.titles.length > 0 ? (
             <ul className="rpt-conv-action-list list-none pl-0">
-              {actionItems.map((item, i) => (
+              {teaser.titles.map((title, i) => (
                 <li key={i}>
-                  <strong>{item.task}</strong>
-                  {item.sub ? <span>{item.sub}</span> : null}
+                  <strong>{title}</strong>
+                  {teaser.summaries[i] ? (
+                    <span>{teaser.summaries[i]}</span>
+                  ) : null}
                 </li>
               ))}
             </ul>

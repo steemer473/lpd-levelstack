@@ -12,9 +12,11 @@ import {
 } from "@/lib/intake/free-snapshot-schema"
 import { deletePriorFreeSnapshotForUser } from "@/lib/intake/replace-free-snapshot"
 import { isWebsiteReachable } from "@/lib/intake/validate-website"
+import { requirePaidIntakeAccess } from "@/lib/levelstack-access"
 import { planIdToReportTier } from "@/lib/levelstack-plans"
 import { syncFreeSnapshotLead } from "@/lib/ghl/sync-levelstack-lead"
 import { runReportPipeline } from "@/lib/pipeline/run-report-pipeline"
+import { getLatestReadyPaidReportForUser } from "@/lib/reports/get-latest-report-for-intake"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { getAppUrl } from "@/lib/urls"
@@ -32,6 +34,9 @@ const NEW_USER_MESSAGE =
 
 const RETURNING_USER_MESSAGE =
   "Welcome back! We're refreshing your snapshot. Sign in below to watch progress — we'll email you when it's ready."
+
+const PAID_OWNER_REFRESH_MESSAGE =
+  "You already have an Action Roadmap. Your free Visibility Snapshot is refreshing — open the Roadmap anytime, or continue with this snapshot when it's ready."
 
 export async function POST(request: Request) {
   const body: unknown = await request.json().catch(() => null)
@@ -258,9 +263,30 @@ export async function POST(request: Request) {
     }
   }
 
+  const paidAccess = await requirePaidIntakeAccess(admin, userId)
+  const readyPaidReport = paidAccess
+    ? await getLatestReadyPaidReportForUser(admin, userId)
+    : null
+  const isPaidOwnerRefresh = Boolean(readyPaidReport?.id)
+
   const newUserMessage = signInUrl
     ? NEW_USER_MESSAGE
     : "Your snapshot is generating. Sign in with the same email to view your report."
+
+  if (isPaidOwnerRefresh && readyPaidReport) {
+    return NextResponse.json({
+      success: true,
+      branch: "paid_owner_refresh",
+      existingUser,
+      redirectImmediately,
+      reportId: report.id,
+      actionRoadmapReportId: readyPaidReport.id,
+      intakeId,
+      signInUrl: signInUrl ?? undefined,
+      message: PAID_OWNER_REFRESH_MESSAGE,
+      redirectTo: getAppUrl(reportPath),
+    })
+  }
 
   return NextResponse.json({
     success: true,
