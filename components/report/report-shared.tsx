@@ -224,10 +224,10 @@ export function UpgradeBanner({
   report: LevelstackReportJson
   reportId?: string
 }) {
-  if (report.meta.reportTier !== "free_snapshot") return null
-
   const { suppressLevelstackPurchaseCtas, actionRoadmapReportId } =
     usePaidOwnerReportChrome()
+
+  if (report.meta.reportTier !== "free_snapshot") return null
 
   const issueCount =
     report.meta.issueCountForUpgrade ??
