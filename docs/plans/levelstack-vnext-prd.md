@@ -7,8 +7,9 @@
 - `docs/plans/levelstack-vnext-critique.md` (strategic critique, live funnel/report audit §14, fix backlog §15)
 - `docs/plans/levelstack-codebase-audit.md` (codebase ground truth — scoring logic, free/paid config, external calls, taxonomy)
 - `lpd-planning` tracking files (`PRODUCT_ROADMAP.md`, `CURRENT_SPRINT_GOALS.md`, `STRATEGY.md`, `FUNNELS_AND_MARKETING.md`, `REPORT_VALUE_DELIVERY.md`, `COPY_BANK.md`) — cross-referenced in §10 and folded into §7's Open Decisions where they conflict with or duplicate critique/audit findings
+- `level-play-brand-os` (company doctrine, one level above `lpd-planning` per its own `BRAND_SOURCE.md` hierarchy) — specifically `product/AI_PRINCIPLES.md`, `ai/AI_CONSTITUTION.md`, `product/PRODUCT_ARCHITECTURE.md`, `product/PRODUCT_HIERARCHY.md`, `product/PRODUCT_DECISION_FRAMEWORK.md`, `brand/LANGUAGE_RULES.md`, `company/OPERATING_MODEL.md` — checked after drafting, cross-referenced in §10 and folded into §7 as OD-14
 
-**How to read this doc:** Requirements (§4) are scoped to critique §15's P0/P1/P2 items only. P3 and all V2/V3 modules are listed in the Appendix as explicitly out of scope for this PRD. Section 7 ("Open Decisions") contains every point where the critique's recommended architecture, the audit's findings about current code, and `lpd-planning`'s existing tracking/locked decisions do not agree, or where the audit could not confirm something a requirement depends on. **Three of thirteen (OD-9, OD-12, OD-13) are resolved** — marked RESOLVED in §7, with the resolution reflected in the affected requirements. **The remaining ten (OD-1 through OD-8, OD-10, OD-11) are still open** and are gating questions for you to close before engineering starts on the affected requirement(s). §10 maps this PRD against `lpd-planning`'s existing tickets and locked decisions directly.
+**How to read this doc:** Requirements (§4) are scoped to critique §15's P0/P1/P2 items only. P3 and all V2/V3 modules are listed in the Appendix as explicitly out of scope for this PRD. Section 7 ("Open Decisions") contains every point where the critique's recommended architecture, the audit's findings about current code, and `lpd-planning`'s existing tracking/locked decisions do not agree, or where the audit could not confirm something a requirement depends on. **Three of fourteen (OD-9, OD-12, OD-13) are resolved** — marked RESOLVED in §7, with the resolution reflected in the affected requirements. **The remaining eleven (OD-1 through OD-8, OD-10, OD-11, OD-14) are still open** and are gating questions for you to close before engineering starts on the affected requirement(s). §10 maps this PRD against `lpd-planning`'s existing tickets and locked decisions, and against `level-play-brand-os` doctrine, directly.
 
 ---
 
@@ -411,7 +412,7 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 
 ## 5. Data Model — Recommendation Object
 
-Per critique §8/§13, the object requires: evidence, confidence, dependencies, ROI, automatability, owner. Reconciled against the audit's findings on what partially exists today (audit §5):
+Per critique §8/§13, the object requires: evidence, confidence, dependencies, ROI, automatability, owner. Reconciled against the audit's findings on what partially exists today (audit §5). **This field list has not been checked against `level-play-brand-os`'s locked "standard recommendation anatomy" (`product/AI_PRINCIPLES.md`) — see OD-14 in §7 before treating this table as final.**
 
 
 | Field            | Status per audit                                                                                                                                                                                                                                                      | Proposed for V1                                                                                                                                                                                                                              |
@@ -453,7 +454,7 @@ Per critique §16.4: the Decision Roadmap is **web-dashboard-primary**, not PDF-
 
 ## 7. Open Decisions
 
-Every point below is a place where the critique's recommended architecture and the audit's findings about current code diverge, or where the audit could not confirm something a requirement above depends on. **OD-9, OD-12, and OD-13 are marked RESOLVED below** with the founder's decision and rationale; the remaining ten are still open.
+Every point below is a place where the critique's recommended architecture and the audit's findings about current code diverge, where `lpd-planning` or `level-play-brand-os` doctrine conflicts with or wasn't checked against a requirement, or where the audit could not confirm something a requirement above depends on. **OD-9, OD-12, and OD-13 are marked RESOLVED below** with the founder's decision and rationale; the remaining eleven are still open.
 
 ### OD-1 — How should Overall reconcile with section scores?
 
@@ -569,6 +570,15 @@ Every point below is a place where the critique's recommended architecture and t
 - **Action:** `CURRENT_SPRINT_GOALS.md` #12 should be updated to reflect this — either closed and re-opened as scope inside P2-1/P2-4, or explicitly marked "superseded by vNext schema work" so it isn't picked up as-is by anyone working from the sprint board.
 - **No longer blocks:** near-term team allocation is now determined by Track 4's sequencing, not a parallel Slice 3 effort.
 
+### OD-14 — Does the Recommendation Object schema (§5) need to add fields to match brand-os's locked recommendation anatomy, or is the overlap already sufficient?
+
+- `level-play-brand-os/product/AI_PRINCIPLES.md` locks a "standard recommendation anatomy" for any AI-generated recommendation: what should be done, why it matters, **why now**, what evidence supports it, expected benefits, risks/dependencies, **what happens if it is ignored**, confidence, and next action. This PRD's Recommendation Object (§5) was designed from critique §8/§13 alone — `evidence`, `confidence`, `dependencies`, `roi`, `automatability`, `owner` — without checking it against this anatomy, even though `BRAND_SOURCE.md`'s required reading order names `AI_PRINCIPLES.md` as required reading before this kind of work.
+- **The mismatch:** brand-os's anatomy has two fields with no clear home in §5's schema — **"why now"** (urgency/timing, distinct from "why it matters") and **"what happens if it is ignored"** (inaction-risk framing). §5's schema has two fields brand-os's anatomy doesn't name explicitly — `automatability` and `owner` (though `owner` arguably maps to "next action").
+- **Option A:** Add `urgency` (why-now rationale) and `consequenceOfInaction` as new first-class fields on the Recommendation Object. *Tradeoff: more complete alignment with locked AI doctrine; two more fields to populate on every recommendation, adding synthesis cost and schema complexity before P2-1 has even shipped the six fields already scoped.*
+- **Option B:** Treat "why now" and "consequence of ignoring" as content that belongs inside the existing `evidence`/`roi` fields' prose rather than new structured fields, and document that mapping explicitly so the schema is defensible against brand-os's anatomy without growing. *Tradeoff: no new fields or synthesis cost; the two ideas stay as unstructured prose rather than filterable/sortable dashboard data, which weakens the "structured object, not prose" argument critique §8 makes for the schema's value in the first place.*
+- **Not resolved here** — this is a founder decision on schema scope, not something either source document (critique or audit) settles, since neither was checked against brand-os during drafting.
+- **Dependency:** Should close before P2-1 engineering starts, alongside OD-1, OD-2, OD-3, and OD-10 (see §9) — adding fields after the schema ships is a migration, not a design choice.
+
 ---
 
 
@@ -624,9 +634,9 @@ Build order below groups requirements by what blocks what; it does not assign da
 14. **P2-5** (Action Roadmap dashboard UI, internally "Decision Roadmap" — see OD-9) — depends on P2-1, P2-4, and OD-5's resolution.
 15. **P2-7** (four-pillar nav) — depends on P2-5's scope being settled and OD-6's timing decision; may not be a V1 item at all depending on that decision.
 
-**Critical path:** OD-1/OD-2 → P1-1 → P2-1 → P2-4 → P2-5. Everything in Track 4 is gated on the scoring-integrity work in Track 2, which is itself gated on two Open Decisions (§7) that neither source document resolves. **No engineering on P2-1 should start before OD-1, OD-2, OD-3, and OD-10 are closed** — starting earlier risks building the schema against an unreconciled scoring model, a persistence choice that gets reversed, or a locked "additive only" constraint the schema wasn't checked against.
+**Critical path:** OD-1/OD-2 → P1-1 → P2-1 → P2-4 → P2-5. Everything in Track 4 is gated on the scoring-integrity work in Track 2, which is itself gated on two Open Decisions (§7) that neither source document resolves. **No engineering on P2-1 should start before OD-1, OD-2, OD-3, OD-10, and OD-14 are closed** — starting earlier risks building the schema against an unreconciled scoring model, a persistence choice that gets reversed, a locked "additive only" constraint the schema wasn't checked against, or a field set that needs a migration two weeks later once checked against brand-os's locked recommendation anatomy.
 
-**Track 4 authorization:** OD-12 (the 3-paying-customer validation gate) is resolved — the founder, as sole approver, elects to proceed with the full P0–P2 sequence without waiting for the gate to clear. Track 4's remaining blockers are the technical Open Decisions above (OD-1, OD-2, OD-3, OD-10). OD-9 (naming) is resolved — "Action Roadmap" stays as the customer-facing name, no rename required. OD-13 is resolved — Report Value Slice 3 pauses and folds into P2-1/P2-4; update `CURRENT_SPRINT_GOALS.md` #12 accordingly so it isn't picked up separately.
+**Track 4 authorization:** OD-12 (the 3-paying-customer validation gate) is resolved — the founder, as sole approver, elects to proceed with the full P0–P2 sequence without waiting for the gate to clear. Track 4's remaining blockers are the technical Open Decisions above (OD-1, OD-2, OD-3, OD-10, OD-14). OD-9 (naming) is resolved — "Action Roadmap" stays as the customer-facing name, no rename required. OD-13 is resolved — Report Value Slice 3 pauses and folds into P2-1/P2-4; update `CURRENT_SPRINT_GOALS.md` #12 accordingly so it isn't picked up separately.
 
 ---
 
@@ -634,7 +644,7 @@ Build order below groups requirements by what blocks what; it does not assign da
 
 ## 10. Planning Cross-Reference
 
-This PRD was checked against `lpd-planning`'s tracking files (`PRODUCT_ROADMAP.md`, `CURRENT_SPRINT_GOALS.md`, `STRATEGY.md`, `FUNNELS_AND_MARKETING.md`, `REPORT_VALUE_DELIVERY.md`, `COPY_BANK.md`) after drafting. This section summarizes what that check found; the individual conflicts are folded into §7 as OD-9 through OD-13 and into the affected requirements in §4 as "Planning cross-reference" notes. Nothing here is new analysis beyond those — this is the index. **OD-9, OD-12, and OD-13 have since been resolved by the founder** (see §7); this index is kept as a record of what was found, not a live list of open items — check §7 for current status.
+This PRD was checked against `lpd-planning`'s tracking files (`PRODUCT_ROADMAP.md`, `CURRENT_SPRINT_GOALS.md`, `STRATEGY.md`, `FUNNELS_AND_MARKETING.md`, `REPORT_VALUE_DELIVERY.md`, `COPY_BANK.md`) after drafting, and later against `level-play-brand-os` doctrine (see "Brand OS cross-reference" below). This section summarizes what those checks found; the individual conflicts are folded into §7 as OD-9 through OD-14 and into the affected requirements in §4/§5 as "Planning cross-reference" notes. Nothing here is new analysis beyond those — this is the index. **OD-9, OD-12, and OD-13 have since been resolved by the founder** (see §7); this index is kept as a record of what was found, not a live list of open items — check §7 for current status.
 
 **Updates to `lpd-planning` itself, generated by these resolutions — made 2026-07-18:**
 
@@ -667,6 +677,22 @@ Both planning tickets now point back to this PRD as the merged, authoritative sc
 
 - "Decision Intelligence" as a category-label phrase does not appear anywhere in `lpd-planning` — consistent with P2-6/OD-7, though this doesn't cover `lpd-redesign` marketing copy or investor materials, which remain unaudited.
 - Planning's canonical free-tier section names ("Search footprint," "Social & off-site presence") align with critique §14's proposed restructuring direction — no conflict, just adopted directly in P0-3.
+
+### Brand OS cross-reference (checked 2026-07-18)
+
+`level-play-brand-os` sits one level above `lpd-planning` in its own hierarchy (`BRAND_SOURCE.md`) and was not checked during initial drafting. Checked after the fact against `product/AI_PRINCIPLES.md`, `ai/AI_CONSTITUTION.md`, `product/PRODUCT_ARCHITECTURE.md`, `product/PRODUCT_HIERARCHY.md`, `product/PRODUCT_DECISION_FRAMEWORK.md`, `brand/LANGUAGE_RULES.md`, and `company/OPERATING_MODEL.md`.
+
+**Confirms, no PRD change required:**
+
+- **OD-9's resolution is doctrinally grounded, not just a naming compromise.** `company/OPERATING_MODEL.md` names LevelStack's own stage in the company's five-stage model literally as "Decide" ("LevelStack prioritizes the work, clarifies why it matters, and produces an actionable roadmap"). "Decision Roadmap" as internal shorthand maps directly onto this.
+- **OD-10's tension is real but this PRD doesn't cross the line.** `product/PRODUCT_ARCHITECTURE.md` and `product/PRODUCT_HIERARCHY.md` lock LevelStack as diagnostic-only ("Understand • Explain • Prioritize"); "execute, fix, deploy, monitor" is reserved for Automator Pro. None of this PRD's P0–P2 requirements have LevelStack executing or fixing anything — they're scoring/evidence/recommendation-structure work — so nothing here needs revision on this point. OD-10 remains open for the separate "additive vs. rebuild" architecture question, not a product-boundary violation.
+- **The `automatability` field is safe.** `ai/AI_CONSTITUTION.md` Rule 6 ("require appropriate authority before consequential actions") is satisfied because the field is informational — it flags what could be automated by Automator Pro, not LevelStack automating it itself.
+- **OD-7 gets supporting evidence, not resolution.** `brand/LANGUAGE_RULES.md`'s avoid-list already bans "operational intelligence" by name, a near-identical phrase to "Decision Intelligence." Brand-os doesn't name "Decision Intelligence" specifically, so OD-7 stays open, but existing doctrine already leans toward the same caution the critique raises.
+
+**Surfaced a gap — folded in above:**
+
+- **The Recommendation Object schema (§5) was never checked against brand-os's locked "standard recommendation anatomy"** (`product/AI_PRINCIPLES.md`), despite `BRAND_SOURCE.md` naming that document as required reading before this kind of work. Folded in as the new **OD-14** (§7).
+- **This PRD was never explicitly run through `product/PRODUCT_DECISION_FRAMEWORK.md`'s seven-criteria acceptance gate**, even though `PRODUCT_ROADMAP.md` already quotes that framework verbatim elsewhere as its own prioritization gate. Not folded in as a separate Open Decision — flagged here as a process note, since it's a check to run rather than a decision to close.
 
 ---
 
