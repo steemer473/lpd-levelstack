@@ -9,7 +9,7 @@
 - `lpd-planning` tracking files (`PRODUCT_ROADMAP.md`, `CURRENT_SPRINT_GOALS.md`, `STRATEGY.md`, `FUNNELS_AND_MARKETING.md`, `REPORT_VALUE_DELIVERY.md`, `COPY_BANK.md`) — cross-referenced in §10 and folded into §7's Open Decisions where they conflict with or duplicate critique/audit findings
 - `level-play-brand-os` (company doctrine, one level above `lpd-planning` per its own `BRAND_SOURCE.md` hierarchy) — specifically `product/AI_PRINCIPLES.md`, `ai/AI_CONSTITUTION.md`, `product/PRODUCT_ARCHITECTURE.md`, `product/PRODUCT_HIERARCHY.md`, `product/PRODUCT_DECISION_FRAMEWORK.md`, `brand/LANGUAGE_RULES.md`, `company/OPERATING_MODEL.md` — checked after drafting, cross-referenced in §10 and folded into §7 as OD-14
 
-**How to read this doc:** Requirements (§4) are scoped to critique §15's P0/P1/P2 items only. P3 and all V2/V3 modules are listed in the Appendix as explicitly out of scope for this PRD. Section 7 ("Open Decisions") contains every point where the critique's recommended architecture, the audit's findings about current code, and `lpd-planning`'s existing tracking/locked decisions do not agree, or where the audit could not confirm something a requirement depends on. **Four of fourteen (OD-9, OD-12, OD-13, OD-14) are resolved** — marked RESOLVED in §7, with the resolution reflected in the affected requirements. **The remaining ten (OD-1 through OD-8, OD-10, OD-11) are still open** and are gating questions for you to close before engineering starts on the affected requirement(s). §10 maps this PRD against `lpd-planning`'s existing tickets and locked decisions, and against `level-play-brand-os` doctrine, directly.
+**How to read this doc:** Requirements (§4) are scoped to critique §15's P0/P1/P2 items only. P3 and all V2/V3 modules are listed in the Appendix as explicitly out of scope for this PRD. Section 7 ("Open Decisions") contains every point where the critique's recommended architecture, the audit's findings about current code, and `lpd-planning`'s existing tracking/locked decisions do not agree, or where the audit could not confirm something a requirement depends on. **Ten of fourteen (OD-1 through OD-4, OD-9 through OD-14) are resolved** — marked RESOLVED in §7, with the resolution reflected in the affected requirements. **The remaining four (OD-5 through OD-8) are still open** and are gating questions for you to close before engineering starts on the affected requirement(s). §10 maps this PRD against `lpd-planning`'s existing tickets and locked decisions, and against `level-play-brand-os` doctrine, directly.
 
 ---
 
@@ -145,7 +145,7 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 
 **Planning cross-reference:** this is not a new problem the critique/audit surfaced — it's an existing, already-tracked issue. `CURRENT_SPRINT_GOALS.md` #13, `REPORT_VALUE_DELIVERY.md` "Free-tier scope drift (active)," and `STRATEGY.md`'s report-sections table all document the same 3-way mismatch (hub pricing table says 2 free sections, `copy-brief.md` says 2, app `FREE_TIER_SECTION_IDS` unlocks 3). Planning's canonical intent already names the second free section **"Social & off-site presence"** (`STRATEGY.md` report-sections table, section 02) — this requirement adopts that name rather than inventing a new one. This PRD's P0 priority for the fix is higher than planning's former P2 brand priority for the same ticket; `PRODUCT_ROADMAP.md` and `CURRENT_SPRINT_GOALS.md` #13 now both point back to this requirement as the merged, authoritative scope (updated 2026-07-18 — see §10).
 
-**Dependency:** Depends on P0-2 (AI-search-presence must exist to be folded into a free section). Also touches the Open Decision in §7 on how "Social & Off-site" is structurally separated from "Digital Presence" given only one combined scoring path exists today (OD-4), and OD-11 on which paid tier ($97 vs. $297) gates the moved sections.
+**Dependency:** Depends on P0-2 (AI-search-presence must exist to be folded into a free section). Per OD-4's resolution: free tier gets a genuine separate "Social & Off-site" section/scoring function (social signals only), not a UI filter over `digital_presence`. Per OD-11's resolution: Reputation and (non-social) Digital Presence unlock at the **$97 Action Roadmap** paywall — not $297.
 
 ---
 
@@ -179,9 +179,9 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 **Acceptance criteria:**
 
 - A single documented methodology exists covering: how each visible section score (Search Footprint, Reputation, Digital Presence) is computed, and how Overall relates to them.
-- Overall is either (a) mathematically derived from the displayed section scores via an explicit, documented penalty/weighting rule, or (b) sections that don't feed Overall are no longer displayed as if they do. **This PRD does not choose between these two options** — see Open Decision in §7; the audit's own "Implication for PRD" note poses this exact choice.
-- The three currently independent scoring code paths (LLM free-form 0-100 for Search Footprint; 3-bucket cliff function for Reputation/Digital Presence; weighted signal average for Overall) are reconciled into the single documented model, or an explicit decision is recorded for why they remain separate.
-- The duplicate legacy scoring path is addressed (see Open Decision in §7 — audit found two near-duplicate "score" functions plus two different letter-grade threshold sets across the legacy and current pipelines).
+- Per OD-1's resolution: Overall is **(a) mathematically derived from the displayed section scores** via an explicit, documented penalty/weighting rule. Customer-facing Overall must no longer be the independent `scoreAllSignals` result unless that result is rewritten to be that documented function of the displayed sections.
+- The three currently independent scoring code paths (LLM free-form 0-100 for Search Footprint; 3-bucket cliff function for Reputation/Digital Presence; weighted signal average for Overall) are reconciled into the single documented model under that rule.
+- Per OD-2's resolution: the duplicate legacy scoring path (`build-sections.ts` / `assembleReportJson`) is deleted or hard-gated; the signals-based path is canonical. One letter-grade threshold set applies everywhere (`letterGradeFromScore` unless this methodology doc explicitly replaces it).
 
 **Audit references:**
 
@@ -273,7 +273,7 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 
 **Acceptance criteria:**
 
-- A schema exists (Zod types minimum, plus persistence — see Open Decision in §7 on relational vs. JSONB) with fields for: structured evidence (not just prose), confidence (value + methodology reference), priority, ROI, a dependency graph (not a loose string match), a typed owner, and an automatability flag.
+- A schema exists (Zod types minimum, plus persistence as richer nested schema inside existing `report_json` JSONB per OD-3 — not new relational recommendation/evidence tables in V1) with fields for: structured evidence (not just prose), confidence (value + methodology reference), priority, ROI, a dependency graph (not a loose string match), a typed owner, and an automatability flag.
 - Per OD-14's resolution, the schema also includes **`urgency`** (why-now rationale) and **`consequenceOfInaction`** (inaction-risk statement), required to match `level-play-brand-os/product/AI_PRINCIPLES.md`'s locked recommendation anatomy. Both are generated in the same synthesis pass as `evidence`/`roi`/`confidence`, not a separate call. **Guardrail (required, not optional):** the intensity/severity of `urgency` and `consequenceOfInaction` copy must scale with the recommendation's own `confidence` and evidence strength — a low-confidence or minor finding must produce a modest, honest note, not invented pressure. This is directly testable: no recommendation with `confidence: Low` should render `urgency`/`consequenceOfInaction` language equivalent in severity to a `confidence: High` recommendation.
 - Per OD-13's resolution, the schema also includes a structured **artifact/deliverable-content field** (e.g., email template, copy rewrite, reply draft, checklist) — the scope `CURRENT_SPRINT_GOALS.md` #12 ("Report Value Slice 3") was building against the old `actionItemSchema`. This is a new field added to the list above by that resolution, not present in the original critique §8/§13 field set — see §5's Data Model table.
 - The schema is reviewed by engineering and design before any individual module (Search, Trust, Brand) is scoped against it, per critique §13's explicit recommendation.
@@ -287,7 +287,7 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 - `AuditSignalResult` (`lib/audit/types.ts:3-10`) has an `evidence: string[]` field and a `tier` field but is pipeline-internal scoring data, not the customer-facing object this requirement targets.
 - Audit's explicit conclusion: "a real recommendation schema... doesn't exist and needs to be designed from scratch — there's no partial implementation to extend beyond the loose `findingRef` string-matching link and the two-value automator flag."
 
-**Planning cross-reference:** `PRODUCT_ROADMAP.md`'s "Architecture review additions (2026-06-26)" and `STRATEGY.md`'s "Intelligence core architecture" both contain a locked instruction: "Do not rebuild LevelStack from scratch... Additive improvements only." Neither document anticipated a net-new schema of this scope. This requirement should be read as testing that constraint, not automatically exempt from it — see OD-10.
+**Planning cross-reference:** `PRODUCT_ROADMAP.md`'s "Architecture review additions (2026-06-26)" and `STRATEGY.md`'s "Intelligence core architecture" both contain a locked instruction: "Do not rebuild LevelStack from scratch... Additive improvements only." Neither document anticipated a net-new schema of this scope. **Resolved (OD-10 Option A):** P2-1 and P2-2 are exempt from that additive-only constraint as new, deliberate infrastructure — persistence still follows OD-3 Option B (JSONB). Record the dated exception next to the 2026-06-26 language in those planning docs so doc-vs-reality drift doesn't reappear.
 
 **Dependency:** Depends on P1-1 (scoring methodology fix — explicit blocking dependency per critique §16.1), P2-2 (evidence provenance standard), and P2-3 (confidence methodology). Blocks P2-4 and P2-5.
 
@@ -306,7 +306,7 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 
 **Audit references:** None — this is confirmed net-new; no timestamp/provenance field exists on `findingSchema` or `actionItemSchema` today.
 
-**Planning cross-reference:** `REPORT_VALUE_DELIVERY.md` backlogs "Optional evidence snapshot table for re-synthesis/support audits" at **P3** (lowest priority, deferred), and `PRODUCT_ROADMAP.md`'s architecture-review notes say explicitly to "defer full evidence store; SERP cache + report JSON sufficient for v1" and "do not rebuild the pipeline around a new store prematurely." This requirement treats evidence provenance as **P2, foundational, and blocking** P2-1. That is a direct priority conflict with planning's existing P3/deferred stance, not just a sequencing detail — see OD-10.
+**Planning cross-reference:** `REPORT_VALUE_DELIVERY.md` backlogs "Optional evidence snapshot table for re-synthesis/support audits" at **P3** (lowest priority, deferred), and `PRODUCT_ROADMAP.md`'s architecture-review notes say explicitly to "defer full evidence store; SERP cache + report JSON sufficient for v1" and "do not rebuild the pipeline around a new store prematurely." **Resolved (OD-10 Option A + OD-3 Option B):** evidence provenance/freshness is **P2, foundational, and blocking** P2-1 as a documented standard referenced by the schema's `evidence` field — but V1 does **not** add a separate evidence-snapshot/relational store; provenance lives in the richer nested `report_json` shape (plus existing SERP cache). The P3 snapshot-table backlog remains deferred until re-synthesis/support/audit workflows clearly need it.
 
 **Dependency:** Blocks P2-1. No dependencies of its own.
 
@@ -430,7 +430,7 @@ Per critique §8/§13, the object requires: evidence, confidence, dependencies, 
 | `consequenceOfInaction` | **Absent — added by OD-14's resolution.** No inaction-risk field exists today.                                                                                                                                                                                | Short generated statement of what happens if the recommendation is ignored, same synthesis pass and same guardrail as `urgency` — must not manufacture severity beyond what the evidence supports (ties directly to critique §14.3's "manufactured anxiety" risk). |
 
 
-**Persistence:** everything today lives as opaque `report_json` JSONB (`supabase/migrations/20250603000000_levelstack_product_tables.sql:73`) — there are no relational finding/recommendation tables anywhere in the migrations. Whether the Recommendation Object should move to a relational schema is an **Open Decision** (§7) — it is not resolved by either source document, but it directly affects whether the dashboard interactions described in §6 (filtering, sorting, status-tracking) are feasible against the current storage model.
+**Persistence:** everything today lives as opaque `report_json` JSONB (`supabase/migrations/20250603000000_levelstack_product_tables.sql:73`) — there are no relational finding/recommendation tables anywhere in the migrations. **Resolved (OD-3 Option B, paired with OD-10):** V1 Recommendation Object persistence is a richer nested Zod schema inside that existing `report_json` JSONB column — not new relational tables. P2-5 dashboard filter/sort/status interactions are in-memory over one report's recommendations; promote to relational only when cross-report query needs prove JSONB insufficient.
 
 ---
 
@@ -441,7 +441,7 @@ Per critique §8/§13, the object requires: evidence, confidence, dependencies, 
 Per critique §16.4: the Decision Roadmap is **web-dashboard-primary**, not PDF- or spreadsheet-primary.
 
 - The core thesis (living system: Automator Pro execution, outcome tracking, re-diagnosis over time) requires a dashboard; a static export can't reflect a decision being executed or re-prioritized.
-- Recommendation Object fields (evidence, confidence, dependencies, ROI, owner, urgency, consequenceOfInaction — §5) are suited to filtering, sorting, and status-tracking interactions a flat document can't support. This depends on the persistence Open Decision in §5/§7.
+- Recommendation Object fields (evidence, confidence, dependencies, ROI, owner, urgency, consequenceOfInaction — §5) are suited to filtering, sorting, and status-tracking interactions a flat document can't support. Per OD-3, those interactions run in-memory over the report's JSONB-backed recommendation set in V1.
 - The outcome loop (deferred to V2, §2) requires instrumenting what happens after a recommendation is acted on — not possible from a downloaded file, which is part of why the dashboard has to be primary even though the outcome loop itself isn't built in V1.
 
 **Export formats are secondary, not primary:**
@@ -449,7 +449,7 @@ Per critique §16.4: the Decision Roadmap is **web-dashboard-primary**, not PDF-
 - **PDF export** — redesigned with real color-coded priority (not just text labels) and one decision per visual block, for sharing with a stakeholder who won't log into a dashboard, or for printing.
 - **CSV/spreadsheet export** of Recommendation Objects — for teams who want to load decisions into Asana/Notion/Excel rather than adopt the dashboard; also demonstrates schema portability (part of the defensibility argument in critique §8).
 
-**Free-tier restructuring as a specific, testable requirement** (this is P0-3 above, restated here as the UX-facing spec): free tier ships exactly 2 sections — Search Footprint and Social & Off-site (AI-search-presence built into one of them) — with Reputation and Digital Presence moved to paid. This is testable directly against the live funnel audit's finding (critique §14.1/14.2): after this ships, `/free`'s promised sections and the actual free-tier report's sections must match exactly, and the $97 paywall must gate Reputation and Digital Presence, not render them free.
+**Free-tier restructuring as a specific, testable requirement** (this is P0-3 above, restated here as the UX-facing spec): free tier ships exactly 2 sections — Search Footprint and Social & Off-site (AI-search-presence built into one of them; Social is a genuine separate section per OD-4) — with Reputation and (non-social) Digital Presence moved to the **$97 Action Roadmap** paywall (OD-11). This is testable directly against the live funnel audit's finding (critique §14.1/14.2): after this ships, `/free`'s promised sections and the actual free-tier report's sections must match exactly, and the $97 paywall must gate Reputation and Digital Presence, not render them free.
 
 ---
 
@@ -457,39 +457,45 @@ Per critique §16.4: the Decision Roadmap is **web-dashboard-primary**, not PDF-
 
 ## 7. Open Decisions
 
-Every point below is a place where the critique's recommended architecture and the audit's findings about current code diverge, where `lpd-planning` or `level-play-brand-os` doctrine conflicts with or wasn't checked against a requirement, or where the audit could not confirm something a requirement above depends on. **OD-9, OD-12, OD-13, and OD-14 are marked RESOLVED below** with the founder's decision and rationale; the remaining ten are still open.
+Every point below is a place where the critique's recommended architecture and the audit's findings about current code diverge, where `lpd-planning` or `level-play-brand-os` doctrine conflicts with or wasn't checked against a requirement, or where the audit could not confirm something a requirement above depends on. **OD-1 through OD-4 and OD-9 through OD-14 are marked RESOLVED below** with the founder's decision and rationale; the remaining four (OD-5 through OD-8) are still open.
 
-### OD-1 — How should Overall reconcile with section scores?
+### OD-1 — RESOLVED: Option A — derive Overall mathematically from displayed section scores
 
-- **Option A: Derive Overall mathematically from displayed section scores**, via an explicit, documented penalty/weighting rule. *Tradeoff: keeps the three visible numbers connected and explainable, but requires deciding a weighting scheme (and possibly discarding the current signal-based Overall calculation entirely).*
-- **Option B: Stop displaying section scores that don't feed Overall**, and derive user-facing "sections" purely as groupings of the same signals that produce Overall. *Tradeoff: guarantees mathematical consistency by construction, but is a larger rebuild of the section-builder code (*`scoreFromFindings`*,* `synthesizeFreeSearchFootprint`*) than Option A.*
-- This is posed directly by the audit's own "Implication for PRD" note (audit §1) and is not resolved by the critique, which specifies *that* Overall must reconcile (P1-1) but not *how*. **Blocks:** P1-1's acceptance criteria, and downstream, P2-1/P2-4.
-
-
-
-### OD-2 — Which report-assembly pipeline is canonical?
-
-- The audit found **two parallel report-assembly pipelines** both wired into the paid full-report flow today: the newer signals-based path (`assemble-from-signals.ts` / `serp-backed-sections.ts`) and a legacy path (`build-sections.ts`, `assembleReportJson`) that appears to be a placeholder still in production, with its own near-duplicate scoring function and a different letter-grade threshold set than the current path.
-- **Option A: Consolidate onto the newer signals-based path**, deleting the legacy path. *Tradeoff: removes the inconsistency source cleanly, but requires confirming nothing in paid full-report flow silently depends on legacy-path-only behavior.*
-- **Option B: Keep both intentionally** (e.g., legacy path serves a purpose not documented in either source doc). *Tradeoff: avoids a possibly-risky deletion, but perpetuates the exact inconsistency (duplicate scoring logic, mismatched grade thresholds) the audit flagged as a live bug source.*
-- Neither the critique nor the audit states which pipeline is intended to be authoritative — the critique wasn't scoped at this code-detail level, and the audit only surfaces the conflict. **Blocks:** P1-1 (can't fix "the" scoring methodology if two pipelines compute it differently), and by extension P2-1/P2-4.
+- Audit §1 confirmed Overall is not a function of the visible section scores at all — Search Footprint is LLM free-form (`synthesizeFreeSearchFootprint`), Reputation/Digital Presence use a 3-bucket cliff (`scoreFromFindings`), and Overall is a separate weighted signal average (`scoreAllSignals`) over a pool that includes signals not shown as section line items. That produces live, inexplicable gaps (e.g. 87/62/62 → 57).
+- **Resolution:** Option A. Overall is derived mathematically from the displayed section scores via an explicit, documented penalty/weighting rule. Customer-facing Overall must no longer be the independent `scoreAllSignals` result unless that result is rewritten to be that documented function of the displayed sections.
+- **Rationale:** Option B (rebuild sections as pure groupings of the signals that produce Overall) guarantees consistency by construction but is a larger rebuild of `scoreFromFindings` / `synthesizeFreeSearchFootprint` than needed to close the trust bug. Option A keeps the existing section UX and makes the three numbers + Overall explainable with less surface area.
+- **Action:** P1-1's acceptance criteria adopt option (a) from the original wording — Overall is mathematically derived from displayed section scores via a documented rule. Document the weighting/penalty scheme (even internally first) before changing code.
+- **No longer blocks:** P1-1's "how Overall reconciles" choice. Downstream P2-1/P2-4 still wait on OD-2 (canonical pipeline; now also resolved) and were gated on the OD-3/OD-10 pair (now also resolved) — see those entries and §9.
 
 
 
-### OD-3 — Should the Recommendation Object be relational or extend the JSONB pattern?
+### OD-2 — RESOLVED: Option A — consolidate onto the signals-based assembly path
 
-- **Option A: New relational schema** (tables for recommendations, evidence, dependencies) in Supabase. *Tradeoff: directly supports the filtering/sorting/status-tracking interactions critique §16.4 requires for the dashboard, but is a larger migration than anything currently in the codebase (today: zero relational finding/recommendation tables, everything in opaque* `report_json` *JSONB).*
-- **Option B: Extend the existing JSONB blob pattern** with a richer nested schema. *Tradeoff: consistent with how the codebase works today and faster to ship, but the audit gives no evidence this pattern can support real filtering/sorting at the dashboard-interaction level critique §16.4 describes — this would need to be validated, not assumed.*
-- Critique §3 separately recommends architecting the (unrelated) Brand Intelligence scoring engine "as a decoupled service... from day one" — signaling a general preference for service/schema decoupling that isn't reflected in the current JSONB-only persistence model anywhere in the app. **Blocks:** P2-1's persistence design, and therefore P2-5's dashboard feasibility.
+- Audit confirmed two parallel report-assembly pipelines both wired into production: the newer signals path (`assemble-from-signals.ts` / `serp-backed-sections.ts`) and a legacy path (`build-sections.ts` / `assembleReportJson`) still called from `run-report-pipeline.ts:226-238` for paid full reports. Free snapshots and paid full reports therefore build sections/scores via genuinely different code. Letter-grade thresholds also diverge (`letterGradeFromScore` at 90/80/70/60 vs inline thresholds in `assembleReportJson` at 80/70/55).
+- **Resolution:** Option A. The signals-based path is canonical. Delete or hard-gate the legacy `build-sections.ts` / `assembleReportJson` path so it cannot silently produce customer-facing scores or grades. One letter-grade threshold set applies everywhere (`letterGradeFromScore` unless P1-1's methodology doc explicitly replaces it).
+- **Rationale:** Keeping both (Option B) perpetuates the exact inconsistency the audit flagged as a live bug source. Consolidation is a prerequisite to publishing "the" scoring methodology under P1-1.
+- **Action:** Before deleting legacy code, smoke-test the paid full-report flow to confirm nothing depends on legacy-path-only behavior; then remove or unreachable-gate it in the same change set that lands P1-1's methodology.
+- **No longer blocks:** P1-1's "which pipeline is authoritative" choice.
 
 
 
-### OD-4 — Exact structural separation of "Social & Off-site" from "Digital Presence"
+### OD-3 — RESOLVED: Option B — extend the existing `report_json` JSONB pattern (paired with OD-10)
 
-- Today, social findings are folded into `digital_presence` via `buildSocialFindings` (`serp-backed-sections.ts:710-734`) — there is no independent scoring path for social/off-site presence.
-- **Option A: Split into a genuinely separate scoring function/section** for free-tier "Social & Off-site," reusing only the social-relevant signals, while `digital_presence` (with its non-social signals) remains paid-only. *Tradeoff: matches the marketed 2-section free/paid split cleanly, but requires new section-builder code, not just a UI relabel.*
-- **Option B: Keep one combined scoring function internally, but present a filtered subset as "Social & Off-site" for free tier.** *Tradeoff: less new code, but risks re-creating exactly the kind of "component doesn't match displayed section" opacity the audit flagged elsewhere (e.g., OD-1).*
-- Neither source document specifies this. **Blocks:** P0-3's acceptance criteria on what "a distinct Social & Off-site section" concretely means.
+- Audit §5 confirmed findings/action items live only as Zod types in `lib/pipeline/report-types.ts`, persisted as an opaque `report_json` JSONB column — zero relational finding/recommendation tables in `supabase/migrations/`. Critique §16.4's dashboard filter/sort/status needs are real, but for a single report's recommendation set they can be satisfied in-memory over a richer nested blob.
+- **Resolution:** Option B, resolved together with OD-10. V1 Recommendation Object persistence is a richer nested Zod schema inside the existing `report_json` JSONB column — not new relational tables for recommendations, evidence, or dependencies.
+- **Rationale:** A relational migration (Option A) is larger than anything currently in the codebase and prematurely builds the evidence-store shape that `STRATEGY.md` / `REPORT_VALUE_DELIVERY.md` deferred until re-synthesis/support/audit workflows clearly need it. Client-side filter/sort over one report's recommendations is enough for P2-5; promote to relational only when cross-report query needs prove JSONB insufficient.
+- **Action:** P2-1's persistence design is "JSONB + Zod," with a documented migration path from `findingSchema`/`actionItemSchema`. Do not add recommendation/evidence/dependency tables in V1.
+- **No longer blocks:** P2-1's persistence choice (with OD-10). P2-5's dashboard feasibility is constrained to in-report interactions over the blob, not cross-report SQL filtering.
+
+
+
+### OD-4 — RESOLVED: Option A — genuine separate scoring/section for free-tier "Social & Off-site"
+
+- Audit §4 confirmed there is no distinct "Social & off-site" section in the report schema — social findings are folded into `digital_presence` via `buildSocialFindings` (`serp-backed-sections.ts:710-734`). Marketing and planning intent already name free section 02 **"Social & off-site presence"**; the app unlocks full `digital_presence` (and Reputation) instead.
+- **Resolution:** Option A. Free tier gets a genuinely separate "Social & Off-site" section with its own scoring function over social-relevant signals only. Non-social `digital_presence` signals remain in a paid-only Digital Presence section. This is new section-builder work, not a UI relabel of `digital_presence`.
+- **Rationale:** Option B (one combined scorer, filtered subset presented as Social) re-creates the "component doesn't match displayed section" opacity that OD-1 just closed for Overall. A real split is what P0-3's "distinct Social & Off-site section" means.
+- **Action:** P0-3 acceptance criteria require a new section id + builder for Social & Off-site; update `FREE_TIER_SECTION_IDS` to Search Footprint + Social & Off-site only; lock Reputation and (non-social) Digital Presence behind the paid tier per OD-11.
+- **No longer blocks:** P0-3's structural definition of "distinct Social & Off-site." Tier boundary follows OD-11 (also resolved).
 
 
 
@@ -536,22 +542,23 @@ Every point below is a place where the critique's recommended architecture and t
 
 
 
-### OD-10 — Does "extend, don't rebuild" apply to the Recommendation Object schema and evidence provenance work?
+### OD-10 — RESOLVED: Option A — Recommendation Object + evidence provenance are exempt from "additive only" (paired with OD-3)
 
-- `PRODUCT_ROADMAP.md`'s "Architecture review additions (2026-06-26)" and `STRATEGY.md`'s "Intelligence core architecture" contain a locked instruction: extend the existing intake → research → scoring → LLM synthesis → JSON → UI/email path additively; do not rebuild from scratch; defer a full evidence-snapshot store until re-synthesis/support/audit workflows clearly need it, rather than building one prematurely. `REPORT_VALUE_DELIVERY.md` backlogs the evidence-snapshot idea at **P3**.
-- This PRD's P2-1 (net-new Recommendation Object schema) and P2-2 (evidence provenance/freshness standard, required before P2-1) both describe foundational, blocking, **P2** work of a kind and scope the 2026-06-26 review didn't anticipate.
-- **Option A: The Recommendation Object schema and evidence provenance standard are exempt from "additive only"** — they're new, deliberate infrastructure the 2026-06-26 review didn't rule on, not a rebuild of what exists. *Tradeoff: proceeds as scoped in this PRD, but risks being read as contradicting a locked decision if not explicitly re-approved.*
-- **Option B: Treat P2-1/P2-2 as subject to "additive only" and design them as an extension of the existing `report_json` JSONB pattern**, deferring anything that looks like a new evidence store. *Tradeoff: stays inside the existing locked constraint, but may not be able to support the dashboard filtering/sorting critique §16.4 describes — this is the same tension as OD-3, from the planning side rather than the audit side.*
-- Neither source document (critique or audit) was aware of this locked review. **Blocks:** P2-1, P2-2, and by extension OD-3 — these three should be resolved together, not independently.
+- `PRODUCT_ROADMAP.md` (Architecture review additions, 2026-06-26) and `STRATEGY.md` ("Intelligence core architecture") lock additive extension of the intake → research → scoring → LLM synthesis → JSON → UI/email path and defer a full evidence-snapshot store. Audit §5 separately confirmed there is no partial recommendation schema to extend — `findingSchema`/`actionItemSchema` lack evidence, confidence, ROI, dependency graph, and typed owner. OD-13 already committed Slice 3's artifact/evidence-link scope to land on the new Recommendation Object, not the old pair.
+- **Resolution:** Option A, resolved together with OD-3. P2-1 (Recommendation Object schema) and P2-2 (evidence provenance/freshness standard) are exempt from the 2026-06-26 "additive only" constraint — they are new, deliberate infrastructure that review didn't rule on, not a from-scratch rebuild of the pipeline. Persistence for V1 still follows OD-3 Option B (richer nested schema inside existing `report_json` JSONB); a separate evidence-snapshot/relational store remains deferred until workflows clearly need it.
+- **Rationale:** Treating P2-1/P2-2 as additive-only bolting onto `actionItemSchema` would force a second migration after OD-13 already folded Slice 3 into the new schema. Exemption unlocks the real object; OD-3 B keeps storage inside the existing JSONB pattern so this is not a silent green-light for premature evidence-store tables.
+- **Action:** Record this dated exception next to the 2026-06-26 additive-only language in `STRATEGY.md` / `PRODUCT_ROADMAP.md` so doc-vs-reality drift doesn't reappear. P2-1/P2-2 proceed as scoped; no new evidence-snapshot table in V1.
+- **No longer blocks:** P2-1, P2-2, and OD-3 (resolved as the pair above).
 
 
 
-### OD-11 — Which paid tier gates Reputation and Digital Presence: $97 or $297?
+### OD-11 — RESOLVED: Option A — gate Reputation and Digital Presence at $97 (Action Roadmap)
 
-- `STRATEGY.md` and `FUNNELS_AND_MARKETING.md` describe **three** LevelStack tiers: Visibility Snapshot ($0), Action Roadmap ($97), Action Roadmap + Strategy Call ($297). P0-3 and OD-5 in this PRD refer only to "the $97 paywall" when describing where Reputation and Digital Presence move.
-- **Option A: Gate at $97 (Action Roadmap)**, consistent with critique §14.1/14.4's framing of "the $97 tier" as the target. *Tradeoff: matches the critique's stated intent directly, but doesn't address whether the $297 tier needs any additional differentiation once $97 already contains everything except the strategy call.*
-- **Option B: Gate at $297**, reserving Reputation/Digital Presence (and possibly the Decision Roadmap, per OD-5) for the top tier, with $97 unlocking a smaller middle ground. *Tradeoff: gives the $297 tier more distinct value, but the critique never scoped a 3-tier restructuring — this would be a new decision beyond what either source document analyzed.*
-- Neither source document accounts for the $297 tier at all. **Blocks:** P0-3's and OD-5's acceptance criteria on exact tier boundaries.
+- `STRATEGY.md` and `FUNNELS_AND_MARKETING.md` define three tiers: Visibility Snapshot ($0), Action Roadmap ($97) = all six sections, Action Roadmap + Strategy Call ($297) = roadmap + 30-min strategist call. Critique §14 frames the paywall as "the $97 tier." Neither critique nor audit scoped a 3-tier content split that withholds report sections for $297.
+- **Resolution:** Option A. Reputation and (non-social) Digital Presence unlock at **$97 Action Roadmap**. Free Visibility Snapshot remains Search Footprint + Social & Off-site (per OD-4 / P0-3). $297 differentiation stays the strategist call, not additional gated report sections.
+- **Rationale:** Option B would invent a middle-tier content package neither source document analyzed and would conflict with the locked planning model that $97 already unlocks the full Action Roadmap.
+- **Action:** P0-3 and OD-5 acceptance criteria treat "the paid paywall" as the $97 Action Roadmap boundary. Hub pricing copy and app `FREE_TIER_SECTION_IDS` / `PAID_ONLY_SECTION_IDS` must agree on that boundary.
+- **No longer blocks:** P0-3's and OD-5's exact tier-boundary language.
 
 
 
@@ -561,7 +568,7 @@ Every point below is a place where the critique's recommended architecture and t
 - **Resolution:** this gate is a self-imposed internal discipline in a document with a single approver — the founder — not an external constraint (investor covenant, compliance requirement, co-founder agreement). The founder elects **Option B**: proceed with the full P0–P2 sequence as scoped, treating the vNext architecture itself as part of the path to clearing the validation gate rather than a prerequisite blocked behind it.
 - This does not retroactively invalidate the gate as a general practice — it remains a useful heuristic for future scope decisions — but it no longer blocks this PRD's P2 tier.
 - **Action (required, not conditional):** `STRATEGY.md`'s Validation gates section currently reads as an unmet, unqualified blocker ("before building further"). Leaving it as-is while P2 engineering proceeds recreates the exact kind of doc-vs-reality drift `STRATEGY.md`'s own "Known bugs" log calls out elsewhere (e.g., "BRAND DRIFT" entries). Update that section now to record this specific, dated exception (LevelStack vNext P0–P2 proceeds ahead of the gate, founder decision, this PRD) rather than leaving the gate looking unmet and unaddressed.
-- **No longer blocks:** the P2 tier's authorization to start. Technical Open Decisions (OD-1, OD-2, OD-3, OD-10) still gate P2-1 specifically, per the critical path in §9 — this resolution removes the non-technical blocker only.
+- **No longer blocks:** the P2 tier's authorization to start. Technical Open Decisions that previously gated P2-1 (OD-1, OD-2, OD-3, OD-10) are now also resolved — see those entries and §9. This resolution removes the non-technical blocker only.
 
 
 
@@ -579,7 +586,7 @@ Every point below is a place where the critique's recommended architecture and t
 - **Resolution:** Option A. Add `urgency` (why-now rationale) and `consequenceOfInaction` as first-class fields on the Recommendation Object, generated in the same synthesis pass as `evidence`/`roi`/`confidence` — not a separate call.
 - **Cost rationale (founder's stated priority — $97 price should cover tech costs):** these two fields add on the order of 50-150 output tokens per recommendation to an LLM call that's already generating the other schema fields — fractions of a cent per report at current model pricing. This is immaterial next to the report's actual cost driver, which is external API call volume (SERP, review-platform, PageSpeed, GBP, and the new AI-platform checks from P0-2) — already the subject of P0-2's caching requirement and P0-3's re-measurement requirement. Optimizing LLM output-field count would target the wrong line item.
 - **Required guardrail (added to P2-1's acceptance criteria below):** `urgency` and `consequenceOfInaction` must be generated conditioned on the recommendation's own `confidence` and evidence strength, not as mandatory dramatic copy. A low-confidence or minor finding should produce a modest, honest urgency note ("no immediate deadline, low cost to fix") rather than an invented crisis. Without this guardrail, mandatory urgency/consequence framing on every recommendation risks recreating the "manufactured anxiety" problem already flagged in critique §14.3 (the red-banner/letter-grade issue) — the same positioning risk, moved into the new schema instead of fixed by it.
-- **No longer blocks:** P2-1's field list. Remaining P2-1 gates are OD-1, OD-2, OD-3, and OD-10 (see §9).
+- **No longer blocks:** P2-1's field list. OD-1, OD-2, OD-3, and OD-10 are also resolved (see those entries and §9); remaining P2-1 prerequisites are the Track 2/Track 4 dependency chain (P1-1, P2-2, P2-3), not open decisions.
 
 ---
 
@@ -596,7 +603,7 @@ Every point below is a place where the critique's recommended architecture and t
 | P0-2 (AI-search-presence)           | % of free-tier reports with a non-stub AI-answer-engine finding; cost per report added by this check                                                                                                                                    | No baseline exists today (feature doesn't exist); both numbers need a launch baseline before a target is set.                                                                   |
 | P0-3 (free-tier restructure)        | Free-tier report error rate pre/post restructuring; free-tier external call count pre/post (baseline: ~12-14 calls/report cold cache, per audit §8)                                                                                     | Error-rate metric matters because P0-3 removes some free-tier calls (Reputation, GBP/PageSpeed) while P0-2 adds new ones — net reliability effect is unverified until measured. |
 | P0-3 / P2-5 (paid tier value)       | $97 conversion rate pre/post restructuring                                                                                                                                                                                              | Named explicitly in the PRD's own instructions as a metric to propose; no baseline conversion rate is available in either source document.                                      |
-| P1-1 (scoring reconciliation)       | Score reconciliation accuracy — % of generated reports where Overall is explainable from section scores by the documented method (target: 100% once shipped, since this should be deterministic, not statistical)                       | This is a binary correctness check once OD-1 is resolved, not a rate that should have an acceptable failure floor.                                                              |
+| P1-1 (scoring reconciliation)       | Score reconciliation accuracy — % of generated reports where Overall is explainable from section scores by the documented method (target: 100% once shipped, since this should be deterministic, not statistical)                       | Binary correctness check per OD-1 Option A (Overall derived from displayed section scores); not a rate that should have an acceptable failure floor.                                                              |
 | P1-2 (insufficient-data state)      | % of sections rendering "insufficient data" vs. a false numeric score, on reports where underlying checks genuinely failed/were skipped                                                                                                 | Requires instrumentation of check failure/skip events, which doesn't appear to exist today per the audit.                                                                       |
 | P1-4 (category taxonomy)            | % of businesses classified outside the generic default bucket ("General business services" or equivalent)                                                                                                                               | No baseline exists; today's system has no taxonomy to measure against.                                                                                                          |
 | P2-1 (Recommendation Object schema) | % of Search + Trust recommendations (post P2-4 rebuild) with all required schema fields populated (evidence, confidence, dependencies, roi, automatability, owner, urgency, consequenceOfInaction, artifact where applicable) — target 100%, since partial population defeats the schema's purpose | Also sample for the OD-14 guardrail: no `confidence: Low` recommendation should render `urgency`/`consequenceOfInaction` language equivalent in severity to a `confidence: High` recommendation. |
@@ -621,24 +628,24 @@ Build order below groups requirements by what blocks what; it does not assign da
 5. **P2-3** (confidence methodology) — foundational, no dependencies.
 6. **P2-6** (naming/copy audit) — standalone, but should start with OD-7's audit pass first since its own completeness can't be verified otherwise.
 
-**Track 2 — Scoring integrity (must resolve OD-1 and OD-2 first):**
-7. **P1-1** (scoring methodology + reconciliation) — depends on OD-1 and OD-2 being decided; blocks P2-1.
+**Track 2 — Scoring integrity (OD-1 and OD-2 resolved):**
+7. **P1-1** (scoring methodology + reconciliation) — OD-1 Option A (Overall derived from displayed section scores) and OD-2 Option A (signals path canonical) are locked; blocks P2-1.
 8. **P1-2** (insufficient-data state) — depends on P0-1's classifier and overlaps with P1-1; recommend designing together.
 9. **P1-3** (grade/banner UX) — depends on P1-1 and P1-2.
 
-**Track 3 — Free-tier restructuring (must resolve OD-4 first):**
+**Track 3 — Free-tier restructuring (OD-4 and OD-11 resolved):**
 10. **P0-2** (AI-search-presence check) — no hard dependency on Track 2, can run in parallel.
-11. **P0-3** (2-section free tier) — depends on P0-2 and OD-4's resolution.
+11. **P0-3** (2-section free tier) — depends on P0-2; OD-4 Option A (genuine Social & Off-site section) and OD-11 Option A ($97 gate) are locked.
 
 **Track 4 — Foundation schema (depends on Tracks 1 and 2 completing):**
-12. **P2-1** (Recommendation Object schema) — depends on P1-1 (explicit per critique §16.1), P2-2, P2-3, and OD-3's resolution.
+12. **P2-1** (Recommendation Object schema) — depends on P1-1 (explicit per critique §16.1), P2-2, and P2-3. OD-3 Option B (JSONB persistence) and OD-10 Option A (exempt from additive-only) are locked.
 13. **P2-4** (rebuild Search + Trust onto schema) — depends on P2-1, P1-2, P0-1, P1-1.
 14. **P2-5** (Action Roadmap dashboard UI, internally "Decision Roadmap" — see OD-9) — depends on P2-1, P2-4, and OD-5's resolution.
 15. **P2-7** (four-pillar nav) — depends on P2-5's scope being settled and OD-6's timing decision; may not be a V1 item at all depending on that decision.
 
-**Critical path:** OD-1/OD-2 → P1-1 → P2-1 → P2-4 → P2-5. Everything in Track 4 is gated on the scoring-integrity work in Track 2, which is itself gated on two Open Decisions (§7) that neither source document resolves. **No engineering on P2-1 should start before OD-1, OD-2, OD-3, and OD-10 are closed** — starting earlier risks building the schema against an unreconciled scoring model, a persistence choice that gets reversed, or a locked "additive only" constraint the schema wasn't checked against. OD-14 is resolved (Option A, `urgency`/`consequenceOfInaction` added with the confidence-tied guardrail) and no longer part of this gate.
+**Critical path:** P1-1 → P2-1 → P2-4 → P2-5. Everything in Track 4 is gated on the scoring-integrity work in Track 2. **OD-1, OD-2, OD-3, OD-10, and OD-14 are all resolved** — P2-1 is no longer blocked on Open Decisions; it waits only on P1-1 (scoring methodology), P2-2 (evidence provenance standard), and P2-3 (confidence methodology). Persistence is JSONB + Zod (OD-3); schema/provenance work is exempt from the 2026-06-26 additive-only lock but must not introduce a premature evidence-snapshot table (OD-10).
 
-**Track 4 authorization:** OD-12 (the 3-paying-customer validation gate) is resolved — the founder, as sole approver, elects to proceed with the full P0–P2 sequence without waiting for the gate to clear. Track 4's remaining blockers are the technical Open Decisions above (OD-1, OD-2, OD-3, OD-10). OD-9 (naming) is resolved — "Action Roadmap" stays as the customer-facing name, no rename required. OD-13 is resolved — Report Value Slice 3 pauses and folds into P2-1/P2-4; update `CURRENT_SPRINT_GOALS.md` #12 accordingly so it isn't picked up separately. OD-14 is resolved — schema adds `urgency`/`consequenceOfInaction` with the required guardrail (see §5, P2-1).
+**Track 4 authorization:** OD-12 (the 3-paying-customer validation gate) is resolved — the founder, as sole approver, elects to proceed with the full P0–P2 sequence without waiting for the gate to clear. The former technical Open Decision blockers for Track 4 (OD-1, OD-2, OD-3, OD-10) are also resolved. OD-9 (naming) is resolved — "Action Roadmap" stays as the customer-facing name, no rename required. OD-13 is resolved — Report Value Slice 3 pauses and folds into P2-1/P2-4. OD-14 is resolved — schema adds `urgency`/`consequenceOfInaction` with the required guardrail (see §5, P2-1). Remaining open decisions that still affect Track 4 timing/scope are OD-5 (free-tier Roadmap teaser) and OD-6 (four-pillar IA timing).
 
 ---
 
@@ -646,13 +653,19 @@ Build order below groups requirements by what blocks what; it does not assign da
 
 ## 10. Planning Cross-Reference
 
-This PRD was checked against `lpd-planning`'s tracking files (`PRODUCT_ROADMAP.md`, `CURRENT_SPRINT_GOALS.md`, `STRATEGY.md`, `FUNNELS_AND_MARKETING.md`, `REPORT_VALUE_DELIVERY.md`, `COPY_BANK.md`) after drafting, and later against `level-play-brand-os` doctrine (see "Brand OS cross-reference" below). This section summarizes what those checks found; the individual conflicts are folded into §7 as OD-9 through OD-14 and into the affected requirements in §4/§5 as "Planning cross-reference" notes. Nothing here is new analysis beyond those — this is the index. **OD-9, OD-12, OD-13, and OD-14 have since been resolved by the founder** (see §7); this index is kept as a record of what was found, not a live list of open items — check §7 for current status.
+This PRD was checked against `lpd-planning`'s tracking files (`PRODUCT_ROADMAP.md`, `CURRENT_SPRINT_GOALS.md`, `STRATEGY.md`, `FUNNELS_AND_MARKETING.md`, `REPORT_VALUE_DELIVERY.md`, `COPY_BANK.md`) after drafting, and later against `level-play-brand-os` doctrine (see "Brand OS cross-reference" below). This section summarizes what those checks found; the individual conflicts are folded into §7 as OD-9 through OD-14 and into the affected requirements in §4/§5 as "Planning cross-reference" notes. Nothing here is new analysis beyond those — this is the index. **OD-1 through OD-4 and OD-9 through OD-14 have since been resolved by the founder** (see §7); this index is kept as a record of what was found, not a live list of open items — check §7 for current status. Remaining open: OD-5 through OD-8.
 
 **Updates to `lpd-planning` itself, generated by these resolutions — made 2026-07-18:**
 
 - `STRATEGY.md`'s Validation gates section now records a dated exception for OD-12 — no longer reads as an unmet, unqualified blocker. The same exception was also propagated to the two other places the gate was independently restated (`REPORT_VALUE_DELIVERY.md` "Validation gate," `FUNNELS_AND_MARKETING.md` §7) — a duplication this cross-reference pass surfaced that wasn't previously tracked here.
 - `CURRENT_SPRINT_GOALS.md` #12 (Report Value Slice 3), `PRODUCT_ROADMAP.md`'s Slice 3 row, and `REPORT_VALUE_DELIVERY.md`'s Slice 3 priority rows are all now marked superseded/folded into P2-1/P2-4 per OD-13's resolution.
 - `CURRENT_SPRINT_GOALS.md` #13's free-tier sub-bullet and #19 (grade mismatch) are now marked merged into this PRD's P0-3 and P1-1/P0-2 respectively, with pointers back here so they aren't worked as separate, differently-scoped tickets. `PRODUCT_ROADMAP.md`'s corresponding rows got the same treatment, plus a new top-of-list P0 row pointing at this PRD as the current authoritative scope for all of the above.
+
+**Updates to `lpd-planning` from OD-1–OD-4 / OD-10 / OD-11 resolutions — made 2026-07-18:**
+
+- OD-10 dated exception recorded next to the 2026-06-26 "additive only" language in `STRATEGY.md` (Intelligence core architecture) and `PRODUCT_ROADMAP.md` (Architecture review additions); Slice 4 row clarified so additive-only still applies to router/editorial work only.
+- `CURRENT_SPRINT_GOALS.md` item 0: OD-10/OD-11 open-decision line closed; deferred evidence-store bullet updated for the OD-10/OD-3 split (provenance P2-2 vs snapshot table still deferred).
+- `REPORT_VALUE_DELIVERY.md` P3 evidence-snapshot row updated to match that split (no longer says OD-10 still open).
 
 ### Already-tracked work this PRD duplicates or re-scopes
 
@@ -665,10 +678,10 @@ Both planning tickets now point back to this PRD as the merged, authoritative sc
 
 ### Locked planning decisions this PRD's Open Decisions must be checked against
 
-- **"Do not rebuild LevelStack from scratch... additive improvements only"** (`PRODUCT_ROADMAP.md`, `STRATEGY.md`) — bears directly on OD-3 (relational vs. JSONB) and is the basis for the new OD-10.
-- **Evidence-snapshot table backlogged at P3** (`REPORT_VALUE_DELIVERY.md`) — conflicts with this PRD's P2-2 treating evidence provenance as P2/foundational/blocking. Also folded into OD-10.
+- **"Do not rebuild LevelStack from scratch... additive improvements only"** (`PRODUCT_ROADMAP.md`, `STRATEGY.md`) — **resolved (OD-10 Option A + OD-3 Option B):** P2-1/P2-2 are exempt as new infrastructure; V1 persistence stays JSONB; no premature evidence-snapshot table. **Action still required:** record the dated exception next to the 2026-06-26 language in those planning docs.
+- **Evidence-snapshot table backlogged at P3** (`REPORT_VALUE_DELIVERY.md`) — **resolved under OD-10/OD-3:** provenance standard is P2/foundational; the separate snapshot table stays deferred at P3.
 - **"Action Roadmap" as the locked, lint-enforced customer-facing name** (`STRATEGY.md` Decision #14, `COPY_BANK.md` §7.0) — **resolved (OD-9):** "Decision Roadmap" stays internal shorthand only; no rename, no lint/copy-bank changes needed for naming.
-- **Three-tier pricing ($0 / $97 / $297)** (`STRATEGY.md`, `FUNNELS_AND_MARKETING.md`) — this PRD's P0-3/OD-5 only reference "the $97 paywall," not the $297 tier. **Still open: OD-11.**
+- **Three-tier pricing ($0 / $97 / $297)** (`STRATEGY.md`, `FUNNELS_AND_MARKETING.md`) — **resolved (OD-11 Option A):** Reputation and Digital Presence gate at $97; $297 stays roadmap + strategy call.
 - **Validation gates (3 paying customers before building further) and LevelStack's stated portfolio role** ("lead gen + brand proof," not the primary MRR product) (`STRATEGY.md`) — **resolved (OD-12):** founder elects to proceed with P0–P2 without waiting for the gate; `STRATEGY.md` update made 2026-07-18 (see above).
 
 ### In-flight work with an unresolved sequencing relationship to this PRD
@@ -687,7 +700,7 @@ Both planning tickets now point back to this PRD as the merged, authoritative sc
 **Confirms, no PRD change required:**
 
 - **OD-9's resolution is doctrinally grounded, not just a naming compromise.** `company/OPERATING_MODEL.md` names LevelStack's own stage in the company's five-stage model literally as "Decide" ("LevelStack prioritizes the work, clarifies why it matters, and produces an actionable roadmap"). "Decision Roadmap" as internal shorthand maps directly onto this.
-- **OD-10's tension is real but this PRD doesn't cross the line.** `product/PRODUCT_ARCHITECTURE.md` and `product/PRODUCT_HIERARCHY.md` lock LevelStack as diagnostic-only ("Understand • Explain • Prioritize"); "execute, fix, deploy, monitor" is reserved for Automator Pro. None of this PRD's P0–P2 requirements have LevelStack executing or fixing anything — they're scoring/evidence/recommendation-structure work — so nothing here needs revision on this point. OD-10 remains open for the separate "additive vs. rebuild" architecture question, not a product-boundary violation.
+- **OD-10's tension is real but this PRD doesn't cross the line.** `product/PRODUCT_ARCHITECTURE.md` and `product/PRODUCT_HIERARCHY.md` lock LevelStack as diagnostic-only ("Understand • Explain • Prioritize"); "execute, fix, deploy, monitor" is reserved for Automator Pro. None of this PRD's P0–P2 requirements have LevelStack executing or fixing anything — they're scoring/evidence/recommendation-structure work — so nothing here needs revision on this point. **OD-10 is now resolved** (Option A exemption + OD-3 JSONB persistence) for the separate "additive vs. rebuild" architecture question; that resolution is not a product-boundary violation.
 - **The `automatability` field is safe.** `ai/AI_CONSTITUTION.md` Rule 6 ("require appropriate authority before consequential actions") is satisfied because the field is informational — it flags what could be automated by Automator Pro, not LevelStack automating it itself.
 - **OD-7 gets supporting evidence, not resolution.** `brand/LANGUAGE_RULES.md`'s avoid-list already bans "operational intelligence" by name, a near-identical phrase to "Decision Intelligence." Brand-os doesn't name "Decision Intelligence" specifically, so OD-7 stays open, but existing doctrine already leans toward the same caution the critique raises.
 
