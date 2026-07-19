@@ -23,6 +23,7 @@ import {
   resolveCompetitiveSnapshot,
   resolveExecutiveContent,
 } from "@/lib/report/executive-summary-resolve"
+import { shouldUseAlarmSeverity } from "@/lib/report/severity-presentation"
 import { cn } from "@/lib/utils"
 
 type ExecutiveSummaryConversionProps = {
@@ -55,14 +56,20 @@ function OverallScoreCard({ meta }: { meta: LevelstackReportJson["meta"] }) {
   )
 }
 
-function KpiStrip({ meta }: { meta: LevelstackReportJson["meta"] }) {
+function KpiStrip({
+  meta,
+  alarmSeverity,
+}: {
+  meta: LevelstackReportJson["meta"]
+  alarmSeverity: boolean
+}) {
   const items = [
     { label: "Score", value: String(meta.overallScore), critical: false, grade: false },
     { label: "Grade", value: meta.letterGrade, critical: false, grade: true },
     {
       label: "Critical issues",
       value: String(meta.criticalCount),
-      critical: true,
+      critical: alarmSeverity,
       grade: false,
     },
     { label: "Findings", value: String(meta.totalFindings), critical: false, grade: false },
@@ -310,6 +317,7 @@ export function ExecutiveSummaryConversion({
   const sectionById = new Map(sections.map((s) => [s.id, s]))
   const leverage = splitFirstSentence(content.highlights.highestLeverageOpportunity)
   const headlineParts = executiveConversionHeadlineParts(report)
+  const alarmSeverity = shouldUseAlarmSeverity(report)
 
   const actionItems = actionPlan.thisWeek.slice(0, 3)
 
@@ -348,12 +356,20 @@ export function ExecutiveSummaryConversion({
         <OverallScoreCard meta={meta} />
       </div>
 
-      <KpiStrip meta={meta} />
+      <KpiStrip meta={meta} alarmSeverity={alarmSeverity} />
 
-      <div className="rpt-conv-pull-quote">
+      <div
+        className={cn(
+          "rpt-conv-pull-quote",
+          alarmSeverity ? "is-alarm" : "is-priority",
+        )}
+      >
+        <p className="rpt-conv-pull-quote-label">
+          {alarmSeverity ? "Most critical issue" : "Priority finding"}
+        </p>
         <FormattedReportText
           text={content.highlights.criticalIssue}
-          paragraphClassName="text-[0.9375rem] font-medium leading-snug text-[#7f1d1d]"
+          paragraphClassName="rpt-conv-pull-quote-body text-[0.9375rem] font-medium leading-snug"
           emphasizeLeadIn={false}
         />
       </div>

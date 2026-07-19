@@ -38,7 +38,7 @@ export function ReportScorecard({ meta, className }: ReportScorecardProps) {
           Grade
         </span>
         <div className="flex items-center gap-1.5">
-          <span className="text-[56px] font-bold leading-none text-[#f97316]">
+          <span className="text-[56px] font-bold leading-none text-white">
             {meta.letterGrade}
           </span>
           <SectionGuideInfo tabId="executive_summary" tone="on-dark" iconClassName="size-[18px]" />

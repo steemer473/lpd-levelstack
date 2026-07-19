@@ -68,7 +68,7 @@ function ReportPrintViewFull({ report }: ReportPrintViewProps) {
           <p className="text-xs font-semibold text-orange-600 capitalize">
             {readinessHeadline(meta.overallScore)}
           </p>
-          <p className="text-3xl font-bold text-orange-600 leading-none mt-1">{meta.letterGrade}</p>
+          <p className="text-3xl font-bold text-gray-900 leading-none mt-1">{meta.letterGrade}</p>
         </div>
       </header>
 
