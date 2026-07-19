@@ -61,4 +61,17 @@ describe("deriveOverallFromSections", () => {
     ])
     expect(derived.includedSectionIds).not.toContain("online_reputation")
   })
+
+  it("averages free-tier Search + Social only (P0-3)", () => {
+    const derived = deriveOverallFromSections([
+      { id: "search_footprint", score: 80 },
+      { id: "social_offsite", score: 62 },
+    ])
+    expect(derived.overallScore).toBe(71)
+    expect(derived.letterGrade).toBe("C")
+    expect(derived.includedSectionIds).toEqual([
+      "search_footprint",
+      "social_offsite",
+    ])
+  })
 })

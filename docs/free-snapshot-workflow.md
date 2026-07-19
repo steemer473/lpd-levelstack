@@ -7,8 +7,8 @@ End-to-end flow for the LevelStack free snapshot on `levelstack.levelplaydigital
 1. **Hub bridge** — `levelplaydigital.com/free` redirects to product `/free`
 2. **Form** — business name, domain, email, optional city → submit **Run my snapshot**
 3. **Auth** — magic-link redirect to `/reports/{id}` progress screen
-4. **Pipeline** — live SERP research (~7 queries for free tier) + website fetch → report JSON saved
-5. **Report** — progress UI refreshes to full report (~1.5s ready state)
+4. **Pipeline** — live SERP research (~3 organic queries for free tier: brand 1 + social 2) + website/about fetch → report JSON saved
+5. **Report** — progress UI refreshes to full report (~1.5s ready state); free unlocks Search Footprint + Social & off-site presence only
 6. **Email** — one user email when generation completes; primary CTA uses a **30-day possession token** (`rtoken`). Supabase sign-in links (resend / expired token) use **24-hour OTP**.
 
 ## One snapshot per email (production)
@@ -35,7 +35,7 @@ Never set this on Vercel.
 
 Reports only mark `ready` when:
 
-- **SERP data** exists (brand/reputation searches returned results)
+- **SERP data** exists (brand and/or social search returned results)
 - **Website fetch** succeeded (title, H1, meta, or body content)
 
 If research fails, the report status is **failed** with: *"We couldn't complete live research. Try again or contact support."*
@@ -49,9 +49,11 @@ If research fails, the report status is **failed** with: *"We couldn't complete 
 | `SUPABASE_*` | Auth + report storage |
 | `NEXT_PUBLIC_APP_URL` | Magic-link redirects |
 
-Free tier uses ~7 SERP queries per run (brand 1, social 2, directory 4). Results are cached in Supabase for 24 hours — re-runs for the same business within that window reuse cached data at zero API cost.
+Free tier uses ~**3** organic SERP queries per cold run (brand 1, social LinkedIn + Facebook 2). Directory/review SERP is **paid-only** (P0-3). Plus website + about/footer fetches and OpenAI Search Footprint synthesis. Prior baseline was ~7 SERP (~12–14 total external calls including directory SERP); P0-3 drops the 4 directory queries from the free path. Results are cached in Supabase for 24 hours — re-runs for the same business within that window reuse cached data at zero API cost.
 
 **P0-2 AI Overview check:** Google AI Overview presence is read from the brand organic SERP response (`aiOverview` field). It adds **+0 SERP calls** vs the baseline above (same cached brand query). ChatGPT / Perplexity are not queried. In staging/dogfood, observe `% of free reports with non-null aiOverview` as an operational signal — not a cost driver.
+
+**P0-3 free sections:** unlocked diagnostics are Search Footprint + Social & off-site presence only. Reputation and Digital Presence unlock at $97.
 
 Local dev with zero API cost:
 

@@ -38,7 +38,7 @@ export const LOCKED_SECTION_MODAL = {
     "Your free snapshot found the gaps. The Action Roadmap shows how to close them.",
   bullets: [
     "Full 90-day prioritized action plan with Who / Time / Impact",
-    "Reputation, funnel, and competitive modules unlocked",
+    "Reputation, digital presence, funnel, and competitive modules unlocked",
     "Dashboard + PDF ready immediately after purchase",
   ] as const,
   primaryCta: (price = "$97") => `Unlock ${PRODUCT_NAMES.paid} — ${price}`,

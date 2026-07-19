@@ -20,7 +20,7 @@ export const SAMPLE_REPORT: LevelstackReportJson = {
     mediumCount: 5,
     lowCount: 2,
     issueCountForUpgrade: 10,
-    lockedSectionCount: 3,
+    lockedSectionCount: 5,
     upgradeTeasers: {
       competitivePositionAlert:
         "ATL Fit Pro ranks above you for primary service searches in Atlanta.",
@@ -77,7 +77,7 @@ export const SAMPLE_REPORT: LevelstackReportJson = {
       id: "search_footprint",
       label: "Search footprint",
       status: "critical",
-      score: 52,
+      score: 74,
       findings: [
         {
           label: 'Google page 1 — "Marcus Carter" (personal name)',
@@ -96,18 +96,6 @@ export const SAMPLE_REPORT: LevelstackReportJson = {
       ],
       aiPreview: [
         {
-          platform: "ChatGPT",
-          result:
-            'Not mentioned. Query for "online fitness coaches Atlanta" returns three competitors by name. Your business does not appear in the response.',
-          severity: "critical",
-        },
-        {
-          platform: "Perplexity",
-          result:
-            "Returns a summary of Atlanta fitness options. Your business is not cited. No structured content on your site is written in an answer format AI engines can pull from.",
-          severity: "critical",
-        },
-        {
           platform: "Google AI Overview",
           result:
             'Query "personal trainer Atlanta online" surfaces an AI Overview with 4 citations. Your site is not one of them. No FAQ schema, no structured Q&A content detected.',
@@ -116,167 +104,33 @@ export const SAMPLE_REPORT: LevelstackReportJson = {
       ],
     },
     {
-      id: "online_reputation",
-      label: "Reputation",
-      status: "critical",
-      score: 48,
+      id: "social_offsite",
+      label: "Social & off-site presence",
+      status: "attention",
+      score: 62,
       findings: [
         {
-          label: "Google Business Profile — review summary",
-          value: "3.2 stars · 6 reviews · Last review 9 months ago",
+          label: "LinkedIn",
+          value: "Company profile found in search",
           detail:
-            'Your most recent review is from September 2025. Of 6 reviews, 4 are positive (5-star) and 2 are negative (1-star). You have not responded to either negative review. One negative review mentions "no refund when I had to cancel" — a recurring objection for online fitness programs that is currently unanswered in your public record.',
-          severity: "critical",
-        },
-        {
-          label: "Yelp profile",
-          value: "Unclaimed",
-          detail:
-            'A Yelp page exists for "MC Fitness Studio" (likely auto-generated). It shows 1 review (3 stars) and a missing phone number. You have not claimed it.',
-          severity: "high",
-        },
-        {
-          label: "ConsumerAffairs.com",
-          value: "1 complaint — prior business name",
-          detail:
-            'Filed under "Carter Fitness Studio LLC" in 2022. Still indexed. Appears on page 1 for your personal name search.',
-          severity: "critical",
-        },
-        {
-          label: "BBB profile",
-          value: "Not listed",
-          detail:
-            "No BBB profile exists for MC Fitness & Wellness or Carter Fitness Studio LLC. For a fitness coach targeting clients at the $150–$300/month price point, a BBB listing is not required but does add a trust signal that some prospects check.",
+            "A LinkedIn company result appears for MC Fitness & Wellness. Profile completeness was not verified on this free snapshot.",
           severity: "good",
         },
-      ],
-    },
-    {
-      id: "digital_presence",
-      label: "Digital presence",
-      status: "attention",
-      score: 58,
-      findings: [
         {
-          label: "Google Business Profile — completeness",
-          value: "Claimed · Incomplete",
+          label: "Facebook",
+          value: "No Facebook profile found in search",
           detail:
-            "Business category partial, hours listed, only 1 photo uploaded, 0 Google posts in 90 days, empty Q&A section, 2 of 5 services listed.",
+            "Prospects searching for your brand on Facebook may not find a clear page — competitors with visible profiles win those clicks.",
           severity: "high",
         },
         {
-          label: "Instagram",
+          label: "Instagram (intake)",
           value: "2,400 followers · Last post 91 days ago",
           detail:
             "Your follower count is solid for your market. The 91-day gap in posting is what prospect research surfaces — a dormant account reads as a dormant business.",
           severity: "medium",
         },
-        {
-          label: "Website trust signals",
-          value: "Missing 3 of 5 key trust elements",
-          detail:
-            "No client testimonials above the fold. No credential or certification section. Contact page has a form but no phone number or email address visible. Lighthouse mobile performance score: 61.",
-          severity: "critical",
-        },
       ],
-      scoreRows: [
-        { label: "Business category", value: "Partial", percent: 60, tone: "amber" },
-        { label: "Hours listed", value: "Yes", percent: 100, tone: "green" },
-        { label: "Photos uploaded", value: "1 photo", percent: 15, tone: "red" },
-        { label: "Google posts (90 days)", value: "0", percent: 0, tone: "red" },
-        { label: "Q&A section", value: "Empty", percent: 0, tone: "red" },
-        { label: "Services listed", value: "2 of 5", percent: 50, tone: "amber" },
-      ],
-    },
-    {
-      id: "revenue_funnel",
-      label: "Revenue funnel",
-      status: "attention",
-      score: 42,
-      findings: [
-        {
-          label: "Ad spend vs. funnel readiness",
-          value: "$1,200/month on Facebook & Instagram ads — landing on an unready destination",
-          detail:
-            "You are actively spending on paid traffic. The destination (your website's services page) has no social proof, a 61 mobile Lighthouse score, a single call to action that opens a booking form with 9 required fields, and no visible pricing or program structure. At current spend and conversion rates, LevelStack estimates you are losing 60–70% of warm clicks before they take any action.",
-          severity: "critical",
-        },
-        {
-          label: "Offer vs. price point",
-          value: "$197/month coaching — undersupported",
-          detail:
-            "$197/month is mid-market for online fitness coaching. Your website does not articulate what differentiates your program from a $30/month app. No transformation stories, no results data, no comparison to alternatives.",
-          severity: "high",
-        },
-        {
-          label: "Email list",
-          value: "Approx. 340 subscribers · No visible lead capture on site",
-          detail:
-            "You have a small but real email list. There is no opt-in mechanism visible on your website — no lead magnet, no free week offer, no newsletter CTA. You are not growing this list from your website traffic.",
-          severity: "medium",
-        },
-      ],
-    },
-    {
-      id: "competitive_context",
-      label: "Competitive context",
-      status: "attention",
-      score: 55,
-      findings: [
-        {
-          label: "Top 3 competitors — Atlanta online fitness coaching",
-          value: "You trail on reviews, GBP activity, and mobile performance",
-          detail:
-            "ATL Fit Pro: 48 reviews at 4.8★, 6 GBP posts, 14 Instagram posts, Lighthouse 84. Coach Renne Watts: 31 reviews at 4.6★, 4 GBP posts, Lighthouse 78. You: 6 reviews at 3.2★, 0 GBP posts, 1 Instagram post, Lighthouse 61.",
-          severity: "high",
-        },
-        {
-          label: "Where you are stronger than you realize",
-          value: "Instagram following",
-          detail:
-            "Your 2,400 Instagram followers exceed both primary competitors (ATL Fit Pro: 890; Coach Renne Watts: 1,100). You have a distribution asset you are not using — the 91-day posting gap means warm followers are not seeing active content.",
-          severity: "good",
-        },
-        {
-          label: "Differentiation gap you are not claiming",
-          value: "Corporate wellness and employee coaching",
-          detail:
-            "Neither primary competitor targets corporate HR departments or employee wellness programs. You have corporate experience in your background that is not visible anywhere on your site or social profiles. This is a reachable B2B vertical at 2–4x the revenue per engagement.",
-          severity: "medium",
-        },
-      ],
-      competitiveGrid: {
-        columnHeaders: ["You (MC Fitness)", "ATL Fit Pro", "Coach Renne Watts"],
-        columnSources: ["you", "service_peer", "service_peer"],
-        comparisonMode: "service_peer",
-        rows: [
-          {
-            label: "Google reviews",
-            cells: ["6", "48", "31"],
-            youColumnIndex: 0,
-          },
-          {
-            label: "Avg. rating",
-            cells: ["3.2★", "4.8★", "4.6★"],
-            youColumnIndex: 0,
-          },
-          {
-            label: "GBP posts (90d)",
-            cells: ["0", "6", "4"],
-            youColumnIndex: 0,
-          },
-          {
-            label: "Instagram posts (90d)",
-            cells: ["1", "14", "3"],
-            youColumnIndex: 0,
-          },
-          {
-            label: "Lighthouse mobile",
-            cells: ["61", "84", "78"],
-            youColumnIndex: 0,
-          },
-        ],
-      },
     },
   ],
   actionPlan: {

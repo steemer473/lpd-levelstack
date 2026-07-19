@@ -20,9 +20,9 @@ letterGrade  = letterGradeFromScore(overallScore)   // A≥90, B≥80, C≥70, D
 
 **Not used for Overall:** `scoreAllSignals` weighted signal average. That audit bundle may still power insights, signal rows, and upgrade teasers — it must not set `meta.overallScore` / `meta.letterGrade`. Unavailable signals are skipped from that internal weighted average as well.
 
-**Free tier:** mean is over the free snapshot’s unlocked **scored** diagnostic sections only (whatever remains after `FREE_TIER_SECTION_IDS` filtering). Locked paid sections and insufficient-data sections do not enter the mean.
+**Free tier (P0-3):** mean is over unlocked scored diagnostics only — Search Footprint + Social & off-site presence (`FREE_TIER_SECTION_IDS`). Reputation, Digital Presence, and other paid sections do not enter the free mean.
 
-**Paid tier:** mean is over all scored diagnostic sections in the assembled report (Search, Reputation, Digital Presence, Revenue funnel, Competitive, etc.), excluding `action_plan` and insufficient-data sections.
+**Paid tier:** mean is over all scored diagnostic sections in the assembled report (Search, Social & off-site, Reputation, Digital Presence, Revenue funnel, Competitive, etc.), excluding `action_plan` and insufficient-data sections.
 
 Implementation: `lib/audit/derive-overall-from-sections.ts`.
 
@@ -51,8 +51,13 @@ These remain the section builders’ responsibility. Overall does **not** recomp
 |--------|----------------|-------------------|
 | Search Footprint (free, LLM path) | `synthesizeFreeSearchFootprint` | Model returns 0–100; schema-constrained |
 | Search Footprint (fallback) | `scoreSectionFromChecks` / research findings | Cliff over scoreable checks only; else insufficient_data |
-| Reputation / Digital Presence (research path) | `scoreSectionFromChecks` in `serp-backed-sections.ts` | Cliff buckets on `ok`/`negative` only: critical→42, high/medium→62, else→78; ≥50% blocked → insufficient_data |
+| Social & off-site presence (`social_offsite`) | `scoreSectionFromChecks` over `bundle.socialSearch` | Found → ok; not found → negative; empty platforms → insufficient_data. Not folded into Digital Presence (OD-4 / P0-3). |
+| Reputation / Digital Presence (research path) | `scoreSectionFromChecks` in `serp-backed-sections.ts` | Cliff buckets on `ok`/`negative` only: critical→42, high/medium→62, else→78; ≥50% blocked → insufficient_data. Digital Presence = website / PageSpeed / GBP only. |
 | Other paid sections | LLM synthesis or SERP-backed builders | Same report section schema (`score` 0–100 or null) |
+
+## Free-tier sections (P0-3)
+
+Free Visibility Snapshot unlocks exactly two diagnostic sections: **Search Footprint** and **Social & off-site presence**. Reputation and (non-social) Digital Presence unlock at the $97 Action Roadmap. AI Overview stays on Search Footprint (P0-2).
 
 ## Free-tier AI Overview check (P0-2)
 

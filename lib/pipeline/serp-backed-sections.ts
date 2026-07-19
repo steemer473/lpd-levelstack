@@ -69,6 +69,7 @@ function titleForDomain(
 function hasSerpData(bundle: ResearchBundle): boolean {
   return (
     bundle.searchFootprint.searches.some((s) => s.results.length > 0) ||
+    bundle.socialSearch.platforms.length > 0 ||
     bundle.reputation.searches.some((s) => s.results.length > 0)
   )
 }
@@ -395,9 +396,7 @@ export function buildSectionsFromResearch(
     })
   }
 
-  const socialBuilt = buildSocialFindings(bundle)
-  digitalFindings.push(...socialBuilt.findings)
-  digitalChecks.push(...socialBuilt.checks)
+  // P0-3: social findings live in social_offsite, not digital_presence
 
   // Fix digital score rows for GBP not_checked
   const digitalScoreRowsFixed: ScoreRow[] = digitalScoreRows.map((row) => {
@@ -628,6 +627,8 @@ export function buildSectionsFromResearch(
     competitiveChecks.push({ availability: "negative", severity: "medium" })
   }
 
+  const socialOffsite = buildSocialOffsiteFromSearch(bundle)
+
   return [
     {
       id: "search_footprint",
@@ -635,6 +636,12 @@ export function buildSectionsFromResearch(
       ...scoreSectionFromChecks(searchChecks),
       findings: searchFindings,
       aiPreview: aiOverviewCheck.aiPreview,
+    },
+    {
+      id: "social_offsite",
+      label: "Social & off-site presence",
+      ...scoreSectionFromChecks(socialOffsite.checks),
+      findings: socialOffsite.findings,
     },
     {
       id: "online_reputation",
@@ -863,57 +870,48 @@ function buildReputationFindings(
   }
 }
 
-function buildSocialFindings(
+/** P0-3: genuine Social & off-site section from socialSearch SERP (not digital_presence). */
+function buildSocialOffsiteFromSearch(
   bundle: ResearchBundle,
 ): { findings: ReportFinding[]; checks: SectionCheck[] } {
-  const signals = bundle.digitalPresence.social.filter((s) => s.url)
-  if (signals.length === 0) {
-    const lim = bundle.digitalPresence.social[0]?.limitation
-    if (!lim) return { findings: [], checks: [] }
-    const availability = classifyLimitationAvailability(lim)
+  const platforms = bundle.socialSearch.platforms
+  if (platforms.length === 0) {
     return {
       findings: [
         {
-          label: "Social profiles",
-          value:
-            availability === "not_checked"
-              ? "Social profiles were not checked for this report"
-              : "Could not parse profile URLs",
+          label: "Social platforms",
+          value: "Social platform search was not completed",
           detail:
-            availability === "not_checked"
-              ? "Social profile checks run when profile URLs are provided on intake or on the full Action Roadmap."
-              : customerLimitationText(lim, UNABLE_TO_VERIFY_DETAIL),
+            "We could not verify LinkedIn, Facebook, or other social profiles for this report.",
           severity: "medium",
         },
       ],
-      checks: [{ availability, severity: "medium" }],
+      checks: [{ availability: "not_checked", severity: "medium" }],
     }
   }
 
   const findings: ReportFinding[] = []
   const checks: SectionCheck[] = []
-  for (const s of signals) {
-    const hasLim = Boolean(s.limitation)
-    const availability: SectionCheck["availability"] = hasLim
-      ? classifyLimitationAvailability(s.limitation)
-      : "ok"
-    findings.push({
-      label: s.platform,
-      value: s.pageTitle ?? s.url,
-      detail: [
-        s.recencyHint,
-        s.limitation
-          ? customerLimitationText(s.limitation, UNABLE_TO_VERIFY_DETAIL)
-          : null,
-      ]
-        .filter(Boolean)
-        .join(" "),
-      severity: hasLim ? ("medium" as const) : ("good" as const),
-    })
-    checks.push({
-      availability: hasLim && availability === "unavailable" ? "unavailable" : hasLim ? availability : "ok",
-      severity: hasLim ? "medium" : "good",
-    })
+  for (const p of platforms) {
+    if (p.found) {
+      findings.push({
+        label: p.platform,
+        value: p.title ?? p.url ?? `${p.platform} profile found`,
+        detail: p.url
+          ? `Found in search results: ${p.url}`
+          : `${p.platform} presence detected in search for your brand.`,
+        severity: "good",
+      })
+      checks.push({ availability: "ok", severity: "good" })
+    } else {
+      findings.push({
+        label: p.platform,
+        value: `No ${p.platform} profile found in search`,
+        detail: `Prospects searching for your brand on ${p.platform} may not find a clear profile — competitors with visible profiles win those clicks.`,
+        severity: "high",
+      })
+      checks.push({ availability: "negative", severity: "high" })
+    }
   }
   return { findings, checks }
 }

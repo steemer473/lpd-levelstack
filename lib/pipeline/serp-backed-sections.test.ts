@@ -467,6 +467,47 @@ describe("buildSectionsFromResearch P1-2 insufficient data", () => {
   })
 })
 
+describe("buildSectionsFromResearch social_offsite (P0-3)", () => {
+  it("scores Social & off-site from socialSearch platforms", () => {
+    const bundle = emptyResearchBundle()
+    bundle.socialSearch.platforms = [
+      {
+        platform: "LinkedIn",
+        found: true,
+        url: "https://linkedin.com/company/level-play",
+        title: "Level Play Digital | LinkedIn",
+      },
+      {
+        platform: "Facebook",
+        found: false,
+        url: null,
+        title: null,
+      },
+    ]
+
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const social = sections.find((s) => s.id === "social_offsite")!
+    expect(social.label).toBe("Social & off-site presence")
+    expect(social.findings).toHaveLength(2)
+    expect(social.findings[0]?.severity).toBe("good")
+    expect(social.findings[1]?.severity).toBe("high")
+    expect(social.status).toBe("attention")
+    expect(social.score).toBe(62)
+
+    const digital = sections.find((s) => s.id === "digital_presence")!
+    expect(digital.findings.every((f) => f.label !== "LinkedIn")).toBe(true)
+    expect(digital.findings.every((f) => f.label !== "Facebook")).toBe(true)
+  })
+
+  it("marks insufficient_data when socialSearch was not run", () => {
+    const bundle = emptyResearchBundle()
+    const sections = buildSectionsFromResearch(intake, bundle)
+    const social = sections.find((s) => s.id === "social_offsite")!
+    expect(social.status).toBe("insufficient_data")
+    expect(social.score).toBeNull()
+  })
+})
+
 describe("buildSectionsFromResearch AI Overview (P0-2)", () => {
   it("emits Google-only aiPreview without ChatGPT stub", () => {
     const bundle = emptyResearchBundle()

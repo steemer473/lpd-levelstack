@@ -45,9 +45,23 @@ const audit: AuditScoreBundle = {
 }
 
 describe("assembleFreeReportFromResearch", () => {
-  it("emits exactly 3 free sections and strips paid data", () => {
+  it("emits exactly 2 free sections and strips paid data", () => {
     const bundle = emptyResearchBundle()
     bundle.digitalPresence.website.url = intake.websiteUrl
+    bundle.socialSearch.platforms = [
+      {
+        platform: "LinkedIn",
+        found: true,
+        url: "https://linkedin.com/company/test",
+        title: "Test Co",
+      },
+      {
+        platform: "Facebook",
+        found: false,
+        url: null,
+        title: null,
+      },
+    ]
     const allSections = buildSectionsFromResearch(intake, bundle)
     const searchFootprint = allSections.find((s) => s.id === "search_footprint")!
 
@@ -63,20 +77,18 @@ describe("assembleFreeReportFromResearch", () => {
     expect(report.meta.ownerName).toBe(intake.ownerName)
     expect(report.sections.map((s) => s.id)).toEqual([
       "search_footprint",
-      "online_reputation",
-      "digital_presence",
+      "social_offsite",
     ])
+    expect(report.sections.some((s) => s.id === "online_reputation")).toBe(false)
+    expect(report.sections.some((s) => s.id === "digital_presence")).toBe(false)
     expect(report.sections.some((s) => s.id === "revenue_funnel")).toBe(false)
     expect(report.sections.some((s) => s.id === "competitive_context")).toBe(false)
     expect(report.actionPlan.thisMonth).toEqual([])
     expect(report.actionPlan.thisQuarter).toEqual([])
-    const digital = report.sections.find((s) => s.id === "digital_presence")
-    const gbpFinding = digital?.findings.find((f) => /gbp|business profile/i.test(f.label))
-    if (gbpFinding) {
-      expect(gbpFinding.value).not.toContain("Not fetched yet")
-    }
+    const social = report.sections.find((s) => s.id === "social_offsite")
+    expect(social?.findings.some((f) => f.label === "LinkedIn")).toBe(true)
     expect(report.meta.upgradeTeasers).toBeDefined()
-    expect(report.meta.lockedSectionCount).toBe(3)
+    expect(report.meta.lockedSectionCount).toBe(5)
     expect(report.meta.teaserActionCount).toBeGreaterThan(0)
 
     const parsed = levelstackReportJsonSchema.safeParse(report)
