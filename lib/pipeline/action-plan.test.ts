@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import { levelstackIntakeTestDefaults } from "@/lib/intake/schema"
 import { buildActionPlanFromSections } from "@/lib/pipeline/action-plan"
 
 describe("buildActionPlanFromSections", () => {
@@ -36,7 +36,7 @@ describe("buildActionPlanFromSections", () => {
       },
     ]
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryBusinessName: "Test Co",
       ownerName: "Alex",
       hasActiveAdSpend: "yes" as const,
@@ -70,7 +70,7 @@ describe("buildActionPlanFromSections", () => {
         },
       ],
       {
-        ...levelstackIntakeDefaults,
+        ...levelstackIntakeTestDefaults,
         primaryBusinessName: "Test Co",
         ownerName: "Alex",
       },

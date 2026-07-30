@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest"
 
 import { scoreAllSignals } from "@/lib/audit/score-all-signals"
-import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import { levelstackIntakeTestDefaults } from "@/lib/intake/schema"
 import { buildDeterministicSearchFootprintSection } from "@/lib/pipeline/search-footprint-synthesis"
 import { reportSectionSchema } from "@/lib/pipeline/report-types"
 import { emptyResearchBundle } from "@/lib/pipeline/research-types"
 
 describe("buildDeterministicSearchFootprintSection", () => {
   const intake = {
-    ...levelstackIntakeDefaults,
+    ...levelstackIntakeTestDefaults,
     primaryBusinessName: "Platinum Real Estate",
     ownerName: "Luther Ragsdale",
     priorBusinessNames: ["None"],

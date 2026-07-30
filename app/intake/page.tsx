@@ -19,7 +19,7 @@ import {
   getLatestReportForIntake,
 } from "@/lib/reports/get-latest-report-for-intake"
 import { sanitizeFreeSnapshotPrefill } from "@/lib/intake/upgrade-prefill"
-import { levelstackIntakeDefaults, type LevelstackIntakeFormValues } from "@/lib/intake/schema"
+import { levelstackIntakeDefaults, type LevelstackIntakeFormDraft } from "@/lib/intake/schema"
 import { getLevelStackPlanId, requirePaidIntakeAccess } from "@/lib/levelstack-access"
 import { createClient } from "@/lib/supabase/server"
 
@@ -205,8 +205,8 @@ export default async function IntakePage({ searchParams }: PageProps) {
       )
     }
 
-    const defaultValues: LevelstackIntakeFormValues = sanitizeFreeSnapshotPrefill(
-      existing.form_data as Partial<LevelstackIntakeFormValues>,
+    const defaultValues: LevelstackIntakeFormDraft = sanitizeFreeSnapshotPrefill(
+      existing.form_data as Partial<LevelstackIntakeFormDraft>,
     )
 
     const formData = existing.form_data as

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { deriveOverallFromSections } from "@/lib/audit/derive-overall-from-sections"
-import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import { levelstackIntakeTestDefaults } from "@/lib/intake/schema"
 import { directoryReviewQueries } from "@/lib/pipeline/research-queries"
 import { resolveCompetitorColumns } from "@/lib/research/serp/competitor-resolve"
 import { emptyResearchBundle } from "@/lib/pipeline/research-types"
@@ -13,7 +13,7 @@ import { classifyBusinessCategory } from "@/lib/taxonomy/business-category"
  * namesake brands on brand search, GBP category "Marketing agency".
  */
 const lpdIntake = {
-  ...levelstackIntakeDefaults,
+  ...levelstackIntakeTestDefaults,
   primaryBusinessName: "Level Play Digital",
   businessVertical: "consulting_b2b" as const,
   primaryService: "marketing automation platform",

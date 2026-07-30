@@ -4,13 +4,13 @@ import {
   aiOverviewMentionsBrand,
   buildAiOverviewCheck,
 } from "@/lib/pipeline/ai-overview-check"
-import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import { levelstackIntakeTestDefaults } from "@/lib/intake/schema"
 import type { ResearchBundle } from "@/lib/pipeline/research-types"
 import { emptyResearchBundle } from "@/lib/pipeline/research-types"
 import { TERMS } from "@/lib/report/customer-terms"
 
 const intake = {
-  ...levelstackIntakeDefaults,
+  ...levelstackIntakeTestDefaults,
   primaryBusinessName: "Acme Dental",
   ownerName: "Jane Doe",
   websiteUrl: "https://www.acmedental.com",

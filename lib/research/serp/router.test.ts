@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import { levelstackIntakeTestDefaults } from "@/lib/intake/schema"
 import {
   brandNameSearchQueries,
   directoryReviewQueries,
@@ -204,20 +204,22 @@ describe("mock SERP mode", () => {
 
 describe("free vs paid query counts", () => {
   const intake = {
-    ...levelstackIntakeDefaults,
+    ...levelstackIntakeTestDefaults,
     primaryBusinessName: "Acme Co",
     websiteUrl: "https://acme.example.com",
     marketCity: "Atlanta",
     marketState: "GA",
     geoMarket: "local" as const,
     priorBusinessNames: ["Old Acme", "None"],
+    primaryService: "General business services",
+    businessVertical: "consulting_b2b" as const,
   }
 
   it("uses ~7 SERP queries for free snapshot tier", () => {
     const brand = brandNameSearchQueries(intake, "free_snapshot")
     const directory = directoryReviewQueries(intake, "free_snapshot")
     expect(brand).toHaveLength(1)
-    // Placeholder/empty primaryService skips BBB (P1-4).
+    // B2B/consulting vertical omits BBB (P1-4).
     expect(directory).toHaveLength(3)
     expect(brand[0]).toContain("Atlanta")
   })
@@ -226,6 +228,7 @@ describe("free vs paid query counts", () => {
     const localIntake = {
       ...intake,
       primaryService: "HVAC repair",
+      businessVertical: "local_home_services" as const,
     }
     const directory = directoryReviewQueries(localIntake, "free_snapshot")
     expect(directory).toHaveLength(4)
@@ -237,6 +240,7 @@ describe("free vs paid query counts", () => {
     const directory = directoryReviewQueries({
       ...intake,
       primaryService: "HVAC repair",
+      businessVertical: "local_home_services",
     }, "full_report")
     expect(brand.length).toBeGreaterThanOrEqual(3)
     expect(directory).toHaveLength(10)

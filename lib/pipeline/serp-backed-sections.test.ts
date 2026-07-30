@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest"
 
-import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import { levelstackIntakeTestDefaults } from "@/lib/intake/schema"
 import { emptyResearchBundle } from "@/lib/pipeline/research-types"
 import { buildSectionsFromResearch } from "@/lib/pipeline/serp-backed-sections"
 import { UNABLE_TO_VERIFY_VALUE } from "@/lib/report/customer-copy"
 
 const intake = {
-  ...levelstackIntakeDefaults,
+  ...levelstackIntakeTestDefaults,
   primaryBusinessName: "Level Play Digital",
   websiteUrl: "https://levelplaydigital.com",
   ownerName: "Stephanie Dragsdale",

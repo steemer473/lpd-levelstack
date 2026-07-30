@@ -358,7 +358,9 @@ function evidenceForSearchFinding(
   intake?: LevelstackIntakeFormValues,
 ): { evidence: EvidenceItem[]; availability: CheckAvailability[] } {
   const blob = `${finding.label} ${finding.value} ${finding.detail}`.toLowerCase()
-  const buyerHost = hostnameFromUrl(intake?.websiteUrl)
+  const buyerHost = intake?.websiteUrl
+    ? hostnameFromUrl(intake.websiteUrl)
+    : null
   const { search: brandSearch } = resolveSearchForFinding(finding, bundle, intake)
 
   if (/ai overview/.test(blob)) {

@@ -101,6 +101,14 @@ export const levelstackIntakeSchema = z
 
 export type LevelstackIntakeFormValues = z.infer<typeof levelstackIntakeSchema>
 
+/** In-progress form state — `businessVertical` is empty until the user selects one. */
+export type LevelstackIntakeFormDraft = Omit<
+  LevelstackIntakeFormValues,
+  "businessVertical"
+> & {
+  businessVertical: "" | LevelstackIntakeFormValues["businessVertical"]
+}
+
 /** Empty-form defaults; `businessVertical` is validated on submit. */
 export const levelstackIntakeDefaults = {
   primaryBusinessName: "",
@@ -126,6 +134,22 @@ export const levelstackIntakeDefaults = {
   reputationScale: 5,
   purchaseMotivation: "",
   topCompetitorUrl: "",
-} satisfies Omit<LevelstackIntakeFormValues, "businessVertical"> & {
-  businessVertical: "" | LevelstackIntakeFormValues["businessVertical"]
-}
+} satisfies LevelstackIntakeFormDraft
+
+/** Valid fixture for tests and pipeline helpers that require parsed intake. */
+export const levelstackIntakeTestDefaults = {
+  ...levelstackIntakeDefaults,
+  primaryBusinessName: "Test Co",
+  ownerName: "Test Owner",
+  businessVertical: "local_home_services",
+  primaryService: "Plumbing repair",
+  pricePoint: "$100–$500",
+  websiteUrl: "https://example.com",
+  socialProfiles: "LinkedIn: test",
+  emailListSize: "Under 500",
+  complaintsAwareness: "None known",
+  reputationSelfAssessment: "Average",
+  purchaseMotivation: "Unit test fixture",
+  marketCity: "Austin",
+  marketState: "TX",
+} satisfies LevelstackIntakeFormValues

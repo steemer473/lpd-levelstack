@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import { levelstackIntakeTestDefaults } from "@/lib/intake/schema"
 import {
   priorNamesForSearch,
   brandNameSearchQueries,
@@ -35,7 +35,7 @@ describe("normalizeServiceQuery", () => {
 describe("serviceSearchTerm", () => {
   it("prefers concise primaryServiceKeywords when provided", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryService:
         "SAAS and stand alone products, operational efficiency products",
       primaryServiceKeywords: "marketing operations software",
@@ -45,7 +45,7 @@ describe("serviceSearchTerm", () => {
 
   it("falls back to normalized primaryService when keywords are blank", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryService:
         "SAAS and stand alone products, operational efficiency products",
       primaryServiceKeywords: "",
@@ -55,7 +55,7 @@ describe("serviceSearchTerm", () => {
 
   it("drives the service market query from keywords", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryService: "long verbose offer description that is not searchable",
       primaryServiceKeywords: "marketing operations software",
       marketCity: "Atlanta",
@@ -72,7 +72,7 @@ describe("serviceSearchTerm", () => {
 describe("research-queries", () => {
   it("normalizes verbose primary service in market query", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryService:
         "SAAS and stand alone products, operational efficiency products",
       marketCity: "Atlanta",
@@ -87,18 +87,23 @@ describe("research-queries", () => {
 
   it("filters None from prior name searches", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       priorBusinessNames: ["None", "Old Studio LLC"],
+      marketCity: "",
+      marketState: "",
+      geoMarket: "national" as const,
     }
     expect(priorNamesForSearch(intake)).toEqual(["Old Studio LLC"])
   })
 
   it("builds footprint queries for business, owner, and service", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryBusinessName: "Acme Co",
       ownerName: "Jane Doe",
       primaryService: "Fitness coaching",
+      marketCity: "",
+      marketState: "",
       geoMarket: "local" as const,
       priorBusinessNames: ["None"],
     }
@@ -110,7 +115,7 @@ describe("research-queries", () => {
 
   it("includes platform-specific reputation queries", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryBusinessName: "Acme Co",
       ownerName: "Jane",
       priorBusinessNames: ["None"],
@@ -123,9 +128,10 @@ describe("research-queries", () => {
 
   it("omits BBB for B2B agency/consultancy categories (P1-4)", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryBusinessName: "Level Play Digital",
       ownerName: "Stephanie",
+      businessVertical: "consulting_b2b" as const,
       priorBusinessNames: ["None"],
       primaryService: "marketing automation platform",
       primaryServiceKeywords: "marketing operations software",
@@ -137,7 +143,7 @@ describe("research-queries", () => {
 
   it("scopes local service and business queries with city", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryBusinessName: "Platinum Real Estate",
       primaryService: "Real estate agent",
       marketCity: "Atlanta",
@@ -153,7 +159,7 @@ describe("research-queries", () => {
 
   it("trims brand and directory queries for free snapshot tier", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryBusinessName: "Acme Co",
       websiteUrl: "https://acme.example.com",
       marketCity: "Atlanta",

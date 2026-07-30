@@ -28,19 +28,20 @@ import { applyZodErrors } from "@/lib/intake/apply-zod-errors"
 import {
   levelstackIntakeDefaults,
   levelstackIntakeSchema,
+  type LevelstackIntakeFormDraft,
   type LevelstackIntakeFormValues,
 } from "@/lib/intake/schema"
 import { BUSINESS_VERTICAL_PICKER_OPTIONS } from "@/lib/taxonomy/business-category"
 
 type LevelstackIntakeFormProps = {
-  defaultValues?: LevelstackIntakeFormValues
+  defaultValues?: LevelstackIntakeFormDraft
 }
 
 export function LevelstackIntakeForm({
   defaultValues = levelstackIntakeDefaults,
 }: LevelstackIntakeFormProps = {}) {
   const router = useRouter()
-  const form = useForm<LevelstackIntakeFormValues>({
+  const form = useForm<LevelstackIntakeFormDraft>({
     defaultValues,
   })
 
@@ -57,7 +58,7 @@ export function LevelstackIntakeForm({
   const [validationSummary, setValidationSummary] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
 
-  async function onSubmit(values: LevelstackIntakeFormValues) {
+  async function onSubmit(values: LevelstackIntakeFormDraft) {
     setSubmitError(null)
     setValidationSummary([])
 
