@@ -1,6 +1,7 @@
 import { z } from "zod"
 
 import { recommendationObjectSchema } from "@/lib/pipeline/recommendation-types"
+import { BUSINESS_CATEGORY_IDS } from "@/lib/taxonomy/business-category"
 
 export {
   recommendationObjectSchema,
@@ -142,6 +143,13 @@ export const executiveSummarySchema = z.object({
   topOpportunities: z.array(z.string()).max(3).optional(),
 })
 
+export const businessCategoryMetaSchema = z.object({
+  id: z.enum(BUSINESS_CATEGORY_IDS),
+  label: z.string(),
+  source: z.enum(["gbp", "intake", "website", "inferred"]),
+  gbpCategoryRaw: z.string().nullable(),
+})
+
 export const levelstackReportJsonSchema = z.object({
   meta: z.object({
     businessName: z.string(),
@@ -154,6 +162,10 @@ export const levelstackReportJsonSchema = z.object({
       .optional(),
     overallScore: z.number(),
     letterGrade: z.string(),
+    /** P1-1 — section ids that contributed to Overall (equal-weight mean). */
+    scoreBasisSectionIds: z.array(z.string()).optional(),
+    /** P1-4 — resolved business vertical taxonomy. */
+    businessCategory: businessCategoryMetaSchema.optional(),
     totalFindings: z.number(),
     criticalCount: z.number(),
     highCount: z.number(),

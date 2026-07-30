@@ -1,5 +1,6 @@
 import { env } from "@/env.mjs"
 import { shouldFailoverMaps, shouldFailoverOrganic } from "@/lib/research/serp/quota-errors"
+import { normalizeGbpCategory } from "@/lib/taxonomy/business-category"
 import type {
   MapsPlaceResult,
   ProviderMapsResult,
@@ -176,7 +177,7 @@ export async function serpApiMapsSearch(query: string): Promise<ProviderMapsResu
         rating: typeof place.rating === "number" ? place.rating : null,
         reviewCount,
         address: place.address ?? null,
-        category: place.type ?? null,
+        category: normalizeGbpCategory(place.type),
         limitation: null,
       },
       shouldFailover: false,

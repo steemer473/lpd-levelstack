@@ -189,8 +189,9 @@ export function RecommendationMatrixRow({
               Evidence from public search
             </p>
             <p className="mb-2 text-[11px] leading-relaxed text-muted-foreground">
-              These links open the public search results (or pages) we used for this
-              recommendation — not a separate product feature.
+              These links reopen the exact Google searches we ran — or a verified
+              third-party listing if one appeared on page 1. They are not claims
+              that every result is your business or a review of you.
             </p>
             <ul className="list-none space-y-1.5 pl-0">
               {evidenceWithUrl.slice(0, 4).map((ev, i) => (

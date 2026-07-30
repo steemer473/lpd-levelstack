@@ -27,6 +27,10 @@ import {
   UNABLE_TO_VERIFY_VALUE,
 } from "@/lib/report/customer-copy"
 import { formatBrandSerpEvidence } from "@/lib/research/serp/brand-serp-evidence"
+import {
+  formatOwnerSearchValue,
+  pickOwnerRelevantResults,
+} from "@/lib/research/serp/owner-serp-evidence"
 import { hostnameFromUrl, resultsMentionDomain, topCompetitorDomains } from "@/lib/research/serp"
 
 const SEARCH_SIGNAL_IDS = new Set([
@@ -137,9 +141,10 @@ export function buildDeterministicSearchFootprintSection(
     ? resultsMentionDomain(scopedSearch.results, buyerHost)
     : null
 
-  const ownerSearch = bundle.searchFootprint.searches.find((s) =>
-    s.query.toLowerCase().includes(intake.ownerName.toLowerCase()),
-  )
+  const ownerSearch = bundle.searchFootprint.searches.find((s) => {
+    const owner = intake.ownerName.trim().toLowerCase()
+    return owner.length > 0 && s.query.toLowerCase() === owner
+  })
 
   const findings: ReportSection["findings"] = []
   const aiOverviewCheck = buildAiOverviewCheck(intake, bundle)
@@ -261,25 +266,36 @@ export function buildDeterministicSearchFootprintSection(
     }
 
     if (ownerSearch && ownerSearch.results.length > 0) {
+      const ownerRelevant = pickOwnerRelevantResults(
+        ownerSearch.results,
+        intake.ownerName,
+        bareBrand,
+        buyerHost,
+      )
       findings.push({
         label: `Google — "${intake.ownerName}"`,
-        value: `When someone searches your name, page 1 shows: ${ownerSearch.results[0]?.title ?? "mixed results"}`,
+        value: formatOwnerSearchValue(
+          ownerSearch.results,
+          intake.ownerName,
+          bareBrand,
+          buyerHost,
+        ),
         detail: [
           `Personal brand searches for "${intake.ownerName}" can influence trust before prospects visit your business site.`,
-          formatBrandSerpEvidence(
-            ownerSearch.results,
-            buyerHost,
-            intake.ownerName,
-          ) ||
-            formatBrandSerpEvidence(
-              ownerSearch.results,
-              buyerHost,
-              bareBrand,
-            ),
+          ownerRelevant.length
+            ? formatBrandSerpEvidence(
+                ownerRelevant,
+                buyerHost,
+                intake.ownerName,
+              ) ||
+              formatBrandSerpEvidence(ownerRelevant, buyerHost, bareBrand)
+            : "Page 1 included unrelated namesakes — those were excluded from this summary.",
         ]
           .filter(Boolean)
           .join(" "),
-        severity: ownerSearchSeverity(ownerSearch.results, buyerHost),
+        severity: ownerRelevant.length
+          ? ownerSearchSeverity(ownerRelevant, buyerHost)
+          : "low",
       })
     }
   }

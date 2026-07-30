@@ -1,6 +1,9 @@
 import { z } from "zod"
 
 import { normalizePriorBusinessNames } from "@/lib/intake/prior-names"
+import {
+  BUSINESS_VERTICAL_PICKER_IDS,
+} from "@/lib/taxonomy/business-category"
 
 export const geoMarketOptions = ["local", "regional", "national"] as const
 export const ninetyDayGoalOptions = [
@@ -47,6 +50,11 @@ export const levelstackIntakeSchema = z
       .min(1, "Add at least one prior name entry (use “None” if not applicable)"),
   ),
   ownerName: z.string().min(1, "Owner / personal brand name is required"),
+  /** Industry vertical — paid intake picker; drives BBB vs B2B reputation logic. */
+  businessVertical: z
+    .string()
+    .min(1, "Choose the category closest to your business.")
+    .pipe(z.enum(BUSINESS_VERTICAL_PICKER_IDS)),
   primaryService: z.string().min(1, "Primary service or offer is required"),
   /**
    * Optional concise search phrase (2–5 words) prospects would actually Google,
@@ -93,12 +101,14 @@ export const levelstackIntakeSchema = z
 
 export type LevelstackIntakeFormValues = z.infer<typeof levelstackIntakeSchema>
 
-export const levelstackIntakeDefaults: LevelstackIntakeFormValues = {
+/** Empty-form defaults; `businessVertical` is validated on submit. */
+export const levelstackIntakeDefaults = {
   primaryBusinessName: "",
   marketCity: "",
   marketState: "",
   priorBusinessNames: ["None"],
   ownerName: "",
+  businessVertical: "",
   primaryService: "",
   primaryServiceKeywords: "",
   pricePoint: "",
@@ -116,4 +126,6 @@ export const levelstackIntakeDefaults: LevelstackIntakeFormValues = {
   reputationScale: 5,
   purchaseMotivation: "",
   topCompetitorUrl: "",
+} satisfies Omit<LevelstackIntakeFormValues, "businessVertical"> & {
+  businessVertical: "" | LevelstackIntakeFormValues["businessVertical"]
 }

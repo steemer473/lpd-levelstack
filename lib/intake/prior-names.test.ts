@@ -20,6 +20,7 @@ describe("levelstackIntakeSchema priorBusinessNames", () => {
   const base = {
     primaryBusinessName: "Acme Coaching",
     ownerName: "Jane Doe",
+    businessVertical: "local_consumer_services" as const,
     primaryService: "Executive coaching",
     pricePoint: "$3,000",
     hasActiveAdSpend: "no" as const,

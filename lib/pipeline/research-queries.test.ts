@@ -114,10 +114,25 @@ describe("research-queries", () => {
       primaryBusinessName: "Acme Co",
       ownerName: "Jane",
       priorBusinessNames: ["None"],
+      primaryService: "HVAC repair",
     }
     const queries = reputationQueries(intake)
     expect(queries.some((q) => q.includes("yelp.com"))).toBe(true)
     expect(queries.some((q) => q.includes("bbb.org"))).toBe(true)
+  })
+
+  it("omits BBB for B2B agency/consultancy categories (P1-4)", () => {
+    const intake = {
+      ...levelstackIntakeDefaults,
+      primaryBusinessName: "Level Play Digital",
+      ownerName: "Stephanie",
+      priorBusinessNames: ["None"],
+      primaryService: "marketing automation platform",
+      primaryServiceKeywords: "marketing operations software",
+    }
+    const queries = reputationQueries(intake, { gbpCategory: "Marketing agency" })
+    expect(queries.some((q) => q.includes("bbb.org"))).toBe(false)
+    expect(queries.some((q) => q.includes("yelp.com"))).toBe(true)
   })
 
   it("scopes local service and business queries with city", () => {
@@ -145,11 +160,12 @@ describe("research-queries", () => {
       marketState: "GA",
       geoMarket: "local" as const,
       priorBusinessNames: ["Old Acme"],
+      primaryService: "HVAC repair",
     }
 
     expect(brandNameSearchQueries(intake, "free_snapshot")).toHaveLength(1)
     expect(directoryReviewQueries(intake, "free_snapshot")).toHaveLength(4)
     expect(brandNameSearchQueries(intake, "full_report").length).toBeGreaterThan(1)
-    expect(directoryReviewQueries(intake, "full_report")).toHaveLength(9)
+    expect(directoryReviewQueries(intake, "full_report")).toHaveLength(10)
   })
 })

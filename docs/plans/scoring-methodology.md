@@ -62,6 +62,18 @@ These remain the section builders’ responsibility. Overall does **not** recomp
 
 Free Visibility Snapshot unlocks exactly two diagnostic sections: **Search Footprint** and **Social & off-site presence**. Reputation and (non-social) Digital Presence unlock at the $97 Action Roadmap. AI Overview stays on Search Footprint (P0-2).
 
+## Business category taxonomy (P1-4)
+
+Internal vertical taxonomy lives in `lib/taxonomy/business-category.ts`. Classification uses intake service/keywords, website title/description (after primary domain fetch), and GBP category when available.
+
+- **Report meta:** `meta.businessCategory` (`id`, `label`, `source`, `gbpCategoryRaw`).
+- **Reputation queries:** BBB `site:bbb.org` runs only for local-trust verticals (home services, healthcare, legal, real estate, etc.) — skipped for B2B agency/consulting/SaaS categories.
+- **Competitive grid:** “Business category” row shows taxonomy label, not raw GBP passthrough alone.
+
+## Score explainability (UI)
+
+Executive Summary includes **How your score was calculated** (`components/report/score-breakdown.tsx`): expandable section list, which sections entered the equal-weight mean, and the rounded average formula. `meta.scoreBasisSectionIds` mirrors the same ids at generation time.
+
 ## Free-tier AI Overview check (P0-2)
 
 Search Footprint includes a live **Google AI Overview** presence check derived from the brand SERP response already collected for free snapshots.

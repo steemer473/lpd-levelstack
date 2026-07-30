@@ -30,6 +30,7 @@ import {
   levelstackIntakeSchema,
   type LevelstackIntakeFormValues,
 } from "@/lib/intake/schema"
+import { BUSINESS_VERTICAL_PICKER_OPTIONS } from "@/lib/taxonomy/business-category"
 
 type LevelstackIntakeFormProps = {
   defaultValues?: LevelstackIntakeFormValues
@@ -254,6 +255,41 @@ export function LevelstackIntakeForm({
             <CardTitle>Offer & marketing</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <FormField
+              control={form.control}
+              name="businessVertical"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Business category</FormLabel>
+                  <FormControl>
+                    <select
+                      className="border-input bg-background flex h-9 w-full rounded-md border px-3 text-sm"
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === "" ? undefined : e.target.value,
+                        )
+                      }
+                    >
+                      <option value="" disabled>
+                        Select your industry…
+                      </option>
+                      {BUSINESS_VERTICAL_PICKER_OPTIONS.map((opt) => (
+                        <option key={opt.id} value={opt.id}>
+                          {opt.label} — {opt.hint}
+                        </option>
+                      ))}
+                    </select>
+                  </FormControl>
+                  <FormDescription>
+                    Used to tailor reputation checks (e.g. BBB vs Clutch/G2) and
+                    competitive framing. Pick the closest fit even if you also sell
+                    software or consulting.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="primaryService"

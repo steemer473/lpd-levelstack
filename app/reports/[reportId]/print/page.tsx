@@ -1,8 +1,7 @@
-import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
 import { ReportPrintClient } from "@/components/report/report-print-client"
-import { reportAccessCookieName } from "@/lib/auth/report-access-token"
+import { readReportAccessTokenCookie } from "@/lib/auth/report-access-cookie"
 import { levelstackReportJsonSchema } from "@/lib/pipeline/report-types"
 import { resolveReportAccess } from "@/lib/reports/get-report"
 import { createClient } from "@/lib/supabase/server"
@@ -25,11 +24,7 @@ export default async function ReportPrintPage({ params, searchParams }: PageProp
     data: { user },
   } = await supabase.auth.getUser()
 
-  let accessToken: string | null = null
-  if (!user) {
-    const cookieStore = await cookies()
-    accessToken = cookieStore.get(reportAccessCookieName(reportId))?.value ?? null
-  }
+  const accessToken = await readReportAccessTokenCookie(reportId)
 
   const report = await resolveReportAccess(reportId, user?.id ?? null, accessToken)
   if (!report) {

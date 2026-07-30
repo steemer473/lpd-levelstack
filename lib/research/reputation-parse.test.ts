@@ -5,11 +5,16 @@ import {
   bestReputationHit,
   findOwnSiteReputationResult,
   formatReputationQueryLabel,
+  isComplaintOrientedQuery,
+  isGenericComplaintPortalResult,
   isGenericDirectoryListing,
   isOwnDomainResult,
+  isPlatformSearchResultsPage,
   isReviewPlatformUrl,
+  isSubjectComplaintSerpResult,
   isSubjectReputationSerpResult,
   isSubjectReputationText,
+  linkedInProfileMatchesOwner,
   parseRatingFromText,
   reviewPlatformListingMatchesBusiness,
 } from "@/lib/research/reputation-parse"
@@ -38,6 +43,143 @@ describe("reputation relevance", () => {
         "Best Digital Marketing Agency near Castleberry Hill, Atlanta, GA",
       ),
     ).toBe(true)
+  })
+
+  it("rejects Yelp search result pages (not /biz/ listings)", () => {
+    const url =
+      "https://m.m.yelp.com/search?find_desc=Digital+Marketing+Agency&find_loc=Franklin%2C+GA"
+    expect(isPlatformSearchResultsPage(url)).toBe(true)
+
+    const result: SerpOrganicResult = {
+      query: "site:yelp.com Level Play Digital Atlanta",
+      position: 1,
+      title: "TOP 10 BEST Digital Marketing Agency in Franklin, GA",
+      link: url,
+      snippet: "Reviews on digital marketing agencies in Franklin.",
+    }
+
+    expect(
+      reviewPlatformListingMatchesBusiness(
+        result,
+        "Level Play Digital",
+        "levelplaydigital.com",
+        "Stephanie Dragsdale",
+      ),
+    ).toBe(false)
+    expect(
+      isSubjectReputationSerpResult(
+        result,
+        "Level Play Digital",
+        "Stephanie Dragsdale",
+        "levelplaydigital.com",
+      ),
+    ).toBe(false)
+  })
+
+  it("rejects unrelated LinkedIn /in/ profiles in reputation search", () => {
+    const result: SerpOrganicResult = {
+      query: "Level Play Digital Atlanta reviews",
+      position: 2,
+      title: "Jason Fleury - Publicis Digital Experience | LinkedIn",
+      link: "https://www.linkedin.com/in/jasonfleury",
+      snippet: "Hickory, North Carolina · Publicis Digital Experience",
+    }
+
+    expect(
+      linkedInProfileMatchesOwner(
+        result.link,
+        "Stephanie Dragsdale",
+        "Level Play Digital",
+      ),
+    ).toBe(false)
+    expect(
+      isSubjectReputationSerpResult(
+        result,
+        "Level Play Digital",
+        "Stephanie Dragsdale",
+        "levelplaydigital.com",
+      ),
+    ).toBe(false)
+  })
+
+  it("rejects LinkedIn /in/ when owner name was never collected (business name only)", () => {
+    expect(
+      linkedInProfileMatchesOwner(
+        "https://www.linkedin.com/in/jasonfleury",
+        "Level Play Digital",
+        "Level Play Digital",
+      ),
+    ).toBe(false)
+  })
+
+  it("rejects Georgia AG consumer complaint form as an LPD complaint", () => {
+    const result: SerpOrganicResult = {
+      query: "Level Play Digital complaints Atlanta, GA",
+      position: 1,
+      title: "Consumer Complaint Form | Georgia Attorney General's Consumer Protection Division",
+      link: "https://consumer.georgia.gov/resolve-your-dispute/how-do-i-file-complaint/consumer-complaint-form",
+      snippet:
+        "Use this form to provide information about suspicious or improper business practices.",
+    }
+
+    expect(isGenericComplaintPortalResult(result)).toBe(true)
+    expect(
+      isSubjectComplaintSerpResult(
+        result,
+        "Level Play Digital",
+        "Stephanie Danielle Ragsdale",
+        "levelplaydigital.com",
+      ),
+    ).toBe(false)
+
+    const hit = bestReputationHit(
+      [result],
+      "Level Play Digital complaints Atlanta, GA",
+      {
+        businessName: "Level Play Digital",
+        ownerName: "Stephanie Danielle Ragsdale",
+        buyerHost: "levelplaydigital.com",
+      },
+    )
+    expect(hit).toBeNull()
+  })
+
+  it("accepts a complaint listing that names the subject business", () => {
+    const result: SerpOrganicResult = {
+      query: "Level Play Digital complaints",
+      position: 1,
+      title: "Complaints against Level Play Digital — ConsumerAffairs",
+      link: "https://www.consumeraffairs.com/business/level-play-digital/complaints",
+      snippet: "3 complaints filed against Level Play Digital in the last year.",
+    }
+
+    expect(
+      isSubjectComplaintSerpResult(
+        result,
+        "Level Play Digital",
+        "Stephanie Danielle Ragsdale",
+        "levelplaydigital.com",
+      ),
+    ).toBe(true)
+  })
+
+  it("rejects namesake pages that only share loose tokens with the business name", () => {
+    const result: SerpOrganicResult = {
+      query: "Level Play Digital complaints Atlanta, GA",
+      position: 2,
+      title: "LEVEL Studios — employee complaint thread",
+      link: "https://example.com/level-studios-complaint",
+      snippet: "Discussion about level pay and play policies at a creative agency.",
+    }
+
+    expect(
+      isSubjectComplaintSerpResult(
+        result,
+        "Level Play Digital",
+        "Stephanie Danielle Ragsdale",
+        "levelplaydigital.com",
+      ),
+    ).toBe(false)
   })
 
   it("matches subject business tokens in SERP text", () => {

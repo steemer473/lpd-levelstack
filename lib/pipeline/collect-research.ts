@@ -35,6 +35,30 @@ import {
   serviceMarketQuery,
 } from "@/lib/pipeline/research-queries"
 import type { ResearchBundle } from "@/lib/pipeline/research-types"
+import { classificationFromIntake } from "@/lib/taxonomy/business-category"
+
+/** Signals available after primary domain fetch — used for P1-4 taxonomy + reputation queries. */
+function categorySignalsFromBundle(
+  intake: LevelstackIntakeFormValues,
+  bundle: ResearchBundle,
+) {
+  return {
+    gbpCategory: bundle.digitalPresence.gbp.category,
+    websiteTitle: bundle.primaryDomain.website.title,
+    websiteDescription: bundle.primaryDomain.website.metaDescription,
+    businessName: intake.primaryBusinessName,
+  }
+}
+
+function refreshBusinessCategory(
+  intake: LevelstackIntakeFormValues,
+  bundle: ResearchBundle,
+): void {
+  bundle.businessCategory = classificationFromIntake(
+    intake,
+    categorySignalsFromBundle(intake, bundle),
+  )
+}
 
 export type OperationCollector = (
   intake: LevelstackIntakeFormValues,
@@ -131,8 +155,9 @@ export async function collectDirectoryReviewSearch(
   bundle: ResearchBundle,
   { reportTier }: CollectResearchOptions,
 ): Promise<void> {
+  refreshBusinessCategory(intake, bundle)
   bundle.reputation.searches = await runSerpQueries(
-    directoryReviewQueries(intake, reportTier),
+    directoryReviewQueries(intake, reportTier, categorySignalsFromBundle(intake, bundle)),
   )
 }
 
@@ -167,6 +192,8 @@ export async function collectPaidEnrichment(
   bundle.digitalPresence.social = social
   bundle.digitalPresence.socialProfilesFromIntake = intake.socialProfiles
   bundle.revenueFunnel.pageSpeed = pageSpeed
+
+  refreshBusinessCategory(intake, bundle)
 
   bundle.revenueFunnel.intakeNotes = [
     `Offer: ${intake.primaryService} at ${intake.pricePoint}`,

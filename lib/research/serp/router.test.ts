@@ -217,14 +217,28 @@ describe("free vs paid query counts", () => {
     const brand = brandNameSearchQueries(intake, "free_snapshot")
     const directory = directoryReviewQueries(intake, "free_snapshot")
     expect(brand).toHaveLength(1)
-    expect(directory).toHaveLength(4)
+    // Placeholder/empty primaryService skips BBB (P1-4).
+    expect(directory).toHaveLength(3)
     expect(brand[0]).toContain("Atlanta")
+  })
+
+  it("includes BBB in free snapshot directory queries for local-service intake", () => {
+    const localIntake = {
+      ...intake,
+      primaryService: "HVAC repair",
+    }
+    const directory = directoryReviewQueries(localIntake, "free_snapshot")
+    expect(directory).toHaveLength(4)
+    expect(directory.some((q) => q.includes("bbb.org"))).toBe(true)
   })
 
   it("uses full query sets for paid tier", () => {
     const brand = brandNameSearchQueries(intake, "full_report")
-    const directory = directoryReviewQueries(intake, "full_report")
+    const directory = directoryReviewQueries({
+      ...intake,
+      primaryService: "HVAC repair",
+    }, "full_report")
     expect(brand.length).toBeGreaterThanOrEqual(3)
-    expect(directory).toHaveLength(9)
+    expect(directory).toHaveLength(10)
   })
 })

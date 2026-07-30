@@ -12,6 +12,7 @@ import type {
 import type { SerpSearchResponse } from "@/lib/research/serp"
 import type { WebsiteExtendedSignals, WebsiteSignals } from "@/lib/research/website"
 import type { InsightSeverity } from "@/lib/audit/types"
+import type { BusinessCategoryClassification } from "@/lib/taxonomy/business-category"
 
 export type SubdomainFinding = {
   hostname: string
@@ -87,6 +88,8 @@ export type ResearchBundle = {
   infrastructureLeakage: {
     instances: InfrastructureLeakInstance[]
   }
+  /** P1-4 — resolved vertical taxonomy (intake + GBP + website). */
+  businessCategory: BusinessCategoryClassification | null
 }
 
 const emptyWebsite: WebsiteSignals = {
@@ -163,5 +166,6 @@ export function emptyResearchBundle(): ResearchBundle {
     subdomainExposure: { subdomains: [] },
     nameCollisions: { collisions: [], severity: "low" },
     infrastructureLeakage: { instances: [] },
+    businessCategory: null,
   }
 }

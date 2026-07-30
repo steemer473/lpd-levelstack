@@ -1,6 +1,6 @@
 # LevelStack vNext — PRD
 
-**Status:** In progress — P0 Wave A closed 2026-07-19 (P0-1…P0-4); **P1-1…P1-3 shipped**; **P1-4 still open** (category taxonomy); **P2-2 + P2-3 locked 2026-07-19**; **P2-1 schema shipped 2026-07-19**; **P2-4 dual-write shipped 2026-07-19**; **P2-5 Action Roadmap UI shipped 2026-07-19** (OD-5 Option B; [#99](https://github.com/steemer473/lpd-levelstack/pull/99)). **All fourteen ODs resolved** (OD-6 Option B + OD-8 out-of-PRD locked 2026-07-19). **P2-7 deferred to V2.** **Next:** dogfood paid regen + P1-4.
+**Status:** **V1 PRD complete 2026-07-30** — P0 Wave A closed 2026-07-19 (P0-1…P0-4); **P1-1…P1-4 shipped** (P1-4 taxonomy 2026-07-30); **P2-2 + P2-3 locked 2026-07-19**; **P2-1 schema shipped 2026-07-19**; **P2-4 dual-write shipped 2026-07-19**; **P2-5 Action Roadmap UI shipped 2026-07-19** (OD-5 Option B; [#99](https://github.com/steemer473/lpd-levelstack/pull/99)). **All fourteen ODs resolved** (OD-6 Option B + OD-8 out-of-PRD locked 2026-07-19). **P2-7 deferred to V2.** **Next:** dogfood paid regen QA on report `031e84ed…` (operational).
 **Date:** 2026-07-18 (OD-6 / OD-8 resolved 2026-07-19)
 **Inputs:**
 
@@ -250,15 +250,15 @@ Each entry corresponds to one item in critique §15. IDs are assigned here for c
 
 #### P1-4 — `[DATA]` Broaden business-category taxonomy
 
-**Status:** **Open** — not started. Standalone (Track 1); does not block P2-1…P2-5. Tracked in `lpd-planning/CURRENT_SPRINT_GOALS.md` item 0 and `PRODUCT_ROADMAP.md`.
+**Status:** **Shipped 2026-07-30** — `lib/taxonomy/business-category.ts`; category-aware reputation queries (BBB gated by vertical); `meta.businessCategory` + competitive grid label; score explainability UI (`ScoreBreakdown` on Executive Summary). Dogfood paid regen QA pending on report `031e84ed…`.
 
 **Description:** Build a real category/vertical taxonomy so recommendations that depend on it (BBB listing relevance, GBP category norms) stay relevant for businesses outside literal local-service verticals.
 
 **Acceptance criteria:**
 
-- A defined taxonomy (fixed list or otherwise) exists and is used to classify businesses, replacing today's direct passthrough of Google's raw GBP category string and the "General business services" placeholder.
-- The specific case audited — Level Play Digital (a systems/AI consultancy) classified as "General business services" — is correctly categorized under the new taxonomy.
-- Category-dependent recommendation logic (BBB, GBP category norms, etc.) checks the new taxonomy field rather than assuming a literal local-service business.
+- A defined taxonomy (fixed list or otherwise) exists and is used to classify businesses, replacing today's direct passthrough of Google's raw GBP category string and the "General business services" placeholder. — **Met** (`BUSINESS_CATEGORY_IDS`, `classifyBusinessCategory`).
+- The specific case audited — Level Play Digital (a systems/AI consultancy) classified as "General business services" — is correctly categorized under the new taxonomy. — **Met** (LPD dogfood → Marketing & digital agency / B2B vertical; not placeholder bucket).
+- Category-dependent recommendation logic (BBB, GBP category norms, etc.) checks the new taxonomy field rather than assuming a literal local-service business. — **Met** (`shouldIncludeBbbReputationCheck`; BBB omitted for agency/consulting/SaaS).
 
 **Audit references:**
 
@@ -652,7 +652,7 @@ Build order below groups requirements by what blocks what; it does not assign da
 
 1. **P0-1** (error leakage fix) — live trust risk, standalone. **Shipped.**
 2. **P0-4** (funnel copy fix) — standalone, though if shipped before P1-1 the only safe fix is removal (see P0-4's own note). **Shipped.**
-3. **P1-4** (category taxonomy) — standalone. **Still open** (does not block Track 4).
+3. **P1-4** (category taxonomy) — standalone. **Shipped 2026-07-30.**
 4. **P2-2** (evidence provenance standard) — foundational, no dependencies. **Locked (docs).**
 5. **P2-3** (confidence methodology) — foundational, no dependencies. **Locked (docs).**
 6. **P2-6** (naming/copy audit) — standalone; OD-7 audit pass completed 2026-07-18 (in-repo external uses = 0). **Satisfied in-repo.**

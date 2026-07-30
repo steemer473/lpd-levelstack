@@ -85,3 +85,35 @@ export function formatBrandSerpEvidence(
 
   return `${label}: ${selected.map(formatResult).join("; ")}`
 }
+
+/** Organic hits worth citing as brand-search evidence (buyer site + on-brand namesakes). */
+export function pickBrandRelevantResults(
+  results: SerpOrganicResult[],
+  buyerHost: string | null | undefined,
+  brandName: string,
+  limit = 3,
+): SerpOrganicResult[] {
+  if (!results.length) return []
+
+  const own: SerpOrganicResult[] = []
+  const brandRelevant: SerpOrganicResult[] = []
+
+  for (const result of results) {
+    const host = hostnameFromUrl(result.link)
+    if (!host) continue
+
+    if (buyerHost && hostsMatch(host, buyerHost)) {
+      own.push(result)
+      continue
+    }
+
+    if (
+      isCompetitorCandidate(host, buyerHost) &&
+      mentionsBrand(result, brandName)
+    ) {
+      brandRelevant.push(result)
+    }
+  }
+
+  return [...own, ...brandRelevant].slice(0, limit)
+}

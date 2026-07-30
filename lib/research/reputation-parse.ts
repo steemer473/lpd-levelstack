@@ -13,6 +13,16 @@ const GENERIC_DIRECTORY_LISTING_PATTERN =
 const REVIEW_PLATFORM_PATTERN =
   /yelp\.com|google\.com\/maps|maps\.google|facebook\.com|bbb\.org|trustpilot\.com|g2\.com|capterra\.com|clutch\.co|producthunt\.com/i
 
+const PLATFORM_SEARCH_URL_PATTERN =
+  /yelp\.com\/search\b|linkedin\.com\/search\b|google\.com\/search\b|facebook\.com\/search\b|bing\.com\/search\b/i
+
+/** Indexed complaint *about* the subject — not a generic "file a complaint" portal. */
+const COMPLAINT_ABOUT_SUBJECT_PATTERN =
+  /complaints?\s+(against|about|regarding|on)|filed\s+against|scam|fraud|rip-?off|lawsuit|class action|negative review|1\s*star|unsatisfied customer|refund denied|investigation into|consumeraffairs\.com\/.*\/complaints/i
+
+const GENERIC_COMPLAINT_PORTAL_PATTERN =
+  /consumer-complaint-form|how-do-i-file|file-a-complaint|submit-a-complaint|resolve-your-dispute|lodge a complaint|report a business to|complaint form|how to file a complaint|file a consumer complaint|attorney general.*complaint|consumer\.georgia\.gov/i
+
 const COMMON_NAME_TOKENS = new Set([
   "digital",
   "marketing",
@@ -78,8 +88,131 @@ export function isB2bReviewDirectoryPlatform(
   return platform === "Clutch" || platform === "G2" || platform === "Capterra"
 }
 
+export function isComplaintOrientedQuery(query: string): boolean {
+  return /\bcomplaints?\b/i.test(query)
+}
+
+/** Government / how-to pages — not evidence of a complaint against the subject. */
+export function isGenericComplaintPortalResult(result: SerpOrganicResult): boolean {
+  const combined = `${result.title} ${result.snippet} ${result.link}`.toLowerCase()
+  return GENERIC_COMPLAINT_PORTAL_PATTERN.test(combined)
+}
+
+function ownerNameMatchesText(ownerName: string, text: string): boolean {
+  const parts = ownerName
+    .trim()
+    .split(/\s+/)
+    .filter((part) => part.length >= 3)
+  if (parts.length === 0) return false
+  if (parts.length === 1) {
+    return textIncludesToken(text, parts[0]!)
+  }
+  return parts.every((part) => textIncludesToken(text, part))
+}
+
+/**
+ * Stricter than general reputation matching — a result counts as a complaint
+ * against the subject only when it names them and reads as negative indexed content,
+ * not a generic portal or a namesake that shares tokens like "level" or "play".
+ */
+export function isSubjectComplaintSerpResult(
+  result: SerpOrganicResult,
+  businessName: string,
+  ownerName: string,
+  buyerHost?: string | null,
+): boolean {
+  if (isPlatformSearchResultsPage(result.link)) return false
+  if (isGenericDirectoryListing(result.title)) return false
+  if (isGenericComplaintPortalResult(result)) return false
+  if (buyerHost && isOwnDomainResult(result, buyerHost)) return false
+
+  const combined = `${result.title} ${result.snippet} ${result.link}`
+  const business = businessName.trim()
+  const businessLower = business.toLowerCase()
+
+  const namesSubject =
+    (business.length >= 8 && combined.toLowerCase().includes(businessLower)) ||
+    ownerNameMatchesText(ownerName, combined)
+
+  if (!namesSubject) return false
+
+  if (/consumeraffairs\.com/i.test(result.link)) {
+    return COMPLAINT_ABOUT_SUBJECT_PATTERN.test(combined)
+  }
+
+  if (/bbb\.org/i.test(result.link) && /complaint/i.test(combined)) {
+    return reviewPlatformListingMatchesBusiness(
+      result,
+      businessName,
+      buyerHost,
+      ownerName,
+    )
+  }
+
+  return COMPLAINT_ABOUT_SUBJECT_PATTERN.test(combined)
+}
+
 export function isReviewPlatformUrl(link: string): boolean {
   return REVIEW_PLATFORM_PATTERN.test(link)
+}
+
+/** Generic platform search pages — never a subject-specific review listing. */
+export function isPlatformSearchResultsPage(link: string): boolean {
+  return PLATFORM_SEARCH_URL_PATTERN.test(link.trim())
+}
+
+/** A third-party review listing URL — not a search page, LinkedIn profile, or buyer site. */
+export function isVerifiedThirdPartyReviewListing(link: string): boolean {
+  if (!link.trim() || isPlatformSearchResultsPage(link)) return false
+  const lower = link.toLowerCase()
+  if (/linkedin\.com\/in\//i.test(lower)) return false
+  return (
+    /yelp\.com\/biz\//i.test(lower) ||
+    /trustpilot\.com\/review\//i.test(lower) ||
+    /bbb\.org\/.*\/profile\//i.test(lower) ||
+    /clutch\.co\/profile\//i.test(lower) ||
+    /g2\.com\/products\//i.test(lower) ||
+    /capterra\.com\/p\//i.test(lower) ||
+    /google\.com\/maps/i.test(lower) ||
+    /maps\.google/i.test(lower)
+  )
+}
+
+function normalizePersonSlug(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "")
+}
+
+function ownerNameLooksLikeBusiness(
+  ownerName: string,
+  businessName: string,
+): boolean {
+  const owner = ownerName.trim().toLowerCase()
+  const business = businessName.trim().toLowerCase()
+  if (!owner || !business) return false
+  if (owner === business) return true
+  return /\b(llc|inc|agency|digital|marketing|company|group|services)\b/i.test(
+    owner,
+  )
+}
+
+/** LinkedIn /in/ profiles must match the intake owner name — not a homonym recruiter. */
+export function linkedInProfileMatchesOwner(
+  link: string,
+  ownerName: string,
+  businessName: string,
+): boolean {
+  const match = link.match(/linkedin\.com\/in\/([^/?#]+)/i)
+  if (!match?.[1]) return true
+  if (ownerNameLooksLikeBusiness(ownerName, businessName)) return false
+
+  const slug = normalizePersonSlug(match[1])
+  const parts = ownerName
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((part) => part.length >= 3)
+  if (parts.length === 0) return false
+  return parts.every((part) => slug.includes(normalizePersonSlug(part)))
 }
 
 export function isOwnDomainResult(
@@ -162,10 +295,16 @@ export function reviewPlatformListingMatchesBusiness(
   result: SerpOrganicResult,
   businessName: string,
   buyerHost?: string | null,
+  ownerName = "",
 ): boolean {
-  if (!isReviewPlatformUrl(result.link)) return true
+  if (isPlatformSearchResultsPage(result.link)) return false
 
   const link = result.link.toLowerCase()
+  if (/linkedin\.com\/in\//i.test(link)) {
+    return linkedInProfileMatchesOwner(result.link, ownerName, businessName)
+  }
+
+  if (!isReviewPlatformUrl(result.link)) return false
   const buyer = buyerHost ? normalizeHost(buyerHost) : null
 
   const trustpilotMatch = link.match(/trustpilot\.com\/review\/([^/?#]+)/i)
@@ -210,20 +349,13 @@ export function isSubjectReputationText(
 ): boolean {
   const lower = text.toLowerCase()
 
-  if (
-    /complaint|unclaimed|no platform-specific|mixed review|not captured|review snippet/i.test(
-      lower,
-    )
-  ) {
-    return true
-  }
-
   const business = businessName.trim().toLowerCase()
   if (business.length >= 8 && lower.includes(business)) return true
 
   const owner = ownerName.trim().toLowerCase()
-  if (owner.length >= 5 && lower.includes(owner)) return true
+  if (owner.length >= 5 && ownerNameMatchesText(ownerName, text)) return true
 
+  // Short brands only: require distinctive token overlap (no loose "level"+"play" alone).
   const tokens = significantNameTokens(businessName, ownerName)
   if (tokens.length === 0) return false
 
@@ -231,7 +363,7 @@ export function isSubjectReputationText(
   if (tokens.length === 1) {
     return matchCount === 1
   }
-  return matchCount >= 2
+  return matchCount >= Math.min(3, tokens.length)
 }
 
 export function isSubjectReputationSerpResult(
@@ -240,7 +372,9 @@ export function isSubjectReputationSerpResult(
   ownerName: string,
   buyerHost?: string | null,
 ): boolean {
+  if (isPlatformSearchResultsPage(result.link)) return false
   if (isGenericDirectoryListing(result.title)) return false
+  if (isGenericDirectoryListing(result.link)) return false
 
   if (
     !isSubjectReputationText(
@@ -252,7 +386,16 @@ export function isSubjectReputationSerpResult(
     return false
   }
 
-  return reviewPlatformListingMatchesBusiness(result, businessName, buyerHost)
+  if (buyerHost && isOwnDomainResult(result, buyerHost)) {
+    return true
+  }
+
+  return reviewPlatformListingMatchesBusiness(
+    result,
+    businessName,
+    buyerHost,
+    ownerName,
+  )
 }
 
 export type ReputationHitContext = {
@@ -277,14 +420,22 @@ export function bestReputationHit(
   query: string,
   context?: ReputationHitContext,
 ): { result: SerpOrganicResult; parsed: ParsedReputationSnippet } | null {
+  const complaintQuery = isComplaintOrientedQuery(query)
   let candidates = context
     ? results.filter((result) =>
-        isSubjectReputationSerpResult(
-          result,
-          context.businessName,
-          context.ownerName,
-          context.buyerHost,
-        ),
+        complaintQuery
+          ? isSubjectComplaintSerpResult(
+              result,
+              context.businessName,
+              context.ownerName,
+              context.buyerHost,
+            )
+          : isSubjectReputationSerpResult(
+              result,
+              context.businessName,
+              context.ownerName,
+              context.buyerHost,
+            ),
       )
     : results
 

@@ -6,6 +6,11 @@ import {
   marketLocationLabel,
   scopedSearchPhrase,
 } from "@/lib/intake/location"
+import {
+  classificationFromIntake,
+  shouldIncludeBbbReputationCheck,
+  type BusinessCategorySignals,
+} from "@/lib/taxonomy/business-category"
 
 export function priorNamesForSearch(intake: LevelstackIntakeFormValues): string[] {
   return intake.priorBusinessNames
@@ -66,9 +71,18 @@ export function brandNameSearchQueries(
   }
 
   const bareBrand = intake.primaryBusinessName.trim()
+  const owner = intake.ownerName.trim()
+  const ownerQuery =
+    owner &&
+    owner.toLowerCase() !== bareBrand.toLowerCase() &&
+    !/\b(llc|inc|agency|digital|marketing|company|group|services)\b/i.test(owner)
+      ? owner
+      : null
+
   return [
     bareBrand,
     businessNameForSearch(intake),
+    ...(ownerQuery ? [ownerQuery] : []),
     ...priorNamesForSearch(intake),
   ].filter(Boolean)
 }
@@ -76,29 +90,31 @@ export function brandNameSearchQueries(
 export function directoryReviewQueries(
   intake: LevelstackIntakeFormValues,
   reportTier: ReportTier = "full_report",
+  categorySignals?: BusinessCategorySignals,
 ): string[] {
   const business = businessNameForSearch(intake)
+  const classification = classificationFromIntake(intake, categorySignals)
+  const includeBbb = shouldIncludeBbbReputationCheck(classification.id)
 
-  if (reportTier === "free_snapshot") {
-    return [
-      `${business} reviews`,
-      `site:yelp.com ${business}`,
-      `site:bbb.org ${business}`,
-      scopedSearchPhrase(`${intake.primaryBusinessName.trim()} complaints`, intake),
-    ].filter(Boolean)
-  }
-
-  const domain = intake.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")
-  return [
+  const baseQueries = [
     `${business} reviews`,
     `site:yelp.com ${business}`,
+    ...(includeBbb ? [`site:bbb.org ${business}`] : []),
+    scopedSearchPhrase(`${intake.primaryBusinessName.trim()} complaints`, intake),
+  ].filter(Boolean)
+
+  if (reportTier === "free_snapshot") {
+    return baseQueries
+  }
+
+  return [
+    ...baseQueries,
     `site:clutch.co ${business}`,
     `site:g2.com ${business}`,
     `site:capterra.com ${business}`,
     `site:producthunt.com ${business}`,
     `site:crunchbase.com ${business}`,
-    `"${business}" ${domain}`,
-    scopedSearchPhrase(`${intake.primaryBusinessName.trim()} complaints`, intake),
+    `"${business}" ${intake.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}`,
   ].filter(Boolean)
 }
 
@@ -112,14 +128,20 @@ export function searchFootprintQueries(intake: LevelstackIntakeFormValues): stri
   return [...new Set(queries.map((q) => q.trim()).filter(Boolean))]
 }
 
-export function reputationQueries(intake: LevelstackIntakeFormValues): string[] {
+export function reputationQueries(
+  intake: LevelstackIntakeFormValues,
+  categorySignals?: BusinessCategorySignals,
+): string[] {
   const business = businessNameForSearch(intake)
+  const classification = classificationFromIntake(intake, categorySignals)
+  const includeBbb = shouldIncludeBbbReputationCheck(classification.id)
+
   const queries = [
     `${business} reviews`,
     `${intake.ownerName} reviews`,
     scopedSearchPhrase(`${intake.primaryBusinessName.trim()} complaints`, intake),
     `site:yelp.com ${business}`,
-    `site:bbb.org ${business}`,
+    ...(includeBbb ? [`site:bbb.org ${business}`] : []),
     scopedSearchPhrase(`${intake.primaryBusinessName.trim()} trustpilot`, intake),
   ]
 

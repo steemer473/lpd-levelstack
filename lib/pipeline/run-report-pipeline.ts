@@ -2,6 +2,7 @@ import { scoreAllSignals } from "@/lib/audit/score-all-signals"
 import { deriveOverallFromSections } from "@/lib/audit/derive-overall-from-sections"
 import { assembleFreeReportFromResearch } from "@/lib/pipeline/assemble-free-report"
 import { synthesizeFreeSearchFootprint } from "@/lib/pipeline/search-footprint-synthesis"
+import { validatePaidIntakeForPipeline } from "@/lib/intake/paid-intake-gate"
 import { levelstackIntakeSchema } from "@/lib/intake/schema"
 import {
   collectPaidEnrichment,
@@ -152,6 +153,12 @@ export async function runReportPipeline({
 
   const reportTier: ReportTier = planIdToReportTier(planId)
 
+  const intakeGate = validatePaidIntakeForPipeline(parsed.data, reportTier)
+  if (!intakeGate.ok) {
+    await failPipeline(admin, jobId, reportId, intakeGate.message)
+    return
+  }
+
   const operationIds =
     reportTier === "free_snapshot"
       ? [...FREE_TIER_OPERATION_IDS]
@@ -242,6 +249,8 @@ export async function runReportPipeline({
       // P1-1 / OD-1: customer Overall from displayed sections — not scoreAllSignals.
       reportJson.meta.overallScore = derived.overallScore
       reportJson.meta.letterGrade = derived.letterGrade
+      reportJson.meta.scoreBasisSectionIds = derived.includedSectionIds
+      reportJson.meta.businessCategory = bundle.businessCategory ?? undefined
       reportJson.meta.reportTier = reportTier
 
       // P1.8.1 — wire the resolved grid rival as the report's conversion trigger.

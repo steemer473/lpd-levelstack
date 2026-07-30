@@ -186,6 +186,69 @@ describe("normalizeSynthesisPayload", () => {
     )
   })
 
+  it("preserves good baseline reputation findings when LLM injects alarmist copy", () => {
+    const reputationBaseline: ReportSection = {
+      ...baseline[2]!,
+      findings: [
+        {
+          label: "Indexed complaints",
+          value: "No indexed complaints naming Level Play Digital",
+          detail: "We searched complaint-oriented queries and found no hits.",
+          severity: "good",
+        },
+      ],
+    }
+
+    const sections = [
+      baseline[0]!,
+      baseline[1]!,
+      reputationBaseline,
+      ...baseline.slice(3),
+    ]
+
+    const payload = normalizeSynthesisPayload(
+      {
+        sections: [
+          {
+            id: "online_reputation",
+            status: "critical",
+            score: 20,
+            findings: [
+              {
+                label: "High Trust Deficit",
+                value: "Negative employee sentiment detected",
+                detail: "Unverified LLM prose",
+                severity: "critical",
+              },
+              {
+                label: "Indexed complaints",
+                value: "Multiple complaints found",
+                detail: "Should not override good baseline",
+                severity: "critical",
+              },
+            ],
+          },
+        ],
+        executiveSummary: {
+          paragraphs: ["One", "Two"],
+          criticalIssue: "Issue",
+          firstSteps: ["Step"],
+        },
+      },
+      sections,
+      intake,
+      null,
+    )
+
+    const reputation = payload.sections.find((s) => s.id === "online_reputation")!
+    expect(reputation.findings).toHaveLength(1)
+    expect(reputation.findings[0]?.label).toBe("Indexed complaints")
+    expect(reputation.findings[0]?.severity).toBe("good")
+    expect(reputation.findings.some((f) => f.label === "High Trust Deficit")).toBe(
+      false,
+    )
+  })
+
   it("normalizes structured executive summary fields", () => {
     const payload = normalizeSynthesisPayload(
       {
