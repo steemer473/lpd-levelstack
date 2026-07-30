@@ -2,7 +2,7 @@
 
 import { ChevronDown, ChevronUp } from "lucide-react"
 import Link from "next/link"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 
 import { deriveOverallFromSections } from "@/lib/audit/derive-overall-from-sections"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
@@ -37,11 +37,7 @@ export function ScoreBreakdown({ report, reportId }: ScoreBreakdownProps) {
   const isFree = meta.reportTier === "free_snapshot"
   const contentSections = sections.filter((s) => s.id !== "action_plan")
   const sectionById = new Map(contentSections.map((s) => [s.id, s]))
-
-  const derived = useMemo(
-    () => deriveOverallFromSections(contentSections),
-    [contentSections],
-  )
+  const derived = deriveOverallFromSections(contentSections)
 
   const scoredValues = derived.includedSectionIds
     .map((id) => sectionById.get(id)?.score)
