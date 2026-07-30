@@ -1,14 +1,18 @@
 import { describe, expect, it } from "vitest"
 
-import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
+import {
+  levelstackIntakeDefaults,
+  levelstackIntakeTestDefaults,
+} from "@/lib/intake/schema"
 import { validatePaidIntakeForPipeline } from "./paid-intake-gate"
 
 const validPaidIntake = {
-  ...levelstackIntakeDefaults,
+  ...levelstackIntakeTestDefaults,
   primaryService: "Marketing automation consulting",
   pricePoint: "$3k–$10k/month",
   ownerName: "Stephanie Danielle Ragsdale",
-  businessVertical: "consulting_b2b",
+  businessVertical: "consulting_b2b" as const,
   marketCity: "Atlanta",
   geoMarket: "local" as const,
 }
@@ -21,7 +25,7 @@ describe("validatePaidIntakeForPipeline", () => {
           ...levelstackIntakeDefaults,
           primaryService: "General business services",
           ownerName: "Level Play Digital",
-        },
+        } as unknown as LevelstackIntakeFormValues,
         "free_snapshot",
       ).ok,
     ).toBe(true)

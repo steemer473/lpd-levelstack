@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import { levelstackIntakeTestDefaults } from "@/lib/intake/schema"
 import {
   businessNameForSearch,
   mapsLocationHint,
@@ -10,7 +10,7 @@ import {
 describe("market location helpers", () => {
   it("scopes business name with city and state", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryBusinessName: "Platinum Real Estate",
       marketCity: "Atlanta",
       marketState: "GA",
@@ -22,8 +22,10 @@ describe("market location helpers", () => {
 
   it("falls back to near me for local without city", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryBusinessName: "Platinum Real Estate",
+      marketCity: "",
+      marketState: "",
       geoMarket: "local" as const,
     }
     expect(mapsLocationHint(intake)).toBe("near me")

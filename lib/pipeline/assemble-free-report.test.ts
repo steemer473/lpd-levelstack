@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import type { AuditScoreBundle } from "@/lib/audit/types"
-import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import { levelstackIntakeTestDefaults } from "@/lib/intake/schema"
 import {
   assembleFreeReportFromResearch,
   extractUpgradeTeasers,
@@ -11,7 +11,7 @@ import { emptyResearchBundle } from "@/lib/pipeline/research-types"
 import { buildSectionsFromResearch } from "@/lib/pipeline/serp-backed-sections"
 
 const intake = {
-  ...levelstackIntakeDefaults,
+  ...levelstackIntakeTestDefaults,
   primaryBusinessName: "Test Co",
   ownerName: "Alex Owner",
   priorBusinessNames: ["None"],

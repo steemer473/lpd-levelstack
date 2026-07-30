@@ -1,4 +1,4 @@
-import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
+import type { LevelstackIntakeFormDraft } from "@/lib/intake/schema"
 import { levelstackIntakeDefaults } from "@/lib/intake/schema"
 
 const PLACEHOLDER_SENTINELS = new Set([
@@ -21,8 +21,8 @@ function isPlaceholder(value: string | undefined): boolean {
  * Keeps only genuinely user-entered fields (business name, website, city).
  */
 export function sanitizeFreeSnapshotPrefill(
-  prior: Partial<LevelstackIntakeFormValues> | null | undefined,
-): LevelstackIntakeFormValues {
+  prior: Partial<LevelstackIntakeFormDraft> | null | undefined,
+): LevelstackIntakeFormDraft {
   if (!prior) return { ...levelstackIntakeDefaults }
 
   const businessName = prior.primaryBusinessName?.trim() ?? ""

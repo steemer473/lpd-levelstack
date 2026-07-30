@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import { levelstackIntakeTestDefaults } from "@/lib/intake/schema"
 import { buildActionPlanFromSections } from "@/lib/pipeline/action-plan"
 import { assembleReportJson } from "@/lib/pipeline/build-sections"
 import { levelstackReportJsonSchema } from "@/lib/pipeline/report-types"
@@ -8,7 +8,7 @@ import { levelstackReportJsonSchema } from "@/lib/pipeline/report-types"
 describe("assembleReportJson", () => {
   it("produces valid report JSON from intake-shaped sections", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryBusinessName: "Test Co",
       ownerName: "Alex Owner",
       priorBusinessNames: ["None"],
@@ -52,7 +52,7 @@ describe("assembleReportJson", () => {
 
   it("excludes action_plan from Overall and uses letterGradeFromScore (incl. A)", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryBusinessName: "Test Co",
       ownerName: "Alex Owner",
     }

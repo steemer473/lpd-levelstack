@@ -35,6 +35,7 @@ const paidFormData: LevelstackIntakeFormValues = {
   marketState: "TX",
   priorBusinessNames: ["None"],
   ownerName: "Jane Doe",
+  businessVertical: "consulting_b2b",
   primaryService: "Executive coaching",
   pricePoint: "$3,000",
   ninetyDayGoal: "calls",

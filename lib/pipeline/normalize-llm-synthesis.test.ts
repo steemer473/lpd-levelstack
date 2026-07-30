@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import { levelstackIntakeTestDefaults } from "@/lib/intake/schema"
 import { normalizeSynthesisPayload } from "./normalize-llm-synthesis"
 import type { ReportSection } from "@/lib/pipeline/report-types"
 
@@ -105,7 +105,7 @@ const baseline: ReportSection[] = [
 ]
 
 const intake = {
-  ...levelstackIntakeDefaults,
+  ...levelstackIntakeTestDefaults,
   primaryBusinessName: "Test Co",
   ownerName: "Alex Owner",
 }

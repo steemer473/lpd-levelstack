@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import { levelstackIntakeTestDefaults } from "@/lib/intake/schema"
 import { runQualityGate } from "@/lib/pipeline/quality-gate"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
 
@@ -123,7 +123,7 @@ function minimalReport(
 describe("runQualityGate", () => {
   it("passes a well-formed report", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryBusinessName: "Test Co",
       ownerName: "Alex Owner",
       hasActiveAdSpend: "yes" as const,
@@ -137,7 +137,7 @@ describe("runQualityGate", () => {
 
   it("warns on boilerplate and missing ad copy", () => {
     const intake = {
-      ...levelstackIntakeDefaults,
+      ...levelstackIntakeTestDefaults,
       primaryBusinessName: "Test Co",
       ownerName: "Alex Owner",
       hasActiveAdSpend: "yes" as const,

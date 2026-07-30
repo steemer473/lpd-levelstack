@@ -59,6 +59,7 @@ export function freeSnapshotToIntake(
     marketState: "",
     priorBusinessNames: ["None"],
     ownerName: free.businessName.trim(),
+    businessVertical: "local_consumer_services",
     primaryService: "General business services",
     pricePoint: "Not specified",
     hasActiveAdSpend: "no",

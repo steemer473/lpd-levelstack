@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import { levelstackIntakeTestDefaults } from "@/lib/intake/schema"
 import {
   buyerRelevanceTokens,
   categoryPeerQuery,
@@ -10,7 +10,7 @@ import {
 } from "@/lib/research/serp/competitor-resolve"
 
 const intake = {
-  ...levelstackIntakeDefaults,
+  ...levelstackIntakeTestDefaults,
   primaryBusinessName: "Level Play Digital",
   primaryService: "marketing automation platform",
   marketCity: "Atlanta",

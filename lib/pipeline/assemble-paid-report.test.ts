@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest"
 
 import type { AuditScoreBundle } from "@/lib/audit/types"
-import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import { levelstackIntakeTestDefaults } from "@/lib/intake/schema"
 import { assembleReportFromSignals } from "@/lib/pipeline/assemble-from-signals"
 import { levelstackReportJsonSchema } from "@/lib/pipeline/report-types"
 
 const intake = {
-  ...levelstackIntakeDefaults,
+  ...levelstackIntakeTestDefaults,
   primaryBusinessName: "Paid Co",
   ownerName: "Pat Owner",
   priorBusinessNames: ["None"],
