@@ -37,7 +37,7 @@ See [free-snapshot-workflow.md](./free-snapshot-workflow.md) for the full refere
 4. **Progress** — Step headline shows "Checking your … N of 6"; page auto-refreshes when the snapshot is ready.
 5. **Email** — Report-ready email when generation completes (primary link valid **30 days**; sign-in resend links valid **24 hours**).
 
-**Dev:** same email re-submit replaces the prior snapshot automatically (`?replace=1`). **Production:** one snapshot per email — use a new email to test another business.
+**Dev:** re-submit with `/api/free-intake?replace=1` (or `LEVELSTACK_DEV_REPLACE_SNAPSHOT=true`) to wipe the prior snapshot — the form does not add `replace=1` by itself. **Production:** returning emails reuse or soft-open the latest free report unless `?refresh=1` — see [free-snapshot-workflow.md](./free-snapshot-workflow.md) and [report lifecycle SOP](./operations/report-lifecycle-and-access-sop.md).
 
 ## Intake redirects to hub pricing?
 

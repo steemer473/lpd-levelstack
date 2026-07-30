@@ -636,6 +636,7 @@ Framing: LevelStack finds gaps; SEO Automator Pro is designed to keep them close
 
 - Intake used for report only; mobile-responsive report UI.
 - Support can reissue PDF if account access lost.
+- Access / free resubmit / upgrade triage: [docs/operations/report-lifecycle-and-access-sop.md](./operations/report-lifecycle-and-access-sop.md).
 
 ### 12.4 Zero manual intervention (Standard)
 

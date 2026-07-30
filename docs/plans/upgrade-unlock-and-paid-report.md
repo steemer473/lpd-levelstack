@@ -4,7 +4,7 @@
 **Branch:** `main` @ PR #29 merged  
 **Date:** 2026-06-23  
 **Author:** Auto-plan from codebase + PRD v2  
-**Related:** [report-value-delivery-spec.md](./report-value-delivery-spec.md) — P0 competitor grid fix, paid deliverable quality, first-view access (2026-06-25)
+**Related:** [report-value-delivery-spec.md](./report-value-delivery-spec.md) — P0 competitor grid fix, paid deliverable quality, first-view access (2026-06-25) · [Report lifecycle and access SOP](../operations/report-lifecycle-and-access-sop.md) — post-upgrade magic links, free resubmit, support triage
 
 ---
 
