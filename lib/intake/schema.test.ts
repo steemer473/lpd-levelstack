@@ -6,6 +6,7 @@ const validPayload = {
   primaryBusinessName: "Acme Coaching",
   priorBusinessNames: ["None"],
   ownerName: "Jane Doe",
+  businessVertical: "local_consumer_services" as const,
   primaryService: "Executive coaching",
   pricePoint: "$3,000",
   hasActiveAdSpend: "no" as const,

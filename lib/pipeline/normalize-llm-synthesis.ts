@@ -103,6 +103,100 @@ function normalizeAiPreview(
   }).filter(Boolean) as NonNullable<ReportSection["aiPreview"]>
 }
 
+function dedupeFindingsByLabel(findings: ReportFinding[]): ReportFinding[] {
+  const byLabel = new Map<string, ReportFinding>()
+
+  function findingScore(f: ReportFinding): number {
+    const blob = `${f.value} ${f.detail}`
+    let score = 0
+    if (/\d+\s*★|\d+(?:\.\d)?\s*out of 5/i.test(blob)) score += 4
+    if (/category:/i.test(blob)) score += 2
+    if (/address:/i.test(blob)) score += 2
+    if (/https?:\/\//i.test(blob)) score += 1
+    if (/limited|lacks|unavailable|not confirmed/i.test(blob)) score -= 2
+    return score
+  }
+
+  for (const finding of findings) {
+    const key = finding.label.trim().toLowerCase()
+    const existing = byLabel.get(key)
+    if (!existing || findingScore(finding) > findingScore(existing)) {
+      byLabel.set(key, finding)
+    }
+  }
+
+  return findings.filter((f) => byLabel.get(f.label.trim().toLowerCase()) === f)
+}
+
+function isGoodBaselineFinding(finding: ReportFinding): boolean {
+  if (finding.severity === "good") return true
+  const blob = `${finding.value} ${finding.detail}`.toLowerCase()
+  return /no indexed complaints|no complaint|not found when searching|no organic results captured/.test(
+    blob,
+  )
+}
+
+const LLM_GUARDRAIL_SECTION_IDS = new Set([
+  "search_footprint",
+  "online_reputation",
+])
+
+function severityRank(severity: ReportFinding["severity"]): number {
+  switch (severity) {
+    case "good":
+      return 0
+    case "low":
+      return 1
+    case "medium":
+      return 2
+    case "high":
+      return 3
+    case "critical":
+      return 4
+    default:
+      return 2
+  }
+}
+
+function mergeFindingsWithGuardrails(
+  rawFindings: unknown[],
+  baseline: ReportSection,
+): ReportFinding[] {
+  if (!LLM_GUARDRAIL_SECTION_IDS.has(baseline.id)) {
+    if (rawFindings.length === 0) return baseline.findings
+    return [
+      ...rawFindings.map((f, i) =>
+        normalizeFinding(f, baseline.findings[i] ?? baseline.findings[0]!),
+      ),
+      ...baseline.findings.slice(rawFindings.length),
+    ]
+  }
+
+  return baseline.findings.map((baselineFinding) => {
+    const llmRaw = rawFindings.find((raw) => {
+      const o = asRecord(raw)
+      if (!o) return false
+      return (
+        coerceString(o.label, "").toLowerCase() ===
+        baselineFinding.label.trim().toLowerCase()
+      )
+    })
+
+    if (!llmRaw) return baselineFinding
+
+    const normalized = normalizeFinding(llmRaw, baselineFinding)
+
+    if (isGoodBaselineFinding(baselineFinding)) {
+      if (severityRank(normalized.severity) > severityRank(baselineFinding.severity)) {
+        return baselineFinding
+      }
+      return normalized
+    }
+
+    return normalized
+  })
+}
+
 function normalizeSection(raw: unknown, baseline: ReportSection): ReportSection {
   const o = asRecord(raw)
   if (!o) return baseline
@@ -123,23 +217,17 @@ function normalizeSection(raw: unknown, baseline: ReportSection): ReportSection 
           !f.label.toLowerCase().includes("competitor landscape") &&
           !f.label.toLowerCase().includes("market differentiation"),
       )
-    findings = [primaryFinding, ...supplemental, ...baseline.findings.slice(1 + supplemental.length)]
+    findings = [
+      primaryFinding,
+      ...supplemental,
+      ...baseline.findings.slice(1 + supplemental.length),
+    ]
   } else {
-    findings =
-      rawFindings.length > 0
-        ? [
-            ...rawFindings.map((f, i) =>
-              normalizeFinding(
-                f,
-                baseline.findings[i] ?? baseline.findings[0]!,
-              ),
-            ),
-            ...baseline.findings.slice(rawFindings.length),
-          ]
-        : baseline.findings
+    findings = mergeFindingsWithGuardrails(rawFindings, baseline)
   }
 
   if (findings.length === 0) findings = baseline.findings
+  findings = dedupeFindingsByLabel(findings)
 
   return {
     id: baseline.id,

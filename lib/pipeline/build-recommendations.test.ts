@@ -227,4 +227,64 @@ describe("attachSearchReputationRecommendations", () => {
       ),
     ).toBe(true)
   })
+
+  it("does not attach unrelated directory SERP URLs as reputation evidence", () => {
+    const bundle = emptyResearchBundle()
+    bundle.reputation.searches = [
+      {
+        query: "Level Play Digital Atlanta reviews",
+        results: [
+          {
+            query: "Level Play Digital Atlanta reviews",
+            position: 2,
+            title: "Jason Fleury - Publicis Digital Experience | LinkedIn",
+            link: "https://www.linkedin.com/in/jasonfleury",
+            snippet: "Recruiter in North Carolina",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+      {
+        query: "site:yelp.com Level Play Digital Atlanta",
+        results: [
+          {
+            query: "site:yelp.com Level Play Digital Atlanta",
+            position: 1,
+            title: "Digital Marketing Agency Franklin GA",
+            link: "https://m.m.yelp.com/search?find_desc=Digital+Marketing+Agency&find_loc=Franklin%2C+GA",
+            snippet: "Search results",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+
+    const sections = buildSectionsFromResearch(intake, bundle)
+    let report = assembleReportJson(intake, sections, null)
+    report = attachSearchReputationRecommendations(report, bundle, {
+      generatedAt: "2026-07-19T12:00:00.000Z",
+      intake,
+    })
+
+    const urls =
+      report.recommendations?.flatMap((r) =>
+        r.evidence.map((e) => e.url).filter(Boolean),
+      ) ?? []
+
+    expect(urls.some((u) => u?.includes("jasonfleury"))).toBe(false)
+    expect(urls.some((u) => u?.includes("yelp.com/search"))).toBe(false)
+    expect(
+      report.recommendations?.some((r) =>
+        r.evidence.some((e) => e.url?.includes("google.com/search")),
+      ),
+    ).toBe(true)
+    for (const rec of report.recommendations ?? []) {
+      if (rec.sourceSectionId !== "online_reputation") continue
+      expect(rec.evidence.length).toBeLessThanOrEqual(2)
+      const queries = rec.evidence.map((e) => e.query)
+      expect(new Set(queries).size).toBe(queries.length)
+    }
+  })
 })

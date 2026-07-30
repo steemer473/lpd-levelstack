@@ -199,7 +199,8 @@ export function assembleFreeReportFromResearch(
   const failCount = audit.signals.filter((s) => s.status === "fail").length
   const warnCount = audit.signals.filter((s) => s.status === "warning").length
   const findingCount = sections.reduce((n, s) => n + s.findings.length, 0)
-  const { overallScore, letterGrade } = deriveOverallFromSections(sections)
+  const { overallScore, letterGrade, includedSectionIds } =
+    deriveOverallFromSections(sections)
 
   return {
     meta: {
@@ -215,6 +216,8 @@ export function assembleFreeReportFromResearch(
       reportTier: "free_snapshot",
       overallScore,
       letterGrade,
+      scoreBasisSectionIds: includedSectionIds,
+      businessCategory: bundle.businessCategory ?? undefined,
       totalFindings: findingCount + audit.insights.length,
       criticalCount: failCount,
       highCount: warnCount,

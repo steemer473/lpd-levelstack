@@ -137,6 +137,7 @@ export async function resolveReportAccess(
 export async function getReportStatusPayload(
   reportId: string,
   userId: string | null,
+  accessToken?: string | null,
 ): Promise<{
   reportId: string
   reportStatus: string
@@ -148,7 +149,7 @@ export async function getReportStatusPayload(
   error: string | null
   businessName: string | null
 } | null> {
-  const report = await resolveReportAccess(reportId, userId)
+  const report = await resolveReportAccess(reportId, userId, accessToken)
 
   if (!report) return null
 

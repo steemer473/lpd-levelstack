@@ -202,7 +202,8 @@ export function assembleReportJson(
   const count = (sev: string) =>
     allFindings.filter((f) => f.severity === sev).length
 
-  const { overallScore, letterGrade } = deriveOverallFromSections(sections)
+  const { overallScore, letterGrade, includedSectionIds } =
+    deriveOverallFromSections(sections)
 
   const criticalFinding =
     allFindings.find((f) => f.severity === "critical") ??
@@ -235,6 +236,7 @@ export function assembleReportJson(
       planId,
       overallScore,
       letterGrade,
+      scoreBasisSectionIds: includedSectionIds,
       totalFindings: allFindings.length,
       criticalCount: count("critical"),
       highCount: count("high"),

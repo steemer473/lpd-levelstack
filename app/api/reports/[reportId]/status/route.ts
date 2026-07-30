@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { readReportAccessTokenCookie } from "@/lib/auth/report-access-cookie"
 import { isDevReportPreviewEnabled } from "@/lib/dev-report-preview"
 import { getReportStatusPayload } from "@/lib/reports/get-report"
 import { requireLevelStackIntakeAccess } from "@/lib/levelstack-intake-auth"
@@ -22,7 +23,8 @@ export async function GET(_request: Request, context: RouteContext) {
     userId = auth.ok ? auth.user.id : null
   }
 
-  const payload = await getReportStatusPayload(reportId, userId)
+  const accessToken = await readReportAccessTokenCookie(reportId)
+  const payload = await getReportStatusPayload(reportId, userId, accessToken)
 
   if (!payload) {
     return NextResponse.json(

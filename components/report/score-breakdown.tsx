@@ -2,14 +2,16 @@
 
 import { ChevronDown, ChevronUp } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
+import { deriveOverallFromSections } from "@/lib/audit/derive-overall-from-sections"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
 import { PAID_TAB_IDS, SECTION_TAB_ORDER } from "@/lib/report/display-helpers"
 import { getHubUpgradeUrl } from "@/lib/urls"
 
 type ScoreBreakdownProps = {
   report: LevelstackReportJson
+  reportId?: string
 }
 
 function rptScoreBarColor(score: number): string {
@@ -18,15 +20,34 @@ function rptScoreBarColor(score: number): string {
   return "var(--rpt-green, #5cb85c)"
 }
 
-export function ScoreBreakdown({
-  report,
-  reportId,
-}: ScoreBreakdownProps & { reportId?: string }) {
+function formatMeanExplanation(
+  scores: number[],
+  overall: number,
+): string | null {
+  if (scores.length === 0) return null
+  if (scores.length === 1) return `Based on 1 section score (${scores[0]}).`
+  const sum = scores.reduce((a, b) => a + b, 0)
+  const parts = scores.join(" + ")
+  return `Rounded average: (${parts}) ÷ ${scores.length} = ${(sum / scores.length).toFixed(1)} → ${overall}.`
+}
+
+export function ScoreBreakdown({ report, reportId }: ScoreBreakdownProps) {
   const [open, setOpen] = useState(false)
   const { meta, sections } = report
   const isFree = meta.reportTier === "free_snapshot"
   const contentSections = sections.filter((s) => s.id !== "action_plan")
   const sectionById = new Map(contentSections.map((s) => [s.id, s]))
+
+  const derived = useMemo(
+    () => deriveOverallFromSections(contentSections),
+    [contentSections],
+  )
+
+  const scoredValues = derived.includedSectionIds
+    .map((id) => sectionById.get(id)?.score)
+    .filter((s): s is number => typeof s === "number" && Number.isFinite(s))
+
+  const meanExplanation = formatMeanExplanation(scoredValues, meta.overallScore)
 
   const diagnosticTabs = SECTION_TAB_ORDER.filter((t) => t.id !== "executive_summary")
 
@@ -52,13 +73,26 @@ export function ScoreBreakdown({
             Your overall readiness score of{" "}
             <strong style={{ color: "var(--rpt-heading)" }}>{meta.overallScore}/100</strong> (
             grade <strong style={{ color: "var(--rpt-heading)" }}>{meta.letterGrade}</strong>) is
-            the rounded average of your section scores below. Each section score reflects finding
-            severity in that area — not a guarantee of rankings or revenue.
+            the rounded average of the scored diagnostic sections listed below — not a separate
+            hidden formula.
           </p>
+          {isFree ? (
+            <p className="rpt-caption normal-case tracking-normal">
+              Free {meta.reportTier === "free_snapshot" ? "Visibility Snapshot" : "reports"} average{" "}
+              Search footprint and Social &amp; off-site only. Paid Action Roadmap scores include
+              every unlocked diagnostic section.
+            </p>
+          ) : null}
+          {meanExplanation ? (
+            <p className="rpt-caption normal-case tracking-normal font-medium text-[var(--rpt-heading)]">
+              {meanExplanation}
+            </p>
+          ) : null}
           <ul className="space-y-2 list-none pl-0">
             {diagnosticTabs.map((tab) => {
               const section = sectionById.get(tab.id)
               const locked = isFree && PAID_TAB_IDS.has(tab.id)
+              const included = derived.includedSectionIds.includes(tab.id)
 
               if (locked) {
                 return (
@@ -120,6 +154,15 @@ export function ScoreBreakdown({
                   >
                     {hasScore ? section.score : "—"}
                   </span>
+                  {included ? (
+                    <span className="text-[10px] uppercase tracking-wide text-emerald-700 shrink-0">
+                      In average
+                    </span>
+                  ) : hasScore ? null : (
+                    <span className="text-[10px] uppercase tracking-wide rpt-muted-text shrink-0">
+                      Insufficient data
+                    </span>
+                  )}
                 </li>
               )
             })}

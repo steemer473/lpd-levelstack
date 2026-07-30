@@ -5,6 +5,7 @@ import {
   findOwnSiteReputationResult,
   formatReputationQueryLabel,
   isB2bReviewDirectoryPlatform,
+  isComplaintOrientedQuery,
   platformFromQuery,
 } from "@/lib/research/reputation-parse"
 import type { CompetitiveComparisonMode } from "@/lib/research/serp/competitor-resolve"
@@ -14,6 +15,10 @@ import {
   formatSerpEvidenceTable,
 } from "@/lib/research/serp/competitor-resolve"
 import { formatBrandSerpEvidence } from "@/lib/research/serp/brand-serp-evidence"
+import {
+  formatOwnerSearchValue,
+  pickOwnerRelevantResults,
+} from "@/lib/research/serp/owner-serp-evidence"
 import type { SerpOrganicResult } from "@/lib/research/serp"
 import {
   filterCompetitorDomains,
@@ -22,6 +27,7 @@ import {
 } from "@/lib/research/serp"
 import type { ResearchBundle } from "@/lib/pipeline/research-types"
 import type { ReportFinding, ReportSection } from "@/lib/pipeline/report-types"
+import { displayCategoryLabel } from "@/lib/taxonomy/business-category"
 import { buildAiOverviewCheck } from "@/lib/pipeline/ai-overview-check"
 import {
   classifyLimitationAvailability,
@@ -86,9 +92,11 @@ export function buildSectionsFromResearch(
     bundle.searchFootprint.searches.find((s) =>
       s.query.toLowerCase().includes(intake.primaryBusinessName.toLowerCase()),
     )
-  const ownerSearch = bundle.searchFootprint.searches.find((s) =>
-    s.query.toLowerCase().includes(intake.ownerName.toLowerCase()),
-  )
+  const ownerSearch = bundle.searchFootprint.searches.find((s) => {
+    const q = s.query.toLowerCase()
+    const owner = intake.ownerName.trim().toLowerCase()
+    return owner.length > 0 && q === owner
+  })
   const serviceSearch =
     bundle.competitiveContext.serviceSearch ??
     bundle.searchFootprint.searches.find((s) =>
@@ -160,7 +168,12 @@ export function buildSectionsFromResearch(
       label: `Google — "${intake.ownerName}"`,
       value:
         ownerSearch?.results.length
-          ? `When someone searches your name, page 1 shows: ${ownerSearch.results[0]?.title ?? "mixed results"}`
+          ? formatOwnerSearchValue(
+              ownerSearch.results,
+              intake.ownerName,
+              intake.primaryBusinessName,
+              buyerHost,
+            )
           : ownerUnavailable
             ? customerLimitationText(
                 ownerSearch?.limitation,
@@ -169,12 +182,22 @@ export function buildSectionsFromResearch(
             : "No organic results captured when searching your owner name.",
       detail: ownerSearch?.results.length
         ? formatBrandSerpEvidence(
-            ownerSearch.results,
+            pickOwnerRelevantResults(
+              ownerSearch.results,
+              intake.ownerName,
+              intake.primaryBusinessName,
+              buyerHost,
+            ),
             buyerHost,
             intake.ownerName,
           ) ||
           formatBrandSerpEvidence(
-            ownerSearch.results,
+            pickOwnerRelevantResults(
+              ownerSearch.results,
+              intake.ownerName,
+              intake.primaryBusinessName,
+              buyerHost,
+            ),
             buyerHost,
             intake.primaryBusinessName,
           )
@@ -510,7 +533,10 @@ export function buildSectionsFromResearch(
       : bundle.digitalPresence.gbp.found
         ? "Listed"
         : "—"
-  const yourCategory = bundle.digitalPresence.gbp.category ?? "—"
+  const yourCategory = displayCategoryLabel(
+    bundle.businessCategory,
+    bundle.digitalPresence.gbp.category,
+  )
 
   const columnHeaders =
     compDomains.length > 0
@@ -801,9 +827,32 @@ function pushFindingFromReputationSearch(
 ): void {
   if (!search.results.length && !search.limitation) return
 
+  const label = formatReputationQueryLabel(search.query)
   const hit = bestReputationHit(search.results, search.query, repContext)
   const ownSite = findOwnSiteReputationResult(search.results, repContext)
-  const label = formatReputationQueryLabel(search.query)
+
+  if (isComplaintOrientedQuery(search.query)) {
+    if (hit) {
+      findings.push({
+        label,
+        value: `Indexed complaint content references ${repContext.businessName}`,
+        detail: `${hit.result.title.slice(0, 80)} · ${hit.result.link}. Google shows: ${hit.result.snippet.slice(0, 160)}`,
+        severity: "critical",
+      })
+      checks.push({ availability: "negative", severity: "critical" })
+      return
+    }
+
+    findings.push({
+      label,
+      value: `No indexed complaints naming ${repContext.businessName}`,
+      detail:
+        "We searched Google for complaint listings tied to your business name. Generic “how to file a complaint” pages and unrelated namesakes that share words like “level” or “play” were excluded.",
+      severity: "good",
+    })
+    checks.push({ availability: "ok", severity: "good" })
+    return
+  }
 
   if (hit) {
     const { rating, reviewCount, platform } = hit.parsed

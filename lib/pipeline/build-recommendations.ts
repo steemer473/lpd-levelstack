@@ -2,9 +2,18 @@ import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
 import type { CheckAvailability } from "@/lib/pipeline/check-availability"
 import { TERMS } from "@/lib/report/customer-terms"
 import {
+  bestReputationHit,
+  formatReputationQueryLabel,
   isB2bReviewDirectoryPlatform,
+  isPlatformSearchResultsPage,
+  isSubjectReputationSerpResult,
+  isVerifiedThirdPartyReviewListing,
   platformFromQuery,
+  type ReputationHitContext,
 } from "@/lib/research/reputation-parse"
+import { pickBrandRelevantResults } from "@/lib/research/serp/brand-serp-evidence"
+import { pickOwnerRelevantResults } from "@/lib/research/serp/owner-serp-evidence"
+import { hostnameFromUrl } from "@/lib/research/serp"
 import type { ResearchBundle } from "@/lib/pipeline/research-types"
 import type {
   LevelstackReportJson,
@@ -195,8 +204,18 @@ function artifactForFinding(
     }
   }
 
-  if (/review|rating|complaint|reputation|clutch|g2|capterra|yelp|bbb/.test(blob)) {
-    if (/reply|respond|negative/.test(blob)) {
+  if (/review|rating|reputation|clutch|g2|capterra|yelp|bbb/.test(blob)) {
+    if (/complaint/i.test(blob) && /no indexed complaints|no public complaints/i.test(blob)) {
+      return {
+        kind: "checklist",
+        content: [
+          "Re-run this search in an incognito window quarterly to monitor new results",
+          "If a real complaint appears, respond on the platform or publish a factual clarification",
+          `Keep ${TERMS.nap} consistent so namesakes do not inherit your traffic`,
+        ].join("\n"),
+      }
+    }
+    if (/reply|respond|negative|complaint against|indexed complaint/i.test(blob)) {
       return {
         kind: "reply_draft",
         content:
@@ -260,9 +279,20 @@ function evidenceFromSerpResults(
   sourceLabel: string,
   generatedAt: string,
   limit = 3,
+  reputationContext?: ReputationHitContext,
 ): EvidenceItem[] {
   if (!search?.results.length) return []
-  return search.results.slice(0, limit).map((r: SerpOrganicResult) => ({
+  const results = reputationContext
+    ? search.results.filter((result) =>
+        isSubjectReputationSerpResult(
+          result,
+          reputationContext.businessName,
+          reputationContext.ownerName,
+          reputationContext.buyerHost,
+        ),
+      )
+    : search.results
+  return results.slice(0, limit).map((r: SerpOrganicResult) => ({
     sourceType,
     sourceLabel,
     capturedAt: generatedAt,
@@ -273,15 +303,63 @@ function evidenceFromSerpResults(
   }))
 }
 
+function resolveSearchForFinding(
+  finding: ReportFinding,
+  bundle: ResearchBundle,
+  intake?: LevelstackIntakeFormValues,
+): { search: SerpSearchResponse | undefined; isOwner: boolean } {
+  const searches = bundle.searchFootprint.searches
+  const blob = `${finding.label} ${finding.value}`.toLowerCase()
+  const labelQuery = finding.label.match(/"([^"]+)"/)?.[1]?.trim()
+
+  if (labelQuery) {
+    const exact = searches.find(
+      (s) => s.query.toLowerCase() === labelQuery.toLowerCase(),
+    )
+    if (exact) {
+      const ownerName = intake?.ownerName?.trim().toLowerCase()
+      return {
+        search: exact,
+        isOwner: Boolean(ownerName && ownerName === labelQuery.toLowerCase()),
+      }
+    }
+  }
+
+  const useOwner =
+    /owner|searches your name/.test(blob) ||
+    Boolean(
+      intake?.ownerName?.trim() &&
+        blob.includes(intake.ownerName.trim().toLowerCase()),
+    )
+
+  if (useOwner && intake?.ownerName?.trim()) {
+    const ownerSearch = searches.find(
+      (s) =>
+        s.query.toLowerCase() === intake.ownerName.trim().toLowerCase(),
+    )
+    if (ownerSearch) return { search: ownerSearch, isOwner: true }
+  }
+
+  const bareBrand = intake?.primaryBusinessName?.trim()
+  if (bareBrand) {
+    const brandSearch =
+      searches.find((s) => s.query.toLowerCase() === bareBrand.toLowerCase()) ??
+      searches[0]
+    return { search: brandSearch, isOwner: false }
+  }
+
+  return { search: searches[0], isOwner: false }
+}
+
 function evidenceForSearchFinding(
   finding: ReportFinding,
   bundle: ResearchBundle,
   generatedAt: string,
+  intake?: LevelstackIntakeFormValues,
 ): { evidence: EvidenceItem[]; availability: CheckAvailability[] } {
   const blob = `${finding.label} ${finding.value} ${finding.detail}`.toLowerCase()
-  const searches = bundle.searchFootprint.searches
-  const brandSearch = searches[0]
-  const ownerSearch = searches[1]
+  const buyerHost = hostnameFromUrl(intake?.websiteUrl)
+  const { search: brandSearch } = resolveSearchForFinding(finding, bundle, intake)
 
   if (/ai overview/.test(blob)) {
     const hasOverview = Boolean(brandSearch?.aiOverview)
@@ -304,10 +382,33 @@ function evidenceForSearchFinding(
     }
   }
 
-  const useOwner = /owner|searches your name/.test(blob)
-  const search = useOwner ? ownerSearch : brandSearch
+  const { search, isOwner } = resolveSearchForFinding(finding, bundle, intake)
+  let filteredResults = search?.results ?? []
+
+  if (filteredResults.length && intake) {
+    filteredResults = isOwner
+      ? pickOwnerRelevantResults(
+          filteredResults,
+          intake.ownerName,
+          intake.primaryBusinessName,
+          buyerHost,
+        )
+      : pickBrandRelevantResults(
+          filteredResults,
+          buyerHost,
+          intake.primaryBusinessName,
+        )
+  }
+
+  const filteredSearch =
+    search && filteredResults.length
+      ? { ...search, results: filteredResults }
+      : search && search.results.length
+        ? { ...search, results: [] as SerpOrganicResult[] }
+        : search
+
   const evidence = evidenceFromSerpResults(
-    search,
+    filteredSearch,
     "serp_organic",
     "Google search",
     generatedAt,
@@ -318,7 +419,6 @@ function evidenceForSearchFinding(
   }
 
   if (evidence.length === 0) {
-    // Checked gap with no organic hits to cite — still scoreable negative
     return {
       evidence: search?.query
         ? [
@@ -340,29 +440,129 @@ function evidenceForSearchFinding(
   return { evidence, availability: ["negative"] }
 }
 
+function reputationContextFromIntake(
+  intake?: LevelstackIntakeFormValues,
+): ReputationHitContext | undefined {
+  if (!intake?.primaryBusinessName?.trim()) return undefined
+  return {
+    businessName: intake.primaryBusinessName,
+    ownerName: intake.ownerName ?? "",
+    buyerHost: hostnameFromUrl(intake.websiteUrl) ?? undefined,
+  }
+}
+
+/** Map one section finding to the reputation SERP query(ies) that produced it. */
+function searchesForReputationFinding(
+  finding: ReportFinding,
+  searches: SerpSearchResponse[],
+): SerpSearchResponse[] {
+  const findingLabel = finding.label.trim().toLowerCase()
+
+  const byLabel = searches.filter(
+    (search) =>
+      formatReputationQueryLabel(search.query).trim().toLowerCase() ===
+      findingLabel,
+  )
+  if (byLabel.length > 0) return byLabel.slice(0, 1)
+
+  const isB2bCluster = /clutch\s*\/\s*g2\s*\/\s*capterra|b2b review directories/i.test(
+    finding.label,
+  )
+  if (isB2bCluster) {
+    const b2b = searches.filter((s) =>
+      isB2bReviewDirectoryPlatform(platformFromQuery(s.query)),
+    )
+    if (b2b.length > 0) return b2b.slice(0, 1)
+  }
+
+  const platformFromLabel = finding.label.replace(/\s+visibility$/i, "")
+  const platformQuery = searches.find((s) => {
+    const platform = platformFromQuery(s.query)
+    return (
+      platform &&
+      platform.toLowerCase() === platformFromLabel.trim().toLowerCase()
+    )
+  })
+  if (platformQuery) return [platformQuery]
+
+  if (/complaint/i.test(finding.label)) {
+    const complaint = searches.find((s) => /complaint/i.test(s.query))
+    if (complaint) return [complaint]
+  }
+
+  if (/review search:/i.test(finding.label)) {
+    const queryHint = finding.label.replace(/^review search:\s*/i, "").trim()
+    const match = searches.find((s) =>
+      s.query.toLowerCase().includes(queryHint.toLowerCase().slice(0, 24)),
+    )
+    if (match) return [match]
+  }
+
+  const generalReviews = searches.find(
+    (s) => /reviews/i.test(s.query) && !/^site:/i.test(s.query.trim()),
+  )
+  return generalReviews ? [generalReviews] : searches.slice(0, 1)
+}
+
+function evidenceItemForReputationSearch(
+  search: SerpSearchResponse,
+  reputationContext: ReputationHitContext | undefined,
+  generatedAt: string,
+): EvidenceItem {
+  const platform = platformFromQuery(search.query)
+  const hit = reputationContext
+    ? bestReputationHit(search.results, search.query, reputationContext)
+    : null
+
+  if (
+    hit &&
+    isVerifiedThirdPartyReviewListing(hit.result.link) &&
+    !isPlatformSearchResultsPage(hit.result.link)
+  ) {
+    const platformLabel = hit.parsed.platform ?? platform ?? "Review site"
+    return {
+      sourceType: "directory_serp",
+      sourceLabel: `Page 1 ${platformLabel} listing we found`,
+      capturedAt: generatedAt,
+      query: search.query,
+      url: hit.result.link,
+      rawRef: `serp:${search.query}:#${hit.result.position}`,
+      freshnessClass: "fresh",
+    }
+  }
+
+  return {
+    sourceType: "directory_serp",
+    sourceLabel: platform
+      ? `Google ${platform} search we ran`
+      : "Google review search we ran",
+    capturedAt: generatedAt,
+    query: search.query,
+    url: googleSearchUrl(search.query),
+    rawRef: `serp:${search.query}:query`,
+    freshnessClass: "fresh",
+  }
+}
+
 function evidenceForReputationFinding(
   finding: ReportFinding,
   bundle: ResearchBundle,
   generatedAt: string,
+  intake?: LevelstackIntakeFormValues,
 ): { evidence: EvidenceItem[]; availability: CheckAvailability[] } {
-  const isB2bCluster = /clutch\s*\/\s*g2\s*\/\s*capterra|b2b review directories/i.test(
-    finding.label,
+  const reputationContext = reputationContextFromIntake(intake)
+  const matchedSearches = searchesForReputationFinding(
+    finding,
+    bundle.reputation.searches,
   )
 
   const evidence: EvidenceItem[] = []
   const availability: CheckAvailability[] = []
+  const seenQueries = new Set<string>()
 
-  for (const search of bundle.reputation.searches) {
-    const platform = platformFromQuery(search.query)
-    if (isB2bCluster) {
-      if (!isB2bReviewDirectoryPlatform(platform)) continue
-    } else if (platform) {
-      const labelPlatform = finding.label.replace(/\s+visibility$/i, "")
-      if (platform.toLowerCase() !== labelPlatform.toLowerCase() && !finding.label.toLowerCase().includes(platform.toLowerCase())) {
-        // Prefer matching platform queries; for generic review search include all non-B2B
-        if (!/review search|complaint/i.test(finding.label)) continue
-      }
-    }
+  for (const search of matchedSearches) {
+    if (seenQueries.has(search.query)) continue
+    seenQueries.add(search.query)
 
     if (search.limitation && !search.results.length) {
       availability.push(
@@ -370,40 +570,19 @@ function evidenceForReputationFinding(
           ? "not_checked"
           : "unavailable",
       )
+      evidence.push(evidenceItemForReputationSearch(search, reputationContext, generatedAt))
       continue
     }
 
-    const sourceLabel = platform
-      ? `Public ${platform} search results`
-      : "Public review / directory search results"
-    const fromResults = evidenceFromSerpResults(
-      search,
-      "directory_serp",
-      sourceLabel,
-      generatedAt,
-      2,
-    )
-    if (fromResults.length) {
-      evidence.push(...fromResults)
-      availability.push("negative")
-    } else if (search.query) {
-      evidence.push({
-        sourceType: "directory_serp",
-        sourceLabel,
-        capturedAt: generatedAt,
-        query: search.query,
-        url: googleSearchUrl(search.query),
-        freshnessClass: "fresh",
-      })
-      availability.push("negative")
-    }
+    evidence.push(evidenceItemForReputationSearch(search, reputationContext, generatedAt))
+    availability.push("negative")
   }
 
   if (evidence.length === 0 && availability.length === 0) {
     availability.push("negative")
   }
 
-  return { evidence, availability }
+  return { evidence: evidence.slice(0, 2), availability }
 }
 
 function findingToRecommendation(
@@ -416,8 +595,8 @@ function findingToRecommendation(
   const sectionId = section.id
   const { evidence, availability } =
     sectionId === "online_reputation"
-      ? evidenceForReputationFinding(finding, bundle, generatedAt)
-      : evidenceForSearchFinding(finding, bundle, generatedAt)
+      ? evidenceForReputationFinding(finding, bundle, generatedAt, intake)
+      : evidenceForSearchFinding(finding, bundle, generatedAt, intake)
 
   const confidence = assignConfidenceBand({
     evidence,

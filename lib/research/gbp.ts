@@ -1,4 +1,5 @@
 import { googleMapsSearch } from "@/lib/research/serp/router"
+import { normalizeGbpCategory } from "@/lib/taxonomy/business-category"
 
 export type GbpSignals = {
   found: boolean
@@ -44,7 +45,7 @@ export async function fetchGbpSignals(
     rating: place.rating,
     reviewCount: place.reviewCount,
     address: place.address,
-    category: place.category,
+    category: normalizeGbpCategory(place.category),
     limitation: place.limitation,
   }
 }

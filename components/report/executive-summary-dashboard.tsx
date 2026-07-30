@@ -5,6 +5,7 @@ import { AlertTriangle, ArrowRight, Check, Lock } from "lucide-react"
 import { ExecutiveInsightBody } from "@/components/report/executive-insight-body"
 import { FormattedReportText } from "@/components/report/formatted-report-text"
 import { ReportScoreDisclaimer } from "@/components/report/report-score-disclaimer"
+import { ScoreBreakdown } from "@/components/report/score-breakdown"
 import { UpsellBlurOverlay } from "@/components/report/upsell-blur-overlay"
 import type { LevelstackReportJson, ReportSection } from "@/lib/pipeline/report-types"
 import {
@@ -209,7 +210,9 @@ export function ExecutiveSummaryDashboard({
         <OverallScoreCard meta={meta} />
       </div>
 
-      {!isFree ? <ReportScoreDisclaimer className="mb-4" /> : null}
+      <ScoreBreakdown report={report} />
+
+      <ReportScoreDisclaimer className="mb-4" />
 
       <div className="rpt-section-score-strip">
         {EXECUTIVE_METRIC_CARD_ORDER.map(({ id, label }) => {

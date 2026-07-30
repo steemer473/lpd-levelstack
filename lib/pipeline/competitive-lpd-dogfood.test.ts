@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest"
 
+import { deriveOverallFromSections } from "@/lib/audit/derive-overall-from-sections"
 import { levelstackIntakeDefaults } from "@/lib/intake/schema"
+import { directoryReviewQueries } from "@/lib/pipeline/research-queries"
 import { resolveCompetitorColumns } from "@/lib/research/serp/competitor-resolve"
 import { emptyResearchBundle } from "@/lib/pipeline/research-types"
 import { buildSectionsFromResearch } from "@/lib/pipeline/serp-backed-sections"
+import { classifyBusinessCategory } from "@/lib/taxonomy/business-category"
 
 /**
  * Dogfood scenario: Level Play Digital report 031e84ed — thin service SERP,
@@ -12,6 +15,7 @@ import { buildSectionsFromResearch } from "@/lib/pipeline/serp-backed-sections"
 const lpdIntake = {
   ...levelstackIntakeDefaults,
   primaryBusinessName: "Level Play Digital",
+  businessVertical: "consulting_b2b" as const,
   primaryService: "marketing automation platform",
   marketCity: "Atlanta",
   marketState: "GA",
@@ -162,3 +166,78 @@ describe("LPD dogfood competitive section", () => {
     expect(domains).toContain("levelworkforce.com")
   })
 })
+
+describe("LPD dogfood paid taxonomy + scoring (P1-4 / P1-1)", () => {
+  it("classifies LPD away from General business services", () => {
+    const withPicker = classifyBusinessCategory({
+      businessVertical: lpdIntake.businessVertical,
+      primaryService: lpdIntake.primaryService,
+      gbpCategory: "Internet marketing service",
+      businessName: lpdIntake.primaryBusinessName,
+    })
+    expect(withPicker.id).toBe("consulting_b2b")
+    expect(withPicker.source).toBe("intake")
+
+    const inferred = classifyBusinessCategory({
+      primaryService: lpdIntake.primaryService,
+      primaryServiceKeywords: "marketing operations software",
+      gbpCategory: "Internet marketing service",
+      businessName: lpdIntake.primaryBusinessName,
+    })
+    expect(inferred.id).toBe("consulting_b2b")
+    expect(inferred.label).not.toMatch(/general business services/i)
+  })
+
+  it("skips BBB reputation queries for LPD paid intake", () => {
+    const queries = directoryReviewQueries(lpdIntake, "full_report", {
+      gbpCategory: "Marketing agency",
+    })
+    expect(queries.some((q) => q.includes("bbb.org"))).toBe(false)
+  })
+
+  it("derives Overall from displayed section scores (closes 87/62/62 → 57 gap)", () => {
+    const derived = deriveOverallFromSections([
+      { id: "search_footprint", score: 87, status: "good" },
+      { id: "online_reputation", score: 62, status: "attention" },
+      { id: "digital_presence", score: 62, status: "attention" },
+    ])
+    expect(derived.overallScore).toBe(70)
+    expect(derived.letterGrade).toBe("C")
+  })
+
+  it("shows taxonomy label in competitive grid Business category row", () => {
+    const bundle = emptyResearchBundle()
+    bundle.businessCategory = classifyBusinessCategory({
+      primaryService: lpdIntake.primaryService,
+      gbpCategory: "Marketing agency",
+    })
+    bundle.digitalPresence.gbp.category = "Marketing agency"
+    bundle.digitalPresence.gbp.found = true
+    bundle.digitalPresence.website.url = lpdIntake.websiteUrl
+    bundle.competitiveContext.competitorColumns = [
+      { domain: "levelagency.com", source: "namesake", title: "Level Agency" },
+    ]
+    bundle.competitiveContext.comparisonMode = "namesake"
+    bundle.competitiveContext.serviceSearch = {
+      query: "marketing automation platform Atlanta, GA",
+      results: [],
+      aiOverview: null,
+      limitation: null,
+    }
+
+    const sections = buildSectionsFromResearch(lpdIntake, bundle)
+    const competitive = sections.find((s) => s.id === "competitive_context")!
+    const categoryRow = competitive.competitiveGrid?.rows.find(
+      (r) => r.label === "Business category",
+    )
+    expect(categoryRow?.cells[0]).toBe("Marketing & digital agency")
+    expect(categoryRow?.cells[0]).not.toBe("General business services")
+  })
+})
+
+/**
+ * Dogfood paid regen (staging/dev):
+ * POST /api/reports/031e84ed-ae67-437d-8131-774e45655d27/run?regenerate=1
+ * Requires NODE_ENV=development or dev preview flag. QA: exec score breakdown,
+ * competitive grid category row, no BBB findings for LPD taxonomy.
+ */
