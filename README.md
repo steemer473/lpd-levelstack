@@ -6,6 +6,7 @@ Delivery app for [LevelStack](https://levelplaydigital.com/platform/levelstack) 
 
 - [Project brief & PRD](docs/project-brief.md)
 - [Free snapshot workflow](docs/free-snapshot-workflow.md) — form → progress → report, emails, GHL, dev re-run
+- **Support / ops:** [Report lifecycle and access SOP](docs/operations/report-lifecycle-and-access-sop.md) — returning customers, magic links, free → paid, triage SQL (planning index: [`LEVELSTACK_SUPPORT_INDEX.md`](../lpd-planning/LEVELSTACK_SUPPORT_INDEX.md))
 - Report UI visual reference (Figma): [audit-report frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4bnfWoTC/Untitled?node-id=4-4) — **not** `assets/levelstack-report-header-v2.png` or `levelstack-executive-summary-v2.png` (deprecated)
 - **v0 rules (attach this in v0):** [docs/v0/V0-RULES.md](docs/v0/V0-RULES.md) — overrides sample HTML / project-brief for layout
 - **Marketing sample (live layout):** `/sample-report` — fixture in [`lib/fixtures/sample-report.ts`](lib/fixtures/sample-report.ts)

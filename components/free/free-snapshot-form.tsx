@@ -35,6 +35,14 @@ type PaidOwnerRefreshState = {
   canOpenFreeDirectly: boolean
 }
 
+type ReuseExistingState = {
+  message: string
+  reportId: string
+  reason: "in_progress" | "ready"
+  signInUrl?: string
+  canOpenDirectly: boolean
+}
+
 export function FreeSnapshotForm() {
   const router = useRouter()
   const form = useForm<FreeSnapshotFormValues>({
@@ -51,23 +59,30 @@ export function FreeSnapshotForm() {
   const [paidOwnerRefresh, setPaidOwnerRefresh] = useState<PaidOwnerRefreshState | null>(
     null,
   )
+  const [reuseExisting, setReuseExisting] = useState<ReuseExistingState | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const noticeRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!submitNotice && !paidOwnerRefresh) return
+    if (!submitNotice && !paidOwnerRefresh && !reuseExisting) return
     noticeRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
-  }, [submitNotice, paidOwnerRefresh])
+  }, [submitNotice, paidOwnerRefresh, reuseExisting])
 
-  async function onSubmit(values: FreeSnapshotFormValues) {
+  async function submitFreeIntake(
+    values: FreeSnapshotFormValues,
+    options?: { forceRefresh?: boolean },
+  ) {
     setSubmitError(null)
     setSubmitNotice(null)
     setExistingUserSignInUrl(null)
     setPaidOwnerRefresh(null)
+    setReuseExisting(null)
 
     setSubmitting(true)
     try {
-      const res = await fetch("/api/free-intake", {
+      const query = options?.forceRefresh ? "?refresh=1" : ""
+
+      const res = await fetch(`/api/free-intake${query}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parseFreeSnapshotInput(values)),
@@ -103,6 +118,23 @@ export function FreeSnapshotForm() {
           })
           return
         }
+        case "reuse_existing": {
+          if (action.redirectImmediately) {
+            router.push(`/reports/${action.reportId}`)
+            return
+          }
+          setReuseExisting({
+            message:
+              action.message ??
+              json.message ??
+              "You already have a Visibility Snapshot for this email.",
+            reportId: action.reportId,
+            reason: action.reason,
+            signInUrl: action.signInUrl,
+            canOpenDirectly: Boolean(action.redirectImmediately),
+          })
+          return
+        }
         case "redirect_report":
         case "redirect_report_fallback":
           router.push(`/reports/${action.reportId}`)
@@ -129,7 +161,24 @@ export function FreeSnapshotForm() {
     }
   }
 
-  const formLocked = Boolean(submitNotice) || Boolean(paidOwnerRefresh)
+  async function onSubmit(values: FreeSnapshotFormValues) {
+    await submitFreeIntake(values)
+  }
+
+  async function onForceRefresh() {
+    const values = form.getValues()
+    const parsed = freeSnapshotSchema.safeParse(values)
+    if (!parsed.success) {
+      await form.trigger()
+      return
+    }
+    await submitFreeIntake(parseFreeSnapshotInput(parsed.data), {
+      forceRefresh: true,
+    })
+  }
+
+  const formLocked =
+    Boolean(submitNotice) || Boolean(paidOwnerRefresh) || Boolean(reuseExisting)
 
   return (
     <Form {...form}>
@@ -224,6 +273,44 @@ export function FreeSnapshotForm() {
           </div>
         )}
 
+        {reuseExisting && (
+          <div
+            ref={noticeRef}
+            className="rounded-md bg-muted border border-border p-4 space-y-3"
+            role="status"
+          >
+            <p className="text-sm text-muted-foreground">{reuseExisting.message}</p>
+            <div className="flex flex-col gap-2">
+              {reuseExisting.canOpenDirectly || !reuseExisting.signInUrl ? (
+                <Button variant="brand" asChild className="w-full">
+                  <Link href={`/reports/${reuseExisting.reportId}`}>
+                    {reuseExisting.reason === "in_progress"
+                      ? "Open progress screen"
+                      : "Open your Visibility Snapshot"}
+                  </Link>
+                </Button>
+              ) : (
+                <Button variant="brand" asChild className="w-full">
+                  <a href={reuseExisting.signInUrl}>
+                    Sign in to open your snapshot →
+                  </a>
+                </Button>
+              )}
+              {reuseExisting.reason === "ready" ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  disabled={submitting}
+                  onClick={() => void onForceRefresh()}
+                >
+                  {submitting ? "Starting new snapshot…" : "Run a new snapshot anyway"}
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        )}
+
         {submitNotice && (
           <div
             ref={noticeRef}
@@ -248,7 +335,7 @@ export function FreeSnapshotForm() {
           </p>
         )}
 
-        {!paidOwnerRefresh && (
+        {!paidOwnerRefresh && !reuseExisting && (
           <Button
             type="submit"
             variant="brand"
@@ -263,7 +350,7 @@ export function FreeSnapshotForm() {
           </Button>
         )}
 
-        {!paidOwnerRefresh && (
+        {!paidOwnerRefresh && !reuseExisting && (
           <p className="text-muted-foreground text-xs text-center">
             Action Roadmap from{" "}
             <Link href={getHubPricingUrl()} className="underline">

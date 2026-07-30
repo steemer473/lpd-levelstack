@@ -11,6 +11,7 @@ import {
   parseFreeSnapshotInput,
 } from "@/lib/intake/free-snapshot-schema"
 import { deletePriorFreeSnapshotForUser } from "@/lib/intake/replace-free-snapshot"
+import { decideFreeSnapshotGuardrail } from "@/lib/intake/free-snapshot-guardrails"
 import { isWebsiteReachable } from "@/lib/intake/validate-website"
 import { requirePaidIntakeAccess } from "@/lib/levelstack-access"
 import { planIdToReportTier } from "@/lib/levelstack-plans"
@@ -70,6 +71,7 @@ export async function POST(request: Request) {
       { status: 500, headers: securityHeaders },
     )
   }
+  const db = admin
 
   const email = data.email.trim().toLowerCase()
   let userId: string
@@ -107,6 +109,7 @@ export async function POST(request: Request) {
     .maybeSingle()
 
   const requestUrl = new URL(request.url)
+  const forceRefresh = requestUrl.searchParams.get("refresh") === "1"
   const devReplaceSnapshot =
     process.env.NODE_ENV === "development" &&
     (requestUrl.searchParams.get("replace") === "1" ||
@@ -130,6 +133,84 @@ export async function POST(request: Request) {
     }
   }
 
+  const { data: latestFreeReport } = await admin
+    .from("levelstack_reports")
+    .select("id, status, report_tier, created_at, intake_id")
+    .eq("user_id", userId)
+    .eq("report_tier", "free_snapshot")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const guardrail = decideFreeSnapshotGuardrail({
+    latestFreeReport,
+    forceRefresh: forceRefresh || Boolean(devReplaceSnapshot),
+  })
+
+  const existingUser = !isNewAccount
+
+  async function sessionRedirectFlags(): Promise<{
+    redirectImmediately: boolean
+    signInUrl: string | undefined
+  }> {
+    let redirectImmediately = false
+    const sessionClient = await createClient()
+    if (existingUser && sessionClient) {
+      const {
+        data: { user: sessionUser },
+      } = await sessionClient.auth.getUser()
+      if (sessionUser?.id === userId) {
+        redirectImmediately = true
+      }
+    }
+    const reportIdForLink =
+      guardrail.action === "reuse_in_progress" || guardrail.action === "reuse_ready"
+        ? guardrail.reportId
+        : null
+    const signInUrl = reportIdForLink
+      ? ((await generateReportMagicLink(db, email, reportIdForLink)) ?? undefined)
+      : undefined
+    return { redirectImmediately, signInUrl }
+  }
+
+  if (guardrail.action === "reuse_in_progress" || guardrail.action === "reuse_ready") {
+    const { redirectImmediately, signInUrl } = await sessionRedirectFlags()
+    const paidAccess = await requirePaidIntakeAccess(admin, userId)
+    const readyPaidReport = paidAccess
+      ? await getLatestReadyPaidReportForUser(admin, userId)
+      : null
+
+    if (readyPaidReport?.id) {
+      return NextResponse.json({
+        success: true,
+        branch: "paid_owner_refresh",
+        existingUser,
+        redirectImmediately,
+        reportId: guardrail.reportId,
+        actionRoadmapReportId: readyPaidReport.id,
+        intakeId: guardrail.intakeId ?? undefined,
+        signInUrl,
+        message:
+          guardrail.action === "reuse_in_progress"
+            ? guardrail.message
+            : PAID_OWNER_REFRESH_MESSAGE,
+        redirectTo: getAppUrl(`/reports/${guardrail.reportId}`),
+      })
+    }
+
+    return NextResponse.json({
+      success: true,
+      branch: guardrail.action,
+      existingUser,
+      redirectImmediately,
+      reportId: guardrail.reportId,
+      intakeId: guardrail.intakeId ?? undefined,
+      signInUrl,
+      message: guardrail.message,
+      redirectTo: getAppUrl(`/reports/${guardrail.reportId}`),
+    })
+  }
+
   await admin.from("levelstack_free_entitlements").upsert({
     user_id: userId,
     email,
@@ -139,7 +220,6 @@ export async function POST(request: Request) {
   const intakeData = freeSnapshotToIntake(data)
   const planId = "levelstack-free-snapshot"
   const reportTier = planIdToReportTier(planId)
-  const existingUser = !isNewAccount
 
   let intakeId: string
 

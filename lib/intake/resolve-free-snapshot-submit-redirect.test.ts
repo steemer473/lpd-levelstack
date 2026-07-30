@@ -71,4 +71,42 @@ describe("resolveFreeSnapshotSubmitRedirect", () => {
       }),
     ).toEqual({ type: "welcome_back", signInUrl: undefined })
   })
+
+  it("returns reuse_existing for in-progress guardrail", () => {
+    expect(
+      resolveFreeSnapshotSubmitRedirect({
+        branch: "reuse_in_progress",
+        existingUser: true,
+        reportId: "r-1",
+        message: "Still generating",
+        redirectImmediately: true,
+      }),
+    ).toEqual({
+      type: "reuse_existing",
+      reportId: "r-1",
+      reason: "in_progress",
+      message: "Still generating",
+      signInUrl: undefined,
+      redirectImmediately: true,
+    })
+  })
+
+  it("returns reuse_existing for ready soft-reuse", () => {
+    expect(
+      resolveFreeSnapshotSubmitRedirect({
+        branch: "reuse_ready",
+        existingUser: true,
+        reportId: "r-2",
+        message: "Open existing",
+        signInUrl: "https://example.com/magic",
+      }),
+    ).toEqual({
+      type: "reuse_existing",
+      reportId: "r-2",
+      reason: "ready",
+      message: "Open existing",
+      signInUrl: "https://example.com/magic",
+      redirectImmediately: undefined,
+    })
+  })
 })

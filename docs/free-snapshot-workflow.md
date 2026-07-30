@@ -11,17 +11,25 @@ End-to-end flow for the LevelStack free snapshot on `levelstack.levelplaydigital
 5. **Report** — progress UI refreshes to full report (~1.5s ready state); free unlocks Search Footprint + Social & off-site presence only
 6. **Email** — one user email when generation completes; primary CTA uses a **30-day possession token** (`rtoken`). Supabase sign-in links (resend / expired token) use **24-hour OTP**.
 
-## One snapshot per email (production)
+## Returning customers and refresh (production)
 
-Each email gets **one** free snapshot. A second submit returns **409** and opens the existing report.
+**Policy:** allow refresh **with guardrails** (not a hard one-snapshot-forever rule).
 
-The form shows: *"You already have a snapshot for {business} — opening your existing report."*
+| Latest free report | Behavior |
+|--------------------|----------|
+| `pending` / `generating` | Reuse that report — no second job |
+| `ready` within ~24h | Soft reuse (open existing) unless the client sends `?refresh=1` |
+| `failed`, or past cooldown, or explicit refresh | New job + new report row (same intake row usually updated) |
 
-To test a **different business** in production, use a **new email address**.
+Paid owners with a ready Action Roadmap get a dual CTA (`paid_owner_refresh`) — see [report lifecycle SOP](./operations/report-lifecycle-and-access-sop.md).
+
+To test a **different business** under a clean account in production, use a **new email address**. Same email may accumulate multiple Visibility Snapshot report IDs; the **newest ready** free report is current.
+
+Support triage, SQL, and magic-link edge cases: [report-lifecycle-and-access-sop.md](./operations/report-lifecycle-and-access-sop.md).
 
 ## Dev re-run (local only)
 
-In `NODE_ENV=development`, the form automatically calls `/api/free-intake?replace=1`, which deletes the prior intake/report/job for that email and creates a fresh snapshot.
+In `NODE_ENV=development`, force a clean slate with **`/api/free-intake?replace=1`**, which deletes the prior intake/report/job for that email and creates a fresh snapshot. The free form does **not** add `replace=1` automatically — pass the query param (or set the env below) when you need a wipe.
 
 Optional env (instead of query param):
 
@@ -82,7 +90,7 @@ If research fails, the report stays on a **failed** screen — there is no produ
 | SerpAPI quota exhausted, backup keys added | Merge/deploy SERP failover code, redeploy Vercel, then SQL reset or new submission |
 | Same failed report after keys fixed | SQL reset (see [phase-2-1-research.md](./phase-2-1-research.md#failed-report-recovery)) — rerun uses fresh research, not old missing data |
 | Dev testing | **Regenerate report** on failed page, or `LEVELSTACK_DEV_REPLACE_SNAPSHOT` + re-submit |
-| One email, new business in production | Use a **new email** (one snapshot per email) |
+| One email, new business in production | Prefer a **new email** for a clean account; same email can refresh via `?refresh=1` (see [SOP](./operations/report-lifecycle-and-access-sop.md)) |
 
 Failed runs do **not** write to `levelstack_serp_cache`. Cache only stores successful provider responses (24h TTL).
 
@@ -121,6 +129,8 @@ Setup custom fields: `pnpm setup:ghl-fields`
 |---|---|
 | Form | `components/free/free-snapshot-form.tsx` |
 | API | `app/api/free-intake/route.ts` |
+| Refresh guardrails | `lib/intake/free-snapshot-guardrails.ts` |
+| Support SOP | `docs/operations/report-lifecycle-and-access-sop.md` |
 | Pipeline | `lib/pipeline/run-report-pipeline.ts` |
 | Research gate | `lib/pipeline/research-quality.ts` |
 | Report UI | `components/report/levelstack-report-view.tsx` |
