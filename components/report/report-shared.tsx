@@ -59,7 +59,10 @@ export type ReportViewProps = {
   report: LevelstackReportJson
 }
 
-export function useReportTabs(report: LevelstackReportJson) {
+export function useReportTabs(
+  report: LevelstackReportJson,
+  reportId?: string,
+) {
   const { meta, executiveSummary, sections, actionPlan } = report
   const isFree = meta.reportTier === "free_snapshot"
   const tabs = useMemo(() => {
@@ -75,6 +78,13 @@ export function useReportTabs(report: LevelstackReportJson) {
   const [howToReadOpen, setHowToReadOpen] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const reportRef = useRef<HTMLDivElement>(null)
+
+  // Soft-nav free → paid can reuse this hook without remount; reset tab so
+  // locked free state does not linger on a paid report id.
+  useEffect(() => {
+    if (!reportId) return
+    setActiveTab("executive_summary")
+  }, [reportId])
 
   const contentSections = sections.filter((s) => s.id !== "action_plan")
   const sectionCount = contentSections.length
