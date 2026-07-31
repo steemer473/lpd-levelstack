@@ -36,7 +36,7 @@ export function LevelstackReportView({
   suppressLevelstackPurchaseCtas = false,
   actionRoadmapReportId,
 }: LevelstackReportViewProps) {
-  const [nav, reportRef] = useReportTabs(report)
+  const [nav, reportRef] = useReportTabs(report, reportId)
   const { meta } = nav
   const isExecutive = nav.activeTab === "executive_summary"
   const [unlockModalOpen, setUnlockModalOpen] = useState(defaultUnlockModalOpen)

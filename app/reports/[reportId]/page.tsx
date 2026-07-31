@@ -21,6 +21,7 @@ import {
 import { hydrateMissingSocialOffsite } from "@/lib/report/hydrate-social-offsite"
 import { resolveReportAccess } from "@/lib/reports/get-report"
 import { getLatestReadyPaidReportForUser } from "@/lib/reports/get-latest-report-for-intake"
+import { reconcileReportTierFromDb } from "@/lib/reports/reconcile-report-tier"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
@@ -154,9 +155,15 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
   const freeBackupParsed = levelstackReportJsonSchema.safeParse(
     report.free_snapshot_json,
   )
-  const displayReport = hydrateMissingSocialOffsite(
+  const snapshotView = view === "snapshot"
+  const hydrated = hydrateMissingSocialOffsite(
     parsed.data,
     freeBackupParsed.success ? freeBackupParsed.data : null,
+  )
+  const displayReport = reconcileReportTierFromDb(
+    hydrated,
+    report.report_tier,
+    { snapshotView },
   )
 
   const isDev = process.env.NODE_ENV === "development"
@@ -247,6 +254,7 @@ export default async function ReportPage({ params, searchParams }: PageProps) {
           />
         )}
         <LevelstackReportView
+          key={reportId}
           report={displayReport}
           reportId={reportId}
           suppressLevelstackPurchaseCtas={paidOwnerFree}
