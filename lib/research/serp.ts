@@ -14,8 +14,10 @@ export {
   isBotInterstitialTitle,
   isCompetitorCandidate,
   isDirectoryListingTitle,
+  isJobListingUrl,
   isNonCompetitorHost,
   isQualifiedPeerResult,
+  isVendorContentUrl,
   qualifiedPeerDomains,
   topCompetitorDomains,
 } from "@/lib/research/serp/competitor-domains"
@@ -29,6 +31,7 @@ export {
   formatSerpEvidenceTable,
   relevantServicePeerColumns,
   resolveCompetitorColumns,
+  shouldSkipServicePeerTier,
   type CompetitiveComparisonMode,
   type CompetitorColumn,
   type CompetitorComparisonSource,

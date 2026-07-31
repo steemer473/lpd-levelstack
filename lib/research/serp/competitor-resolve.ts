@@ -1,6 +1,9 @@
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
 import { businessNameForSearch, marketLocationLabel } from "@/lib/intake/location"
-import { serviceSearchTerm } from "@/lib/pipeline/research-queries"
+import {
+  isProductIntentServiceQuery,
+  serviceSearchTerm,
+} from "@/lib/pipeline/research-queries"
 import type { GbpSignals } from "@/lib/research/gbp"
 import type { NameCollision } from "@/lib/pipeline/research-types"
 import type { SerpOrganicResult, SerpSearchResponse } from "@/lib/research/serp/types"
@@ -13,6 +16,7 @@ import {
   topCompetitorDomains,
 } from "@/lib/research/serp/competitor-domains"
 import { hostnameFromUrl } from "@/lib/research/serp/router"
+import type { BusinessCategoryId } from "@/lib/taxonomy/business-category"
 
 export type CompetitorComparisonSource =
   | "service_peer"
@@ -118,6 +122,7 @@ export function buyerRelevanceTokens(
 function resultMatchesRelevance(
   result: SerpOrganicResult,
   tokens: string[],
+  options: { allowProductContent?: boolean } = {},
 ): boolean {
   // No basis to judge relevance → don't over-prune.
   if (tokens.length === 0) return true
@@ -125,11 +130,45 @@ function resultMatchesRelevance(
   const haystack = `${result.title} ${result.snippet} ${host}`
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
+
+  // For non-SaaS buyers, reject job/product-content haystacks even if they
+  // mention a weak category token like "marketing".
+  if (!options.allowProductContent) {
+    if (
+      /\bjobs?\b|\bemployment\b|\bcareers?\b|\bsoftware\b|\bplatform\b|\bguide\b/.test(
+        haystack,
+      )
+    ) {
+      return false
+    }
+  }
+
+  // When category is agency-shaped, require "agency" (not marketing alone) so
+  // Monday/Workamajig blog posts about "marketing operations" do not qualify.
+  if (tokens.includes("agency") && !haystack.includes("agency")) {
+    return false
+  }
+
   return tokens.some(
     (token) =>
       haystack.includes(token) ||
       (token.length >= 6 && haystack.includes(token.slice(0, 5))),
   )
+}
+
+/**
+ * Skip the service_peer tier when the service query is product/job-intent and
+ * the buyer is not a B2B SaaS company — otherwise job boards and SaaS blogs
+ * become false "competitors" (LPD dogfood: careerbuilder / monday / workamajig).
+ */
+export function shouldSkipServicePeerTier(input: {
+  serviceTerm: string
+  buyerCategoryId?: BusinessCategoryId | null
+}): boolean {
+  if (!isProductIntentServiceQuery(input.serviceTerm)) return false
+  // Unknown taxonomy → keep existing service_peer path (host/title/relevance gates).
+  if (!input.buyerCategoryId) return false
+  return input.buyerCategoryId !== "b2b_saas"
 }
 
 /**
@@ -142,8 +181,16 @@ export function relevantServicePeerColumns(input: {
   buyerHost: string | null
   relevanceTokens: string[]
   limit?: number
+  /** When false (default), reject job/software/guide content for agency buyers. */
+  allowProductContent?: boolean
 }): CompetitorColumn[] {
-  const { serviceSearch, buyerHost, relevanceTokens, limit = 3 } = input
+  const {
+    serviceSearch,
+    buyerHost,
+    relevanceTokens,
+    limit = 3,
+    allowProductContent = false,
+  } = input
   if (!serviceSearch) return []
 
   const columns: CompetitorColumn[] = []
@@ -151,7 +198,11 @@ export function relevantServicePeerColumns(input: {
 
   for (const result of serviceSearch.results) {
     if (!isQualifiedPeerResult(result, buyerHost)) continue
-    if (!resultMatchesRelevance(result, relevanceTokens)) continue
+    if (
+      !resultMatchesRelevance(result, relevanceTokens, { allowProductContent })
+    ) {
+      continue
+    }
     const host = hostnameFromUrl(result.link)
     if (!host) continue
     const norm = host.toLowerCase().replace(/^www\./, "")
@@ -353,6 +404,8 @@ export function resolveCompetitorColumns(input: {
   nameCollisions?: NameCollision[]
   /** GBP category — authoritative signal for service-peer relevance (P1.7.1). */
   buyerCategory?: string | null
+  /** Taxonomy id — used to skip product-intent service_peer for non-SaaS buyers. */
+  buyerCategoryId?: BusinessCategoryId | null
 }): {
   columns: CompetitorColumn[]
   mode: CompetitiveComparisonMode
@@ -366,17 +419,27 @@ export function resolveCompetitorColumns(input: {
     categoryPeerSearch,
     nameCollisions = [],
     buyerCategory = null,
+    buyerCategoryId = null,
   } = input
   const limit = 3
 
+  const serviceTerm = serviceSearchTerm(intake)
+  const skipServicePeer = shouldSkipServicePeerTier({
+    serviceTerm,
+    buyerCategoryId,
+  })
+  const allowProductContent = buyerCategoryId === "b2b_saas"
   const relevanceTokens = buyerRelevanceTokens(buyerCategory)
 
-  const serviceColumns = relevantServicePeerColumns({
-    serviceSearch,
-    buyerHost,
-    relevanceTokens,
-    limit,
-  })
+  const serviceColumns = skipServicePeer
+    ? []
+    : relevantServicePeerColumns({
+        serviceSearch,
+        buyerHost,
+        relevanceTokens,
+        limit,
+        allowProductContent,
+      })
   const servicePeerDomains = serviceColumns.map((c) => c.domain)
 
   if (serviceColumns.length > 0) {

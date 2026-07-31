@@ -50,7 +50,7 @@ const formData = {
   ownerName: "Stephanie Danielle Ragsdale",
   primaryService:
     "B2B marketing operations and automation systems for small businesses",
-  primaryServiceKeywords: "marketing operations software",
+  primaryServiceKeywords: "digital marketing agency",
   pricePoint: "$497–$694 LevelStack + platform retainers",
   marketCity: "Atlanta",
   marketState: "GA",

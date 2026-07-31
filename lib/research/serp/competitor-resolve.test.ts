@@ -7,6 +7,7 @@ import {
   formatSerpEvidenceTable,
   relevantServicePeerColumns,
   resolveCompetitorColumns,
+  shouldSkipServicePeerTier,
 } from "@/lib/research/serp/competitor-resolve"
 
 const intake = {
@@ -698,5 +699,180 @@ describe("categoryPeerQuery", () => {
         limitation: null,
       }),
     ).toBe("Marketing agency Atlanta, GA")
+  })
+})
+
+describe("shouldSkipServicePeerTier", () => {
+  it("skips product-intent queries for agency/consultancy buyers", () => {
+    expect(
+      shouldSkipServicePeerTier({
+        serviceTerm: "marketing operations software",
+        buyerCategoryId: "marketing_agency",
+      }),
+    ).toBe(true)
+    expect(
+      shouldSkipServicePeerTier({
+        serviceTerm: "marketing operations software",
+        buyerCategoryId: "consulting_b2b",
+      }),
+    ).toBe(true)
+  })
+
+  it("keeps service_peer for b2b_saas and unknown taxonomy", () => {
+    expect(
+      shouldSkipServicePeerTier({
+        serviceTerm: "marketing operations software",
+        buyerCategoryId: "b2b_saas",
+      }),
+    ).toBe(false)
+    expect(
+      shouldSkipServicePeerTier({
+        serviceTerm: "marketing operations software",
+        buyerCategoryId: null,
+      }),
+    ).toBe(false)
+  })
+
+  it("does not skip non-product service phrases", () => {
+    expect(
+      shouldSkipServicePeerTier({
+        serviceTerm: "digital marketing agency",
+        buyerCategoryId: "marketing_agency",
+      }),
+    ).toBe(false)
+  })
+})
+
+describe("LPD dogfood service SERP (careerbuilder / monday / workamajig)", () => {
+  const lpdServiceSearch = {
+    query: "marketing operations software Atlanta, GA",
+    results: [
+      {
+        query: "marketing operations software Atlanta, GA",
+        position: 1,
+        title: "Marketing Operations Jobs, Employment in Atlanta, GA",
+        link: "https://www.indeed.com/q-marketing-operations-l-atlanta,-ga-jobs.html",
+        snippet: "",
+      },
+      {
+        query: "marketing operations software Atlanta, GA",
+        position: 2,
+        title: "Director, Marketing Operations - Remote",
+        link: "https://www.careerbuilder.com/job-details/director-marketing-operations-remote-atlanta-ga--b053ec8a",
+        snippet: "",
+      },
+      {
+        query: "marketing operations software Atlanta, GA",
+        position: 3,
+        title: "Marketing operations software: everything you need ...",
+        link: "https://monday.com/blog/project-management/marketing-operations-software/",
+        snippet: "",
+      },
+      {
+        query: "marketing operations software Atlanta, GA",
+        position: 4,
+        title: "Best Marketing Operations Management Software (2026)",
+        link: "https://www.workamajig.com/blog/marketing-operations-management-software",
+        snippet: "",
+      },
+      {
+        query: "marketing operations software Atlanta, GA",
+        position: 5,
+        title: "Marketing Operations Platform",
+        link: "https://syncari.com/solutions/marketing-operations/",
+        snippet: "",
+      },
+      {
+        query: "marketing operations software Atlanta, GA",
+        position: 6,
+        title: "Marketing Operations Consulting",
+        link: "https://powerdigitalmarketing.com/services/marketing-operations/",
+        snippet: "Marketing operations consulting for agencies",
+      },
+    ],
+    aiOverview: null,
+    limitation: null,
+  }
+
+  const brandSearches = [
+    {
+      query: "Level Play Digital",
+      results: [
+        {
+          query: "Level Play Digital",
+          position: 1,
+          title: "Level Play Digital",
+          link: "https://levelplaydigital.com/",
+          snippet: "",
+        },
+        {
+          query: "Level Play Digital",
+          position: 3,
+          title: "Level Agency — Full Service Marketing",
+          link: "https://levelagency.com/",
+          snippet: "Atlanta marketing agency",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    },
+  ]
+
+  const categoryPeerSearch = {
+    query: "Marketing agency Atlanta, GA",
+    results: [
+      {
+        query: "Marketing agency Atlanta, GA",
+        position: 1,
+        title: "Modo Modo Agency - Atlanta",
+        link: "https://modomodoagency.com/",
+        snippet: "Full-service marketing agency",
+      },
+    ],
+    aiOverview: null,
+    limitation: null,
+  }
+
+  it("does not treat job boards or SaaS blogs as service peers", () => {
+    const resolved = resolveCompetitorColumns({
+      intake: {
+        ...intake,
+        primaryServiceKeywords: "marketing operations software",
+        businessVertical: "consulting_b2b",
+      },
+      buyerHost: "levelplaydigital.com",
+      serviceSearch: lpdServiceSearch,
+      brandSearches,
+      categoryPeerSearch,
+      buyerCategory: "Marketing agency",
+      buyerCategoryId: "marketing_agency",
+    })
+
+    expect(resolved.mode).not.toBe("service_peer")
+    expect(resolved.columns.map((c) => c.domain)).not.toContain(
+      "careerbuilder.com",
+    )
+    expect(resolved.columns.map((c) => c.domain)).not.toContain("monday.com")
+    expect(resolved.columns.map((c) => c.domain)).not.toContain("workamajig.com")
+    expect(resolved.mode).toBe("category_peer")
+    expect(resolved.columns[0]?.domain).toBe("modomodoagency.com")
+  })
+
+  it("falls through to namesake when category peers are also empty", () => {
+    const resolved = resolveCompetitorColumns({
+      intake: {
+        ...intake,
+        primaryServiceKeywords: "marketing operations software",
+      },
+      buyerHost: "levelplaydigital.com",
+      serviceSearch: lpdServiceSearch,
+      brandSearches,
+      categoryPeerSearch: null,
+      buyerCategory: "Marketing agency",
+      buyerCategoryId: "consulting_b2b",
+    })
+
+    expect(resolved.mode).toBe("namesake")
+    expect(resolved.columns.map((c) => c.domain)).toContain("levelagency.com")
   })
 })

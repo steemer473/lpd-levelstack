@@ -4,8 +4,10 @@ import {
   filterCompetitorDomains,
   isBotInterstitialTitle,
   isDirectoryListingTitle,
+  isJobListingUrl,
   isNonCompetitorHost,
   isQualifiedPeerResult,
+  isVendorContentUrl,
   qualifiedPeerDomains,
   topCompetitorDomains,
 } from "@/lib/research/serp/competitor-domains"
@@ -259,5 +261,74 @@ describe("isQualifiedPeerResult", () => {
         "buyer.com",
       ),
     ).toBe(true)
+  })
+
+  it("rejects careerbuilder job URLs and monday/workamajig blog posts", () => {
+    expect(
+      isQualifiedPeerResult(
+        {
+          query: "q",
+          position: 2,
+          title: "Director, Marketing Operations - Remote",
+          link: "https://www.careerbuilder.com/job-details/director-marketing-operations-remote-atlanta-ga--b053ec8a",
+          snippet: "",
+        },
+        "levelplaydigital.com",
+      ),
+    ).toBe(false)
+
+    expect(
+      isQualifiedPeerResult(
+        {
+          query: "q",
+          position: 3,
+          title: "Marketing operations software: everything you need ...",
+          link: "https://monday.com/blog/project-management/marketing-operations-software/",
+          snippet: "",
+        },
+        "levelplaydigital.com",
+      ),
+    ).toBe(false)
+
+    expect(
+      isQualifiedPeerResult(
+        {
+          query: "q",
+          position: 4,
+          title: "Best Marketing Operations Management Software (2026)",
+          link: "https://www.workamajig.com/blog/marketing-operations-management-software",
+          snippet: "",
+        },
+        "levelplaydigital.com",
+      ),
+    ).toBe(false)
+  })
+})
+
+describe("isJobListingUrl / isVendorContentUrl", () => {
+  it("flags job listing paths", () => {
+    expect(
+      isJobListingUrl(
+        "https://www.careerbuilder.com/job-details/director-marketing-operations",
+      ),
+    ).toBe(true)
+    expect(isJobListingUrl("https://powerdigitalmarketing.com/services/")).toBe(
+      false,
+    )
+  })
+
+  it("flags vendor blog paths", () => {
+    expect(
+      isVendorContentUrl(
+        "https://monday.com/blog/project-management/marketing-operations-software/",
+        "Marketing operations software",
+      ),
+    ).toBe(true)
+    expect(
+      isVendorContentUrl(
+        "https://powerdigitalmarketing.com/services/marketing-operations/",
+        "Marketing Operations Consulting",
+      ),
+    ).toBe(false)
   })
 })

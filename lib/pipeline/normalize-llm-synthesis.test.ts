@@ -307,4 +307,83 @@ describe("normalizeSynthesisPayload", () => {
     expect(search.score).toBe(78)
     expect(search.status).toBe("good")
   })
+
+  it("strips hallucinated Market Positioning / Competitor Visibility supplementals", () => {
+    const competitiveBaseline: ReportSection = {
+      ...baseline[5]!,
+      findings: [
+        {
+          label:
+            'Service search — "marketing operations software Atlanta, GA"',
+          value:
+            "Top domains on page 1 include: careerbuilder.com, monday.com, workamajig.com",
+          detail:
+            "#1 Marketing Operations Jobs (https://www.indeed.com/q-jobs.html) [directory/platform]; #2 Director (https://www.careerbuilder.com/job-details/x); #3 monday blog (https://monday.com/blog/x)",
+          severity: "medium",
+        },
+      ],
+    }
+    const sections = [
+      ...baseline.slice(0, 5),
+      competitiveBaseline,
+    ]
+
+    const payload = normalizeSynthesisPayload(
+      {
+        sections: [
+          {
+            id: "competitive_context",
+            status: "critical",
+            score: 40,
+            findings: [
+              {
+                label:
+                  'Service search — "marketing operations software Atlanta, GA"',
+                value:
+                  "Top domains on page 1 include: careerbuilder.com, monday.com, workamajig.com",
+                detail: "Should keep primary",
+                severity: "medium",
+              },
+              {
+                label: "Competitor Visibility",
+                value:
+                  "Top domains on page 1 include: careerbuilder.com, monday.com, workamajig.com",
+                detail:
+                  "Competitors like Vora Marketing Group rank higher in local searches.",
+                severity: "high",
+              },
+              {
+                label: "Market Positioning",
+                value:
+                  "Top domains on page 1 include: careerbuilder.com, monday.com, workamajig.com",
+                detail:
+                  "Your unique offerings are not highlighted in search results.",
+                severity: "medium",
+              },
+            ],
+          },
+        ],
+        executiveSummary: {
+          paragraphs: ["One", "Two"],
+          criticalIssue: "Issue",
+          firstSteps: ["Step"],
+        },
+      },
+      sections,
+      intake,
+      null,
+    )
+
+    const competitive = payload.sections.find(
+      (s) => s.id === "competitive_context",
+    )!
+    expect(competitive.findings).toHaveLength(1)
+    expect(competitive.findings[0]?.label).toContain("Service search")
+    expect(
+      competitive.findings.some((f) => f.label === "Market Positioning"),
+    ).toBe(false)
+    expect(
+      competitive.findings.some((f) => f.label === "Competitor Visibility"),
+    ).toBe(false)
+  })
 })

@@ -544,7 +544,17 @@ export function buildSectionsFromResearch(
     compDomains.length > 0
       ? [
           `You (${youLabel})`,
-          ...compColumns.map((c) => c.title?.slice(0, 28) ?? c.domain),
+          ...compColumns.map((c) => {
+            const title = c.title?.trim()
+            if (!title) return c.domain
+            const short = title.slice(0, 28)
+            // When truncated titles collide (common for "Atlanta Digital Marketing…"),
+            // append the domain so columns stay distinguishable.
+            const collisionCount = compColumns.filter(
+              (other) => (other.title?.trim().slice(0, 28) ?? other.domain) === short,
+            ).length
+            return collisionCount > 1 ? `${short} (${c.domain})` : short
+          }),
         ]
       : []
 

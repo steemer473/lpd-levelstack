@@ -235,6 +235,85 @@ function mergeFindingsWithGuardrails(
   })
 }
 
+const COMPETITIVE_SUPPLEMENTAL_LABEL_BLOCKLIST = [
+  "competitor landscape",
+  "market differentiation",
+  "market positioning",
+  "competitor visibility",
+  "competitive landscape",
+]
+
+/** Extract domain-like tokens from SERP evidence for hallucination checks. */
+function evidenceDomainTokens(evidence: string): Set<string> {
+  const tokens = new Set<string>()
+  const lower = evidence.toLowerCase()
+  for (const match of lower.matchAll(
+    /(?:https?:\/\/)?(?:www\.)?([a-z0-9-]+(?:\.[a-z0-9-]+)+)/g,
+  )) {
+    const host = match[1]
+    if (host) tokens.add(host)
+  }
+  return tokens
+}
+
+/**
+ * Drop LLM competitive supplementals that duplicate the primary finding value,
+ * use blocked generic labels, or invent business names not in SERP evidence.
+ */
+function filterCompetitiveSupplementals(
+  candidates: ReportFinding[],
+  primary: ReportFinding,
+): ReportFinding[] {
+  const primaryValue = primary.value.trim().toLowerCase()
+  const evidenceBlob = `${primary.value} ${primary.detail}`.toLowerCase()
+  const evidenceDomains = evidenceDomainTokens(evidenceBlob)
+
+  return candidates.filter((f) => {
+    const label = f.label.trim().toLowerCase()
+    if (label === primary.label.trim().toLowerCase()) return false
+    if (
+      COMPETITIVE_SUPPLEMENTAL_LABEL_BLOCKLIST.some((blocked) =>
+        label.includes(blocked),
+      )
+    ) {
+      return false
+    }
+    if (f.value.trim().toLowerCase() === primaryValue) return false
+
+    // Prefer zero supplementals over inventing rivals not present in evidence.
+    // If detail names a Title Case multi-word business not found in evidence, drop.
+    const inventedName = f.detail.match(
+      /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/g,
+    )
+    if (inventedName) {
+      for (const name of inventedName) {
+        const normalized = name.toLowerCase()
+        // Skip common non-business phrases
+        if (
+          /google|page|atlanta|level play|your business|competitors?/i.test(
+            name,
+          )
+        ) {
+          continue
+        }
+        if (!evidenceBlob.includes(normalized)) {
+          return false
+        }
+      }
+    }
+
+    // Domain citations in supplemental must appear in primary evidence.
+    const detailDomains = evidenceDomainTokens(f.detail)
+    for (const domain of detailDomains) {
+      if (!evidenceDomains.has(domain) && !evidenceBlob.includes(domain)) {
+        return false
+      }
+    }
+
+    return true
+  })
+}
+
 function normalizeSection(raw: unknown, baseline: ReportSection): ReportSection {
   const o = asRecord(raw)
   if (!o) return baseline
@@ -244,17 +323,19 @@ function normalizeSection(raw: unknown, baseline: ReportSection): ReportSection 
   let findings: ReportFinding[]
   if (baseline.id === "competitive_context" && baseline.findings[0]) {
     const primaryFinding = baseline.findings[0]
-    const supplemental = rawFindings
-      .slice(0, 2)
-      .map((f, i) =>
-        normalizeFinding(f, baseline.findings[i + 1] ?? primaryFinding),
-      )
-      .filter(
-        (f) =>
-          f.label !== primaryFinding.label &&
-          !f.label.toLowerCase().includes("competitor landscape") &&
-          !f.label.toLowerCase().includes("market differentiation"),
-      )
+    // When primary already has SERP evidence, prefer baseline-only over
+    // hallucinated "Market Positioning" / "Competitor Visibility" cards.
+    const hasSerpEvidence = /#\d+\s+/.test(primaryFinding.detail)
+    const supplemental = hasSerpEvidence
+      ? []
+      : filterCompetitiveSupplementals(
+          rawFindings
+            .slice(0, 2)
+            .map((f, i) =>
+              normalizeFinding(f, baseline.findings[i + 1] ?? primaryFinding),
+            ),
+          primaryFinding,
+        )
     findings = [
       primaryFinding,
       ...supplemental,

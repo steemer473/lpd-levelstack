@@ -49,6 +49,10 @@ const NON_COMPETITOR_HOSTS = new Set([
   "slashdot.org",
   "indeed.com",
   "ziprecruiter.com",
+  "careerbuilder.com",
+  "monster.com",
+  "simplyhired.com",
+  "salary.com",
   "thumbtack.com",
   "angi.com",
   "houzz.com",
@@ -56,6 +60,20 @@ const NON_COMPETITOR_HOSTS = new Set([
   "techbehemoths.com",
   "upcity.com",
 ])
+
+/** Job listing / careers URL paths — never competitive peer columns. */
+const JOB_LISTING_PATH_PATTERN =
+  /\/job[-_]?details(?:\/|$)|\/jobs?(?:\/|$)|\/careers?(?:\/|$)|\/employment(?:\/|$)|\/q-[^/]*jobs?/i
+
+/**
+ * Vendor blog / guide content that ranks for product-intent queries but is not
+ * a peer business homepage (e.g. monday.com/blog/…, workamajig.com/blog/…).
+ */
+const VENDOR_CONTENT_PATH_PATTERN =
+  /\/blogs?(?:\/|$)|\/guides?(?:\/|$)|\/resources?(?:\/|$)|\/learn(?:\/|$)|\/agile\//i
+
+const VENDOR_CONTENT_TITLE_PATTERN =
+  /\beverything you need\b|\bcomplete\b[\w&'.\- ]{0,20}\bguide\b|\bwhat is\b|\b\d+\s+best\b|\bbest\b[\w&'.\- ]{0,40}\bsoftware\b|\bmanagement software\b|\btech stack\b/i
 
 /**
  * Title shapes that signal a directory / "listicle" page rather than a single
@@ -86,6 +104,41 @@ export function isBotInterstitialTitle(
 ): boolean {
   if (!title) return false
   return BOT_INTERSTITIAL_TITLE_PATTERN.test(title)
+}
+
+/** True when the URL points at a job listing rather than a business homepage. */
+export function isJobListingUrl(link: string | null | undefined): boolean {
+  if (!link) return false
+  try {
+    const url = new URL(link)
+    const path = `${url.pathname}${url.search}`
+    return JOB_LISTING_PATH_PATTERN.test(path)
+  } catch {
+    return JOB_LISTING_PATH_PATTERN.test(link)
+  }
+}
+
+/**
+ * True when the result is vendor blog/guide content rather than a peer business
+ * homepage (SaaS product marketing that ranks for "… software" queries).
+ */
+export function isVendorContentUrl(
+  link: string | null | undefined,
+  title?: string | null,
+): boolean {
+  if (!link) return false
+  let path = ""
+  try {
+    path = new URL(link).pathname
+  } catch {
+    path = link
+  }
+  if (VENDOR_CONTENT_PATH_PATTERN.test(path)) return true
+  if (title && VENDOR_CONTENT_TITLE_PATTERN.test(title)) {
+    // Title alone is enough when path already looks like content marketing.
+    return /\/blog|\/guide|\/resource|\/learn|\/agile/i.test(path)
+  }
+  return false
 }
 
 function normalizeHost(host: string): string {
@@ -173,6 +226,8 @@ export function isQualifiedPeerResult(
   if (!isCompetitorCandidate(host, excludeHost ?? null)) return false
   if (isDirectoryListingTitle(result.title)) return false
   if (isBotInterstitialTitle(result.title)) return false
+  if (isJobListingUrl(result.link)) return false
+  if (isVendorContentUrl(result.link, result.title)) return false
   return true
 }
 

@@ -21,6 +21,7 @@ import {
   categoryPeerQuery,
   relevantServicePeerColumns,
   resolveCompetitorColumns,
+  shouldSkipServicePeerTier,
 } from "@/lib/research/serp"
 import { searchSocialPlatforms, discoverWebsiteSocialProfiles } from "@/lib/research/social-search"
 import { extractSocialUrls, fetchSocialProfileSignals } from "@/lib/research/social"
@@ -33,6 +34,7 @@ import {
   directoryReviewQueries,
   brandNameSearchQueries,
   serviceMarketQuery,
+  serviceSearchTerm,
 } from "@/lib/pipeline/research-queries"
 import type { ResearchBundle } from "@/lib/pipeline/research-types"
 import { classificationFromIntake } from "@/lib/taxonomy/business-category"
@@ -210,13 +212,30 @@ export async function collectPaidEnrichment(
   // AND on-vertical for the buyer's GBP category. The category fallback fires
   // whenever page 1 has no real, on-vertical peer (all aggregators, or peers
   // from a different vertical), not just when it is empty.
-  const relevanceTokens = buyerRelevanceTokens(gbp.category)
-  const relevantPeers = relevantServicePeerColumns({
-    serviceSearch,
-    buyerHost,
-    relevanceTokens,
-    limit: 3,
+  // Also skip service_peer entirely when the service query is product-intent
+  // and the buyer is not b2b_saas (LPD: "marketing operations software").
+  const buyerCategoryId =
+    bundle.businessCategory?.id ??
+    classificationFromIntake({
+      ...categorySignalsFromBundle(intake, bundle),
+      primaryService: intake.primaryService,
+      primaryServiceKeywords: intake.primaryServiceKeywords,
+      businessVertical: intake.businessVertical,
+    }).id
+  const skipServicePeer = shouldSkipServicePeerTier({
+    serviceTerm: serviceSearchTerm(intake),
+    buyerCategoryId,
   })
+  const relevanceTokens = buyerRelevanceTokens(gbp.category)
+  const relevantPeers = skipServicePeer
+    ? []
+    : relevantServicePeerColumns({
+        serviceSearch,
+        buyerHost,
+        relevanceTokens,
+        limit: 3,
+        allowProductContent: buyerCategoryId === "b2b_saas",
+      })
 
   let categoryPeerSearch = null
   if (relevantPeers.length === 0) {
@@ -233,6 +252,7 @@ export async function collectPaidEnrichment(
       categoryPeerSearch,
       nameCollisions: bundle.nameCollisions.collisions,
       buyerCategory: gbp.category,
+      buyerCategoryId,
     })
 
   const snapshotDomains = columns.map((c) => c.domain)

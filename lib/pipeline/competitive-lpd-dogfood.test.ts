@@ -233,6 +233,122 @@ describe("LPD dogfood paid taxonomy + scoring (P1-4 / P1-1)", () => {
     expect(categoryRow?.cells[0]).toBe("Marketing & digital agency")
     expect(categoryRow?.cells[0]).not.toBe("General business services")
   })
+
+  it("does not surface careerbuilder/monday/workamajig as competitive peers", () => {
+    const serviceSearch = {
+      query: "marketing operations software Atlanta, GA",
+      results: [
+        {
+          query: "marketing operations software Atlanta, GA",
+          position: 2,
+          title: "Director, Marketing Operations - Remote",
+          link: "https://www.careerbuilder.com/job-details/director-marketing-operations",
+          snippet: "",
+        },
+        {
+          query: "marketing operations software Atlanta, GA",
+          position: 3,
+          title: "Marketing operations software: everything you need",
+          link: "https://monday.com/blog/project-management/marketing-operations-software/",
+          snippet: "",
+        },
+        {
+          query: "marketing operations software Atlanta, GA",
+          position: 4,
+          title: "Best Marketing Operations Management Software",
+          link: "https://www.workamajig.com/blog/marketing-operations-management-software",
+          snippet: "",
+        },
+        {
+          query: "marketing operations software Atlanta, GA",
+          position: 6,
+          title: "Marketing Operations Consulting",
+          link: "https://powerdigitalmarketing.com/services/marketing-operations/",
+          snippet: "Agency marketing ops consulting",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+
+    const brandSearches = [
+      {
+        query: "Level Play Digital",
+        results: [
+          {
+            query: "Level Play Digital",
+            position: 1,
+            title: "Level Play Digital",
+            link: "https://levelplaydigital.com/",
+            snippet: "",
+          },
+          {
+            query: "Level Play Digital",
+            position: 3,
+            title: "Level Agency — Full Service Marketing",
+            link: "https://levelagency.com/",
+            snippet: "Atlanta marketing agency",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
+    ]
+
+    const categoryPeerSearch = {
+      query: "Marketing agency Atlanta, GA",
+      results: [
+        {
+          query: "Marketing agency Atlanta, GA",
+          position: 1,
+          title: "Modo Modo Agency - Atlanta",
+          link: "https://modomodoagency.com/",
+          snippet: "Full-service marketing agency",
+        },
+      ],
+      aiOverview: null,
+      limitation: null,
+    }
+
+    const resolved = resolveCompetitorColumns({
+      intake: {
+        ...lpdIntake,
+        primaryServiceKeywords: "marketing operations software",
+      },
+      buyerHost: "levelplaydigital.com",
+      serviceSearch,
+      brandSearches,
+      categoryPeerSearch,
+      buyerCategory: "Marketing agency",
+      buyerCategoryId: "marketing_agency",
+    })
+
+    expect(resolved.mode).toBe("category_peer")
+    expect(resolved.columns.map((c) => c.domain)).not.toContain(
+      "careerbuilder.com",
+    )
+    expect(resolved.columns.map((c) => c.domain)).not.toContain("monday.com")
+    expect(resolved.columns.map((c) => c.domain)).not.toContain("workamajig.com")
+
+    const bundle = emptyResearchBundle()
+    bundle.competitiveContext.serviceSearch = serviceSearch
+    bundle.competitiveContext.competitorColumns = resolved.columns
+    bundle.competitiveContext.comparisonMode = resolved.mode
+    bundle.competitiveContext.competitorDomains = []
+    bundle.digitalPresence.website.url = lpdIntake.websiteUrl
+    bundle.digitalPresence.gbp.category = "Marketing agency"
+    bundle.digitalPresence.gbp.found = true
+
+    const sections = buildSectionsFromResearch(lpdIntake, bundle)
+    const competitive = sections.find((s) => s.id === "competitive_context")!
+    const headers = competitive.competitiveGrid?.columnHeaders?.join(" ") ?? ""
+    const findingValue = competitive.findings[0]?.value ?? ""
+
+    expect(headers).not.toMatch(/careerbuilder|monday\.com|workamajig/i)
+    expect(findingValue).not.toMatch(/careerbuilder\.com|monday\.com|workamajig\.com/i)
+    expect(findingValue).not.toMatch(/Top domains on page 1 include:/i)
+    expect(findingValue).toMatch(/modomodoagency\.com|category peer/i)
+  })
 })
 
 /**

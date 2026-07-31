@@ -46,6 +46,19 @@ export function serviceSearchTerm(intake: LevelstackIntakeFormValues): string {
   return normalizeServiceQuery(intake.primaryService)
 }
 
+/**
+ * True when the service search phrase is product/job-intent (software, platform,
+ * SaaS, jobs) rather than a local service-business query. Used to skip the
+ * service_peer competitive tier for agencies/consultancies so we fall through
+ * to category_peer / namesake instead of promoting job boards and SaaS blogs.
+ */
+const PRODUCT_INTENT_SERVICE_PATTERN =
+  /\bsoftware\b|\bplatform\b|\btools?\b|\btech\s*stack\b|\bjobs?\b|\bemployment\b|\bcareers?\b|\bsaas\b/i
+
+export function isProductIntentServiceQuery(term: string): boolean {
+  return PRODUCT_INTENT_SERVICE_PATTERN.test(term.trim())
+}
+
 export function serviceMarketQuery(intake: LevelstackIntakeFormValues): string {
   const service = serviceSearchTerm(intake)
   const location = marketLocationLabel(intake)

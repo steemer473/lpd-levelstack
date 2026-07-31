@@ -179,9 +179,9 @@ export function CompetitiveGrid({ section }: { section: ReportSection }) {
           <thead>
             <tr className="border-b border-border bg-muted/50">
               <th className="w-[140px] px-3 py-2.5" />
-              {grid.columnHeaders.map((head) => (
+              {grid.columnHeaders.map((head, hi) => (
                 <th
-                  key={head}
+                  key={`${hi}-${head}`}
                   className="text-left text-[10px] uppercase tracking-wider font-semibold text-muted-foreground px-3 py-2.5"
                 >
                   {head}
