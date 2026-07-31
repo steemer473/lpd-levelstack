@@ -139,7 +139,9 @@ describe("assembleFreeReportFromResearch", () => {
     const search = report.sections.find((s) => s.id === "search_footprint")
     expect(search?.aiPreview).toHaveLength(1)
     expect(search?.aiPreview?.[0]?.platform).toBe("Google AI Overview")
-    expect(search?.aiPreview?.[0]?.result).toMatch(/No Google AI Overview/i)
+    expect(search?.aiPreview?.[0]?.result).toMatch(
+      /did not return a Google AI Overview block/i,
+    )
     expect(JSON.stringify(report)).not.toMatch(/not automated in v1/i)
     expect(JSON.stringify(report)).not.toMatch(/ChatGPT \/ Perplexity/i)
   })
