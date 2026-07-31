@@ -179,6 +179,10 @@ export function findingSeverityExplanation(
       return "Page 1 for your name doesn't clearly feature your website — prospects may click a directory or social profile instead."
     }
 
+    if (/did not return an ai overview block|ranks around #/i.test(combined)) {
+      return "Google often omits the AI Overview block even when organic results are strong — your page-one rank is what most prospects see first."
+    }
+
     if (/no ai overview|no google ai overview/i.test(combined)) {
       return "Google did not show an AI Overview for these queries — organic results matter more for now."
     }

@@ -99,12 +99,29 @@ describe("buildAiOverviewCheck", () => {
     expect(result.aiPreview[0]?.result).toMatch(/not clearly cited/i)
   })
 
-  it("returns negative when no overview on a successful SERP", () => {
+  it("returns not_applicable when overview absent but brand ranks top 3", () => {
     const result = buildAiOverviewCheck(intake, bundleWithSearch({ aiOverview: null }))
+    expect(result.check.availability).toBe("not_applicable")
+    expect(result.check.severity).toBe("low")
+    expect(result.aiPreview[0]?.result).toMatch(/did not return a Google AI Overview block/i)
+    expect(result.aiPreview[0]?.result).toMatch(/ranks around #1/i)
+    expect(JSON.stringify(result)).not.toMatch(/ChatGPT/i)
+  })
+
+  it("returns negative when no overview and brand rank is weak", () => {
+    const bundle = bundleWithSearch({ aiOverview: null })
+    bundle.searchFootprint.searches[0]!.results = [
+      {
+        query: "Acme Dental Atlanta, GA",
+        position: 8,
+        title: "Other Dental",
+        link: "https://other.example.com",
+        snippet: "Dental care",
+      },
+    ]
+    const result = buildAiOverviewCheck(intake, bundle, { brandPosition: 8 })
     expect(result.check.availability).toBe("negative")
     expect(result.aiPreview[0]?.result).toMatch(/No Google AI Overview/i)
-    expect(JSON.stringify(result)).not.toMatch(/not automated in v1/i)
-    expect(JSON.stringify(result)).not.toMatch(/ChatGPT/i)
   })
 
   it("returns unavailable when brand SERP failed", () => {

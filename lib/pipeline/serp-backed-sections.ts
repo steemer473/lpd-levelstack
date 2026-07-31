@@ -210,7 +210,9 @@ export function buildSectionsFromResearch(
       severity: ownerSeverity,
     },
   ]
-  const aiOverviewCheck = buildAiOverviewCheck(intake, bundle)
+  const aiOverviewCheck = buildAiOverviewCheck(intake, bundle, {
+    brandPosition: businessHit?.position ?? null,
+  })
   const searchChecks: SectionCheck[] = [
     { availability: businessAvailability, severity: businessSeverity },
     { availability: ownerAvailability, severity: ownerSeverity },

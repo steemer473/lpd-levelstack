@@ -136,6 +136,44 @@ function isGoodBaselineFinding(finding: ReportFinding): boolean {
   )
 }
 
+function hasStrongBrandFootprint(baseline: ReportSection): boolean {
+  return baseline.findings.some((finding) => {
+    const match = finding.value.match(/position #(\d+)/i)
+    if (!match) return false
+    const rank = Number.parseInt(match[1]!, 10)
+    return (
+      rank >= 1 &&
+      rank <= 3 &&
+      (finding.severity === "good" || finding.severity === "low")
+    )
+  })
+}
+
+function applySearchFootprintScoreFloor(
+  baseline: ReportSection,
+  score: number | null,
+  status: ReportSection["status"],
+): { score: number | null; status: ReportSection["status"] } {
+  if (baseline.id !== "search_footprint" || !hasStrongBrandFootprint(baseline)) {
+    return { score, status }
+  }
+  if (typeof baseline.score !== "number") {
+    return { score, status }
+  }
+
+  let nextScore = score
+  if (typeof nextScore === "number" && nextScore < baseline.score) {
+    nextScore = baseline.score
+  }
+
+  let nextStatus = status
+  if (baseline.status !== "critical" && status === "critical") {
+    nextStatus = baseline.status
+  }
+
+  return { score: nextScore, status: nextStatus }
+}
+
 const LLM_GUARDRAIL_SECTION_IDS = new Set([
   "search_footprint",
   "online_reputation",
@@ -229,11 +267,15 @@ function normalizeSection(raw: unknown, baseline: ReportSection): ReportSection 
   if (findings.length === 0) findings = baseline.findings
   findings = dedupeFindingsByLabel(findings)
 
+  const score = coerceScore(o.score, baseline.score)
+  const status = coerceStatus(o.status, baseline.status)
+  const floored = applySearchFootprintScoreFloor(baseline, score, status)
+
   return {
     id: baseline.id,
     label: coerceString(o.label, baseline.label),
-    status: coerceStatus(o.status, baseline.status),
-    score: coerceScore(o.score, baseline.score),
+    status: floored.status,
+    score: floored.score,
     findings: findings.length > 0 ? findings : baseline.findings,
     aiPreview: normalizeAiPreview(o.aiPreview, baseline.aiPreview),
     scoreRows: baseline.scoreRows,

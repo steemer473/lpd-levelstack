@@ -509,7 +509,7 @@ describe("buildSectionsFromResearch social_offsite (P0-3)", () => {
 })
 
 describe("buildSectionsFromResearch AI Overview (P0-2)", () => {
-  it("emits Google-only aiPreview without ChatGPT stub", () => {
+  it("emits neutral AI Overview copy when brand ranks #1 without classic overview", () => {
     const bundle = emptyResearchBundle()
     bundle.searchFootprint.searches = [
       {
@@ -526,6 +526,20 @@ describe("buildSectionsFromResearch AI Overview (P0-2)", () => {
         aiOverview: null,
         limitation: null,
       },
+      {
+        query: "Stephanie Dragsdale",
+        results: [
+          {
+            query: "Stephanie Dragsdale",
+            position: 1,
+            title: "Stephanie Dragsdale — Level Play Digital",
+            link: "https://levelplaydigital.com/about",
+            snippet: "Founder",
+          },
+        ],
+        aiOverview: null,
+        limitation: null,
+      },
     ]
 
     const sections = buildSectionsFromResearch(intake, bundle)
@@ -533,7 +547,9 @@ describe("buildSectionsFromResearch AI Overview (P0-2)", () => {
 
     expect(search.aiPreview).toHaveLength(1)
     expect(search.aiPreview?.[0]?.platform).toBe("Google AI Overview")
-    expect(search.aiPreview?.[0]?.result).toMatch(/No Google AI Overview/i)
+    expect(search.aiPreview?.[0]?.result).toMatch(/did not return a Google AI Overview block/i)
+    expect(search.score).toBeGreaterThanOrEqual(78)
+    expect(search.status).toBe("good")
     expect(JSON.stringify(search)).not.toMatch(/not automated in v1/i)
     expect(JSON.stringify(search)).not.toMatch(/ChatGPT/i)
   })

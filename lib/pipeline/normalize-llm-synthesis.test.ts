@@ -280,4 +280,31 @@ describe("normalizeSynthesisPayload", () => {
     expect(payload.executiveSummary.strengths).toHaveLength(2)
     expect(payload.executiveSummary.topOpportunities).toHaveLength(1)
   })
+
+  it("floors search_footprint LLM score at baseline when brand rank is strong", () => {
+    const payload = normalizeSynthesisPayload(
+      {
+        sections: [
+          {
+            id: "search_footprint",
+            status: "critical",
+            score: 45,
+            findings: baseline[0]!.findings,
+          },
+        ],
+        executiveSummary: {
+          paragraphs: ["One", "Two"],
+          criticalIssue: "Issue",
+          firstSteps: ["Step"],
+        },
+      },
+      baseline,
+      intake,
+      null,
+    )
+
+    const search = payload.sections.find((s) => s.id === "search_footprint")!
+    expect(search.score).toBe(78)
+    expect(search.status).toBe("good")
+  })
 })

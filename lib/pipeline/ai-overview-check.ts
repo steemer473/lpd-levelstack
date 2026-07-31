@@ -13,13 +13,24 @@ import {
   UNABLE_TO_VERIFY_VALUE,
 } from "@/lib/report/customer-copy"
 import { TERMS } from "@/lib/report/customer-terms"
-import { hostnameFromUrl, type SerpSearchResponse } from "@/lib/research/serp"
+import {
+  hostnameFromUrl,
+  resultsMentionDomain,
+  type SerpSearchResponse,
+} from "@/lib/research/serp"
 
 export type AiOverviewCheckResult = {
   aiPreview: NonNullable<ReportSection["aiPreview"]>
   check: SectionCheck
   finding: ReportFinding
 }
+
+export type AiOverviewCheckOptions = {
+  /** Organic rank for the buyer domain on the brand footprint query. */
+  brandPosition?: number | null
+}
+
+const STRONG_BRAND_RANK_MAX = 3
 
 function normalizeMatchText(value: string): string {
   return value.trim().toLowerCase()
@@ -68,6 +79,17 @@ function pickFootprintSearch(
   )
 }
 
+/** Resolve buyer organic rank on the brand footprint query. */
+export function resolveBrandFootprintPosition(
+  intake: LevelstackIntakeFormValues,
+  bundle: ResearchBundle,
+): number | null {
+  const buyerHost = hostnameFromUrl(intake.websiteUrl)
+  const search = pickFootprintSearch(bundle, intake)
+  if (!search?.results.length) return null
+  return resultsMentionDomain(search.results, buyerHost)?.position ?? null
+}
+
 function previewCard(
   result: string,
   severity: ReportFinding["severity"],
@@ -79,6 +101,14 @@ function previewCard(
   }
 }
 
+function isStrongBrandRank(position: number | null | undefined): boolean {
+  return (
+    typeof position === "number" &&
+    position >= 1 &&
+    position <= STRONG_BRAND_RANK_MAX
+  )
+}
+
 /**
  * P0-2: live Google AI Overview presence check from cached brand SERP.
  * ChatGPT / Perplexity are not called — Google only.
@@ -86,10 +116,13 @@ function previewCard(
 export function buildAiOverviewCheck(
   intake: LevelstackIntakeFormValues,
   bundle: ResearchBundle,
+  options: AiOverviewCheckOptions = {},
 ): AiOverviewCheckResult {
   const buyerHost = hostnameFromUrl(intake.websiteUrl)
   const brandName = intake.primaryBusinessName.trim()
   const search = pickFootprintSearch(bundle, intake)
+  const brandPosition =
+    options.brandPosition ?? resolveBrandFootprintPosition(intake, bundle)
 
   if (!search) {
     const result = UNABLE_TO_VERIFY_VALUE
@@ -153,6 +186,22 @@ export function buildAiOverviewCheck(
         label: TERMS.aiOverview,
         value,
         detail: aiOverview.slice(0, 400),
+        severity,
+      },
+    }
+  }
+
+  if (isStrongBrandRank(brandPosition)) {
+    const severity = "low" as const
+    const value = `Google did not return a ${TERMS.aiOverview} block for this brand query. Your site ranks around #${brandPosition} in organic results — what most searchers see first.`
+    return {
+      check: { availability: "not_applicable", severity },
+      aiPreview: [previewCard(value, severity)],
+      finding: {
+        label: TERMS.aiOverview,
+        value,
+        detail:
+          "Classic AI Overview blocks appear inconsistently in Google's API even when organic results are strong. Page-one placement on your brand query is the primary visibility signal here.",
         severity,
       },
     }

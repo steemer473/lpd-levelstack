@@ -77,4 +77,21 @@ describe("check-availability", () => {
     // One high among scoreable → attention / 62; unavailable ignored
     expect(result).toEqual({ score: 62, status: "attention" })
   })
+
+  it("excludes not_applicable checks from scoring and insufficient threshold", () => {
+    const result = scoreSectionFromChecks([
+      { availability: "ok", severity: "good" },
+      { availability: "ok", severity: "good" },
+      { availability: "not_applicable", severity: "low" },
+    ])
+    expect(result).toEqual({ score: 78, status: "good" })
+    expect(
+      shouldMarkInsufficient([
+        { availability: "not_applicable" },
+        { availability: "unavailable" },
+        { availability: "ok" },
+        { availability: "ok" },
+      ]),
+    ).toBe(false)
+  })
 })

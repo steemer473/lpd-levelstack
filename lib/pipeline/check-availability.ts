@@ -7,8 +7,14 @@ import { isInternalLimitation } from "@/lib/report/customer-copy"
  * - negative: checked, genuine gap
  * - unavailable: attempted, provider/error/internal limitation
  * - not_checked: tier-skipped / never fetched
+ * - not_applicable: checked; provider omitted the signal (e.g. no classic AI Overview on strong brand rank)
  */
-export type CheckAvailability = "ok" | "negative" | "unavailable" | "not_checked"
+export type CheckAvailability =
+  | "ok"
+  | "negative"
+  | "unavailable"
+  | "not_checked"
+  | "not_applicable"
 
 export type SectionCheck = {
   availability: CheckAvailability
@@ -59,8 +65,10 @@ export function shouldMarkInsufficient(
 ): boolean {
   if (checks.length === 0) return false
   const blocked = checks.filter(
-    (c) => c.availability === "unavailable" || c.availability === "not_checked",
+    (c) =>
+      c.availability === "unavailable" || c.availability === "not_checked",
   ).length
+  // not_applicable is intentionally excluded — the check ran; no penalty applies
   return blocked / checks.length >= INSUFFICIENT_DATA_THRESHOLD
 }
 
@@ -77,8 +85,9 @@ export function scoreFromScoreableFindings(
 }
 
 /**
- * Score a section from classified checks. Unavailable / not_checked never
- * enter the severity cliff; if they dominate (≥50%), return insufficient_data.
+ * Score a section from classified checks. Unavailable, not_checked, and
+ * not_applicable never enter the severity cliff; if blocked checks dominate
+ * (≥50%), return insufficient_data.
  */
 export function scoreSectionFromChecks(
   checks: ReadonlyArray<SectionCheck>,

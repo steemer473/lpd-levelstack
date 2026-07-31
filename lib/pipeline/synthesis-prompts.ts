@@ -40,7 +40,7 @@ SECTIONS (exact ids, no action_plan section)
 search_footprint, social_offsite, online_reputation, digital_presence, revenue_funnel, competitive_context
 - Each: status critical|attention|good, score 0-100, 2-4 findings (label, value headline, detail 2-4 sentences, severity).
 - Finding extras when evidence supports them: headline (short card title), bullets (1-3 concise points), riskCategory ("Revenue Risk" | "Visibility Leak" | "Competitor Advantage"), snippetBefore, snippetAfter.
-- search_footprint: include aiPreview only for Google AI Overview when RESEARCH JSON includes aiOverview evidence. Never invent ChatGPT or Perplexity citation checks.
+- search_footprint: include aiPreview only for Google AI Overview when RESEARCH JSON includes aiOverview evidence. Never invent ChatGPT or Perplexity citation checks. When brand rank is #1–#3 and aiOverview is absent, do not penalize the section for missing AI Overview.
 - social_offsite: social platform presence from socialSearch only (LinkedIn, Facebook, etc.). Do not fold website/GBP/PageSpeed into this section.
 - digital_presence: website, PageSpeed, and Google Business Profile only — not social profiles. Optional scoreRows from website signals.
 - competitive_context: optional competitiveGrid (you vs competitor domains from research).
@@ -104,4 +104,5 @@ REQUIRED FINDINGS (3-5 total):
 5. Optional: one-sentence "Search footprint summary" at top if multiple critical issues
 
 Match severity to documented risk (missing from top 10 = high/critical; partial visibility = medium/low; strong page-1 presence = good).
-When RESEARCH includes aiOverview text, you may reference Google AI Overview in a finding — never invent ChatGPT or Perplexity citation checks.`
+When RESEARCH includes aiOverview text, you may reference Google AI Overview in a finding — never invent ChatGPT or Perplexity citation checks.
+When brand organic rank is #1–#3 and aiOverview is null, do not treat missing Google AI Overview as a critical gap — organic rank is the primary signal.`
