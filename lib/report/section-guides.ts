@@ -3,8 +3,8 @@ import { TERMS } from "@/lib/report/customer-terms"
 export const REPORT_INTRO = {
   title: "How to read your dashboard",
   body: [
-    "This is your LevelStack Visibility Snapshot — a diagnostic of how prospects likely see your business online across search, reputation, digital presence, your funnel, and competitors.",
-    "Findings use outcome labels like Revenue Risk and Visibility Leak so you see business impact, not jargon. Start with Executive summary, then use the tabs for detail. Unlock your 90-Day Action Blueprint for prioritized fixes with copy-paste assets.",
+    "This is your LevelStack Visibility Snapshot — Search footprint and Social & off-site presence. Unlock the Action Roadmap for reputation, digital presence, funnel, competitors, and your prioritized plan.",
+    "Findings use outcome labels like Revenue Risk and Visibility Leak so you see business impact, not jargon. Start with Executive summary, then use the tabs for detail.",
   ],
   note: "Diagnostic only — you or your team execute the fixes. LevelStack does not guarantee rankings or revenue outcomes.",
 } as const

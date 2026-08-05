@@ -1,10 +1,10 @@
 # LevelStack: Upgrade Unlock Flows + Paid Report
 
-**Status:** Draft plan (gstack)  
-**Branch:** `main` @ PR #29 merged  
-**Date:** 2026-06-23  
+**Status:** Core upgrade unlock + paid report UX shipped (free → paid same-report path live). Residual polish items remain below.  
+**Branch:** `main`  
+**Date:** 2026-06-23 (status updated 2026-08-04)  
 **Author:** Auto-plan from codebase + PRD v2  
-**Related:** [report-value-delivery-spec.md](./report-value-delivery-spec.md) — P0 competitor grid fix, paid deliverable quality, first-view access (2026-06-25) · [Report lifecycle and access SOP](../operations/report-lifecycle-and-access-sop.md) — post-upgrade magic links, free resubmit, support triage
+**Related:** [report-value-delivery-spec.md](./report-value-delivery-spec.md) — P0 competitor grid fix, paid deliverable quality, first-view access (2026-06-25) · [Report lifecycle and access SOP](../operations/report-lifecycle-and-access-sop.md) — post-upgrade magic links, free resubmit, support triage · [levelstack-vnext-prd.md](./levelstack-vnext-prd.md) — V1 complete 2026-07-30
 
 ---
 
@@ -14,8 +14,8 @@
 |---|---------|------------|-------------------|
 | P1 | Checkout stays **hub-owned** (Stripe on `lpd-redesign`); product app never takes payment | High | Would need PCI scope + webhook duplication |
 | P2 | Free → paid upgrade **reuses the same report row** via `upgradeFreeSnapshotToPaidIntake` | High | Already implemented; don't fork a second report |
-| P3 | Primary conversion path is **free snapshot first**, then $97 full report | High | PRD v2 + `docs/hub-prd-v2-migration.md` |
-| P4 | Paid report = **6 sections + exec dashboard + full PDF**, not a separate product surface | High | `project-brief.md` §10.3 |
+| P3 | Primary conversion path is **free snapshot first**, then $97 Action Roadmap | High | PRD v2 + free-snapshot workflow |
+| P4 | Paid report = **diagnostic sections + exec dashboard + full PDF**, not a separate product surface | High | `project-brief.md` §10.3; runtime seven tabs |
 | P5 | Hub and product must deploy **entitlement alignment** (`levelstack-full-report` in `orders`) | Medium | Blocker if hub still sells legacy SKUs only |
 
 ---
@@ -26,7 +26,7 @@
 
 | Piece | Location | State |
 |-------|----------|-------|
-| Free tier sections (3) | `FREE_TIER_SECTION_IDS` | Done |
+| Free tier sections (2) | `FREE_TIER_SECTION_IDS` — Search + Social only | Done |
 | Locked tabs + panels | `useReportTabs`, `LockedSectionPanel` | Done — generic copy, hub link |
 | Exec conversion layout | `ExecutiveSummaryConversion` | Done — teasers, blur overlays |
 | Upgrade banner | `UpgradeBanner` + `buildUpgradeTeaserCopy` | Done — contextual competitor copy |
