@@ -2,6 +2,16 @@
 
 Canonical customer-facing strings for LevelStack. Planning mirror: `lpd-planning/COPY_BANK.md` §7.
 
+## ICP and voice (locked 2026-08-04)
+
+**Primary reader:** ABC / chamber-style business owners and personal brands (solo / 1–20), not agency portfolio operators.
+
+**Voice:** Consultant who simplifies — specific observations about *this* owner’s search, reviews, and local rivals. Prefer “what prospects see when they search your name” over generic “small business digital performance.”
+
+**Partnership path (docs / private outreach only):** ABC leaders use LevelStack → feedback/reviews → recommend to members → warm SEO Automator Pro waitlist. Never invent testimonials. ABC member pricing stays off public site.
+
+**Avoid on primary surfaces:** Agency/network language; “we fix”; managed-service dependency; presenting SAP as live self-serve checkout.
+
 ## Product names
 
 | Tier | Name |
@@ -27,7 +37,7 @@ See `lib/prompts/levelstackCopyPrompt.ts` and AGENTS.md § LevelStack Data-to-Co
 
 ### Upgrade banner
 
-- Lead: "Want us to automate these fixes for you? Apply for early access."
+- Lead: "Ready for the prioritized plan? Unlock your Action Roadmap — or join the Automator waitlist when you want help deploying fixes."
 - Body: SAP at capacity + Action Roadmap $97 + waitlist + assessment fee credit
 - Button: "Unlock Action Roadmap — $97" (waitlist credit stays in body copy)
 
@@ -68,11 +78,13 @@ See `lib/prompts/levelstackCopyPrompt.ts` and AGENTS.md § LevelStack Data-to-Co
 | A3 | Why operators are replacing quarterly audit deliverables |
 | A4 | Cohort update: prep your first client sites |
 
+**Note:** Workflow C remains for **expansion / SAP agency** paths — not LevelStack primary ICP copy.
+
 ## App root landing (levelstack.levelplaydigital.com)
 
 Mirror: COPY_BANK §7.2.
 
-**Voice:** Consultant who simplifies — specific observations, diagnosis, honest scope.
+**Voice:** Consultant who simplifies — specific observations, diagnosis, honest scope. Write for the owner who networks and runs ads — not a generic SMB SaaS visitor.
 
 | Field | Copy |
 |---|---|

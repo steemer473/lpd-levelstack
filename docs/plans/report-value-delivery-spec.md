@@ -60,7 +60,7 @@ Separately, the report URL requires sign-in before first view, which burns the p
 | **P2** | Paid unlock moment | 1 day | Welcome banner + print CTA on `full_report` |
 | **P3** | AI search visibility parity | 2–3 days | Production matches sample report AI cards |
 | **P3** | Dollar framing in exec summary | 1 day | Click-share ranges on rank gaps |
-| **P3** | Hub vs product tier alignment | 0.5 day | Pricing table matches `FREE_TIER_SECTION_IDS` |
+| **P3** | ~~Hub vs product tier alignment~~ | — | **Done 2026-07-19** — free = Search + Social |
 
 ---
 
@@ -425,7 +425,7 @@ The P1.7 regen of `031e84ed…` confirmed directories were gone, but the grid th
 
 After P1.7.1 the grid and prose agreed, but the **fallback ladder put brand-string namesakes above local category rivals**: `service_peer → namesake → category_peer → intake`. For the LPD dogfood that meant the grid led with Unity LevelPlay (a sports-streaming / ad-mediation name-twin) instead of real Atlanta marketing agencies — and the review row leaked "Unity Reviews 451".
 
-This is backwards for LevelStack's ICP. Per `lpd-planning/FUNNELS_AND_MARKETING.md` §1–2, the buyers are **local service businesses** (real estate, HVAC, legal, dental, medical spa) and the funnel's core conversion trigger is **"a real competitor ranking above you"** — surfaced in the free snapshot, nurture Email 3 ("Who's ranking above you right now"), and the GHL `top_competitor` merge field. A locally-relevant category peer is far more valuable and conversion-driving than a name-twin in an unrelated vertical. The "Unity LevelPlay is ranking above you" example in `COPY_BANK.md` §5 was an artifact of this very bug, not a design choice.
+This is backwards for LevelStack's ICP. Per the Aug 4 2026 lock (`lpd-planning/COPY_BANK.md` §1, discovery `OFFICE_HOURS_ICP_LOCK_2026-08-04.md`), primary buyers are **ABC / chamber-style business owners** and personal brands (solo / 1–20), often local service verticals. The funnel's core conversion trigger remains **"a real competitor ranking above you"** — surfaced in the free snapshot, nurture Email 3 ("Who's ranking above you right now"), and the GHL `top_competitor` merge field. A locally-relevant category peer is far more valuable and conversion-driving than a name-twin in an unrelated vertical. The "Unity LevelPlay is ranking above you" example in `COPY_BANK.md` §5 was an artifact of this very bug, not a design choice.
 
 ### Fix
 
@@ -612,7 +612,7 @@ When `meta.reportTier === "full_report"`:
 |------|-------|
 | AI search visibility cards | Match `public/levelstack-sample-report.html`; wire `aiPreview` on all tiers where data exists |
 | Dollar framing | "Position #4 ≈ X% click share" in exec summary |
-| Hub pricing alignment | `levelstackPlans.ts` says free excludes reputation; product includes `online_reputation` in free — align one source of truth |
+| Hub pricing alignment | **Shipped via vNext P0-3 (2026-07-19)** — free = Search + Social only (`FREE_TIER_SECTION_IDS`); reputation + digital presence are paid-only |
 | Post-purchase GHL sequence | Separate spec |
 
 ---

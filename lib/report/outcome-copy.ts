@@ -27,7 +27,7 @@ export const OUTCOME_LABELS = {
 export type OutcomeLabelKey = keyof typeof OUTCOME_LABELS
 
 export const UPGRADE_BANNER = {
-  leadLine: "Want us to automate these fixes for you? Apply for early access.",
+  leadLine: "Ready for the prioritized plan? Unlock your Action Roadmap — or join the Automator waitlist when you want help deploying fixes.",
   body: `SEO Automator Pro is currently at capacity to ensure maximum performance for our charter members. Unlock your ${PRODUCT_NAMES.paid} ($97) today to secure a priority position on our waitlist. When a spot opens up, your $97 assessment fee will be credited 100% toward your first month of service.`,
   button: `Unlock ${PRODUCT_NAMES.paid} — $97`,
 } as const

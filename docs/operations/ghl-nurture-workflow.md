@@ -190,7 +190,7 @@ Source files live in `lpd-redesign/public/images/email/`.
 
 | CTA | href in template | Workflow action on click |
 |-----|------------------|--------------------------|
-| Unlock Full Report — $97 | `https://levelplaydigital.com/platform/levelstack?source=levelstack_email#pricing` | Tag `paid_levelstack`; remove from nurture |
+| Unlock Action Roadmap — $97 | `https://levelplaydigital.com/platform/levelstack?source=levelstack_email#pricing` | Tag `paid_levelstack`; remove from nurture |
 | Join SAP Waitlist | `https://levelplaydigital.com/platform/seo` | Tag `seo_automator_pro_waitlist` |
 | Report links in body | `{{ contact.levelstack_report_url }}` | Opens signed report access URL |
 

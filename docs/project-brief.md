@@ -2,19 +2,19 @@
 
 **Product line:** LPD Audit Reports  
 **Product:** LevelStack  
-**Status:** Live (marketing + checkout on hub); product runtime in separate repo (to build)  
-**Document version:** 1.3  
-**Last updated:** June 2026  
+**Status:** Live — hub marketing/checkout + product app at `levelstack.levelplaydigital.com`  
+**Document version:** 1.4  
+**Last updated:** August 2026  
 **Owner:** Level Play Digital  
 
-**Canonical location:** Copy this file to `docs/project-brief.md` in the LevelStack product repository when scaffolded. Until then, this copy in `lpd-redesign` is the source of truth.
+**Canonical location:** This file in `lpd-levelstack` is the product PRD. Hub mirror: `lpd-redesign/docs/product/briefs/levelstack-project-brief.md`. Engineering status: `docs/plans/levelstack-vnext-prd.md` (V1 complete 2026-07-30).
 
 **Merged from:**
 
-- Product page: [`app/platform/levelstack`](../../../app/platform/levelstack/page.tsx), [`components/platform/levelstack-sections.tsx`](../../../components/platform/levelstack-sections.tsx)
-- Messaging: [`docs/product/copy-brief.md`](../copy-brief.md) § LevelStack
-- Commerce (hub): ADR [003](../../architecture/decisions/003-levelstack-cart-and-valid-plans.md), [`docs/workflows/checkout.md`](../../workflows/checkout.md)
-- PRD draft (internal, June 2026)
+- Product page: hub `app/platform/levelstack`, `components/platform/levelstack-sections.tsx`
+- Messaging: `docs/copy.md`, hub `docs/product/copy-brief.md` § LevelStack, `lpd-planning/COPY_BANK.md`
+- Commerce (hub): ADR 003 (cart), hub checkout workflows
+- PRD draft (internal, June 2026) — pricing/ICP superseded by Aug 2026 locks below
 
 ---
 
@@ -48,14 +48,15 @@ These decisions govern repo split, purchase flow, and what each codebase may bui
 
 ### 0.4 Canonical plan IDs (must not diverge)
 
-| Plan ID | Price | Includes |
-|---------|-------|----------|
-| `levelstack-standard` | $497 one-time | Full six-section report, web + PDF |
-| `levelstack-review-call` | $694 one-time | Everything in Standard + 30-minute review call |
+| Plan ID | Customer name | Price | Includes |
+|---------|---------------|-------|----------|
+| *(free — no plan ID)* | **Visibility Snapshot** | $0 | Free snapshot (gated sections per `FREE_TIER_SECTION_IDS`) |
+| `levelstack-standard` | **Action Roadmap** | $97 one-time | Full diagnostic Action Roadmap (seven sections + exec), web + PDF |
+| `levelstack-review-call` | **Action Roadmap + Strategy Call** | $297 one-time | Action Roadmap + 30-minute strategy call |
 
-Defined in hub [`data/levelstackPlans.ts`](../../../data/levelstackPlans.ts), registered in [`lib/valid-plans.ts`](../../../lib/valid-plans.ts).
+Defined in hub `lpd-redesign/data/levelstackPlans.ts`, registered in hub `lib/valid-plans.ts`. Authority for customer-facing names/prices: `docs/copy.md` and `lpd-planning/COPY_BANK.md` §7.0.
 
-**v1.0 checkout rule:** Both tiers are selected at hub checkout only. Post-purchase $197 review-call add-on (per early PRD draft) is **deferred** — not in scope until explicitly approved.
+**Checkout rule:** Paid tiers are selected at hub checkout only. Free Visibility Snapshot does not require a plan ID. Post-purchase strategy-call add-on (legacy PRD $197 idea) remains **deferred**.
 
 ### 0.5 Customer-facing delivery timing vs internal SLA
 
@@ -71,13 +72,14 @@ Defined in hub [`data/levelstackPlans.ts`](../../../data/levelstackPlans.ts), re
 |-------|-----------|
 | Customer-facing messaging | [`docs/product/copy-brief.md`](../copy-brief.md) § LevelStack |
 | Business size for LevelStack | **1–20 employees** (copy brief). Do not apply Automator Pro’s 10-client network disqualifier on LevelStack pages. |
+| Primary ICP | **ABC / chamber-style business owners** (discovery lock 2026-08-04). Agency portfolio = expansion only. |
 | PRD draft “1–10 employees” | Superseded by copy brief for external copy; internal targeting may use 1–20. |
 
 ### 0.7 Promotions and pricing
 
 | Topic | Decision |
 |-------|----------|
-| List prices | Fixed: $497 / $694 at hub `#pricing` |
+| List prices | Fixed: **$0** Visibility Snapshot / **$97** Action Roadmap / **$297** Action Roadmap + Strategy Call at hub `#pricing` |
 | Hub cart promo codes | Hub supports promo codes globally today. **Open:** whether LevelStack SKUs are excluded from promos (PRD draft said no coupons in v1.0). Resolve before scaling paid acquisition. |
 
 ### 0.8 Sample report (reference implementation)
@@ -102,13 +104,15 @@ This document is the single source of truth for LevelStack **product behavior**,
 
 ## 2. Product summary
 
-**LevelStack** is a one-time, AI-assisted digital audit report that shows a business owner what prospects find when they search for them online — before they decide to engage. It combines automated web research with intake-provided business context to produce a six-section, prioritized report covering search visibility, online reputation, digital presence, revenue funnel structure, and competitive positioning.
+**LevelStack** is a one-time, AI-assisted digital audit that shows a business owner what prospects find when they search for them online — before they decide to engage. It combines automated web research with intake-provided business context to produce a prioritized diagnostic covering search visibility, social & off-site presence, online reputation, digital presence, revenue funnel structure, competitive positioning, and an Action Roadmap.
+
+**Primary path:** Free Visibility Snapshot (`/free` → magic link) unlocks Search + Social only; paid Action Roadmap unlocks the full diagnostic.
 
 | Attribute | Value |
 |-----------|--------|
-| **Price** | $497 Standard \| $694 with optional 30-minute review call |
+| **Price** | Free Visibility Snapshot \| **$97** Action Roadmap \| **$297** Action Roadmap + Strategy Call |
 | **Delivery** | In-account web report + branded PDF download (product app) |
-| **Human involvement** | Zero for Standard tier; optional review call on `$694` tier only |
+| **Human involvement** | Zero for Action Roadmap; optional strategy call on `$297` tier only |
 | **Subscription** | None |
 
 ---
@@ -130,7 +134,7 @@ Upsell is structural: report links to hub `/platform/seo` waitlist with **condit
 
 ### 3.3 Standalone value
 
-The $497 tier must stand alone. SEO Automator Pro is additive, not required to complete the audit value.
+The **$97 Action Roadmap** must stand alone. SEO Automator Pro is additive, not required to complete the diagnostic value.
 
 ---
 
@@ -144,27 +148,36 @@ LevelStack exposes the gap between what operators *think* prospects find and wha
 
 ## 5. Target user
 
-### 5.1 Primary buyer profile
+### 5.1 Primary buyer profile (locked 2026-08-04)
 
+- **Segment:** ABC / chamber-style **business owners** and personal brands
 - **Business size:** Solo or small team (**1–20 employees** per copy brief)
-- **Spend signal:** Ads, events, referrals — conversion lower than expected
+- **Spend signal:** Ads, events, referrals, chamber networking — conversion lower than expected
 - **Audit history:** No formal digital presence review in 12+ months (often 24+)
-- **Types:** Coach, speaker, educator, consultant, RE, contractor, healthcare/legal professional, personal brand
+- **Types:** Coach, speaker, educator, consultant, RE, contractor, healthcare/legal professional, local service, personal brand
+- **GTM endgame:** ABC **leadership partnership** — leaders use LevelStack, give feedback/reviews, recommend to members, warm leads for SEO Automator Pro
+
+Authority: discovery `02_ICP_AND_BUYER.md` + `OFFICE_HOURS_ICP_LOCK_2026-08-04.md`.
 
 ### 5.2 Qualifying scenarios
 
 - Coach: Meta ads get clicks, low registrations; assumes targeting — may be trust gap in SERPs
 - RE agent: Old complaint still on page one for personal name
 - Consultant: Rebrand 18 months ago; old name still ranks
-- SMB: GBP claimed but stale; weak reviews
-- Event promoter: No AI search visibility when prospects research after events
+- Local SMB: GBP claimed but stale; weak reviews; competitor ranks above them
+- Event / chamber networking: No clear digital first impression when prospects research after intros
+- ABC leader: Willing to use the product on their business before recommending to members
 
 ### 5.3 Explicit disqualification
 
-- Operators needing **network-level** monitoring (10+ clients) → SEO Automator Pro ICP, not LevelStack
+- Operators needing **network-level** monitoring (10+ clients) → SEO Automator Pro ICP, not LevelStack primary
 - Audited in last **90 days** with current action list
 - Seeking **implementation** — LevelStack diagnoses only
 - No public digital presence and no intent to build one
+
+### 5.4 Expansion ICP (not primary)
+
+**Agency-managed portfolio health** (agency owners / account directors; GHL channel) is an **expansion track only**. Do not use agency/network language as primary public positioning. Live product remains one-business diagnostic until a portfolio surface ships and ICP is re-promoted.
 
 ---
 
@@ -215,7 +228,7 @@ LevelStack exposes the gap between what operators *think* prospects find and wha
 
 - Implementation / remediation services
 - Ongoing monitoring (SEO Automator Pro)
-- Custom research outside six sections
+- Custom research outside the diagnostic sections
 - Multi-location / network audits
 - White-label / reseller / API access / multi-seat
 - **Product-app Stripe checkout** for LevelStack SKUs
@@ -490,7 +503,7 @@ Both web view and PDF must present the same content. PDF is a permanent download
 |-------|---------|-----------|
 | **Report header** | Title + assessment subtitle; flat score + grade on navy; stacked meta columns + stat pills | Figma frame `4:5`–`4:24` |
 | **Executive summary** | 2–4 paragraphs synthesizing cross-section findings, business impact, and top priority — for a non-technical owner | Required addition (see §10.3.2) |
-| **Summary dashboard** | Overall LevelStack score/grade, total issues, priority breakdown, six section score cards, biggest problem areas | SEO audit results page pattern |
+| **Summary dashboard** | Overall LevelStack score/grade, total issues, priority breakdown, section score cards, biggest problem areas | SEO audit results page pattern |
 | **Section tabs** | Seven tabs on white bar (Executive summary default); orange active underline | v2 screenshot |
 | **Section panels** | One active panel per tab; findings + section-specific modules | v2 + sample HTML tone for finding copy |
 | **Report footer** | LevelStack · Level Play Digital attribution; generation date | Sample HTML `.report-footer` |
@@ -509,7 +522,7 @@ Tone: observational, specific to this business — no boilerplate. Never guarant
 
 #### 10.3.3 Summary dashboard (SEO-audit-style)
 
-Adapt the [SEO audit results](https://seo.levelplaydigital.com/results/cmpxhp9uf0000fw1qynk3qz65) hero and category breakdown for LevelStack’s six sections:
+Adapt the [SEO audit results](https://seo.levelplaydigital.com/results/cmpxhp9uf0000fw1qynk3qz65) hero and category breakdown for LevelStack’s diagnostic sections:
 
 | Dashboard element | LevelStack mapping |
 |-------------------|-------------------|
@@ -551,7 +564,7 @@ Per sample `.upsell-strip` and §10.6: Sections 1–3 and 6 + PDF footer; condit
 
 #### 10.3.7 PDF export
 
-Executive summary + summary dashboard + all six sections; action plan as **formatted table**; shareable; indefinite retention.
+Executive summary + summary dashboard + all diagnostic sections; action plan as **formatted table**; shareable; indefinite retention.
 
 #### 10.3.8 Responsive behavior
 
@@ -565,7 +578,7 @@ Layout reference: [Figma frame 4:4](https://www.figma.com/design/Cf5KyaEUpnIM1k4
 
 ### 10.4 Review call add-on (`levelstack-review-call` only)
 
-- **Purchase:** Hub checkout tier $694 only (v1).
+- **Purchase:** Hub checkout tier **$297** (`levelstack-review-call`) only (v1).
 - **Booking:** Hub uses GHL booking URLs elsewhere; product may deep link or embed per ops decision — align with [`account.levelplaydigital.com` widget](https://account.levelplaydigital.com) pattern without exposing GHL on public marketing copy.
 - **Format:** 30 minutes; walk through report only; no implementation or extra research.
 - **Window:** Within 10 business days of report delivery.
@@ -596,8 +609,8 @@ Framing: LevelStack finds gaps; SEO Automator Pro is designed to keep them close
         │
         ▼
 [Hub: Add to Cart → /cart → Stripe]
-  ├── levelstack-standard: $497
-  └── levelstack-review-call: $694
+  ├── levelstack-standard: $97 (Action Roadmap)
+  └── levelstack-review-call: $297 (Action Roadmap + Strategy Call)
         │
         ▼
 [Hub: Supabase auth + /checkout/success → /account]
@@ -651,11 +664,12 @@ Purchase (hub) → intake → report (product) must require **zero** LPD manual 
 Additional rules:
 
 - Category **LPD Audit Reports** — never list as Automator Pro
-- Voice: “your business” / “your name,” not agency/network language
+- Voice: owner-specific — “your business” / “your name,” ABC/chamber owner reality (local search, reviews, outbound waste). Not generic “small business SaaS.” Not agency/network language on primary surfaces.
 - Diagnostic only — never “we fix” or managed service
 - Define AISO, AEO, GEO on first use in report
 - No guaranteed outcomes (rankings, revenue, conversion)
 - No GHL on public marketing pages; no ABC member pricing on public site
+- Partnership path (internal/docs): ABC leaders use → feedback/reviews → recommend → warm SEO Automator Pro — never invent testimonials
 
 ---
 
@@ -690,7 +704,7 @@ Additional rules:
 2. No implementation in LevelStack scope.  
 3. No generic / templated reports.  
 4. Review call scoped to report walkthrough only.  
-5. Public list prices fixed at $497 / $694 (promo policy: §0.7).  
+5. Public list prices fixed at **$0 / $97 / $297** (promo policy: §0.7).  
 6. Product delivery app deployable separately; hub commerce contract documented (§8).  
 7. Employer separation for founder marketing (internal ops).  
 
@@ -704,15 +718,18 @@ Additional rules:
 | Add to Cart + Stripe one-time | Shipped (ADR-003) | — |
 | Webhook → `orders` | Shipped | Read-only |
 | `/account` orders view | Shipped | — |
-| `/account` → product CTA | **Not built** | Needs URL |
-| Entitlement helper | Pattern exists (Workflow) | **Build** `hasLevelStackAccess` |
-| Intake | — | **Build** |
-| Research pipeline | — | **Build** |
-| Web report + PDF | — | **Build** |
-| Review-call ops | — | **Build** |
-| Report-ready email | — | **Build** |
-| Sample-calibrated synthesis | — | **Validate copy tone against** [`lib/fixtures/sample-report.ts`](../lib/fixtures/sample-report.ts); **layout against Figma 4:4** and **`/sample-report`** |
-| Executive summary + SEO-style dashboard | — | **Build** (§10.3.2–10.3.3) |
+| Free Visibility Snapshot + magic link | CTA `/free` | **Shipped** |
+| Entitlement helper | Pattern exists | **Shipped** |
+| Intake | — | **Shipped** |
+| Research pipeline | — | **Shipped** |
+| Web report + PDF | — | **Shipped** |
+| Report-ready email | — | **Shipped** |
+| Review-call ops | Partial | Partial (flag + booking link) |
+| Sample-calibrated synthesis | — | **Shipped** — `/sample-report` + fixtures |
+| Executive summary + dashboard | — | **Shipped** (vNext P2) |
+| Recommendation Objects / Action Roadmap UI | — | **Shipped** (vNext P2-1…P2-5, 2026-07-30) |
+
+Engineering detail: `docs/plans/levelstack-vnext-prd.md`.
 
 ---
 
@@ -724,10 +741,10 @@ Stack detail: §9. Product implementation order: §21.
 |------------|-------|--------|
 | Stripe one-time checkout | Hub | Shipped for LevelStack SKUs |
 | Supabase auth + `orders` | Hub writes; product reads | Shipped / contract §8 |
-| Supabase product tables | Product | **Build** |
+| Supabase product tables | Product | **Shipped** |
 | Research APIs (multi-provider SERP) | Product | **Shipped** — ADR 003 |
-| AI synthesis (e.g. Claude API) | Product | **Build** |
-| PDF rendering | Product | **Build** (verify; not confirmed in hub for LevelStack) |
+| AI synthesis (e.g. Claude API) | Product | **Shipped** |
+| PDF rendering | Product | **Shipped** (print / PDF path) |
 | Review call booking | Ops / product link | Partial (GHL on hub elsewhere) |
 | SEO Automator waitlist page | Hub `/platform/seo` | Live as waitlist positioning |
 | Sample report UI reference | Product owner | **Live** — **`/sample-report`**; fixture [`lib/fixtures/sample-report.ts`](../lib/fixtures/sample-report.ts) |
@@ -758,7 +775,7 @@ Stack detail: §9. Product implementation order: §21.
 
 **Fixture:** [`lib/fixtures/sample-report.ts`](../lib/fixtures/sample-report.ts) (Marcus Carter / MC Fitness illustrative data).
 
-Defines tabbed six-section layout, finding cards, AI preview row, GBP score bars, competitive comparison grid, prioritized action plan table, upsell strips, and LPD dark header/footer.
+Defines tabbed diagnostic-section layout, finding cards, AI preview row, GBP score bars, competitive comparison grid, prioritized action plan table, upsell strips, and LPD dark header/footer.
 
 Open in a browser for visual QA. Synthesis and frontend implementation must match this structure.
 
@@ -779,7 +796,7 @@ LevelStack is a **paid, permanent, six-domain audit** — not the free 30-day SE
 ### 19.3 Definition of done (report UI)
 
 - [ ] Executive summary renders for every completed report
-- [ ] Summary dashboard shows overall score + six section scores + priority counts
+- [x] Summary dashboard shows overall score + section scores + priority counts
 - [ ] Six tabs match sample HTML interaction and severity dots
 - [ ] Each section panel matches finding card schema
 - [ ] PDF includes summary + all sections + action plan table
@@ -787,7 +804,7 @@ LevelStack is a **paid, permanent, six-domain audit** — not the free 30-day SE
 
 ---
 
-## 20. Appendix — six-section structure
+## 20. Appendix — diagnostic section structure
 
 | # | Section | Covers |
 |---|---------|--------|
@@ -809,7 +826,7 @@ Execute in order. Do not skip Phase 1 entitlement proof before building the rese
 | **0 — Scaffold** | Runnable product repo | §22 bootstrap; copy brief → `docs/project-brief.md`; Supabase migrations for product tables; CI; typed env |
 | **1 — Handoff + intake** | Hub purchase unlocks product | Hub `/account` CTA + `NEXT_PUBLIC_LEVELSTACK_APP_URL`; `hasLevelStackAccess()`; `/intake` form per §10.1; e2e: test Stripe purchase → intake |
 | **2 — Research + synthesis** | Automated report JSON | Job runner; research APIs (ADR); LLM synthesis → structured findings matching §10.2–10.3.5; validate against sample HTML |
-| **3 — Report UI + PDF + ops** | Shippable Standard tier | Executive summary + SEO-style dashboard + tabbed report UI (§10.3); PDF export; report-ready email; review-call tier flag for `$694` SKU |
+| **3 — Report UI + PDF + ops** | Shippable Action Roadmap tier | Executive summary + SEO-style dashboard + tabbed report UI (§10.3); PDF export; report-ready email; strategy-call tier flag for `$297` SKU |
 
 **Hub PRs** (Phase 1): small changes in `lpd-redesign` only — account CTA, env var, optional entitlement helper.
 
