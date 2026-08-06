@@ -10,7 +10,7 @@ export const MOBILE_PREVIEW_FREE_REPORT: LevelstackReportJson = {
     planId: "levelstack-free-snapshot",
     reportTier: "free_snapshot",
     overallScore: 68,
-    letterGrade: "D",
+    letterGrade: "D+",
     totalFindings: 5,
     criticalCount: 1,
     highCount: 1,

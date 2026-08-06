@@ -18,6 +18,7 @@ import {
   FREE_SCORE_LABEL,
   REPORT_SCORE_FOOTER,
   freeExecutiveHeadline,
+  freeScanIssueCounts,
   freeScoreBasisLine,
   verifiedChecksList,
 } from "@/lib/report/free-executive-copy"
@@ -75,21 +76,23 @@ function PrintHeader({ report }: { report: LevelstackReportJson }) {
 }
 
 function KpiStrip({
-  meta,
+  report,
   alarmSeverity,
 }: {
-  meta: LevelstackReportJson["meta"]
+  report: LevelstackReportJson
   alarmSeverity: boolean
 }) {
+  const { meta } = report
+  const issues = freeScanIssueCounts(report)
   const items = [
     { label: FREE_KPI_LABELS.score, value: String(meta.overallScore), tone: "default" as const },
     { label: FREE_KPI_LABELS.grade, value: meta.letterGrade, tone: "grade" as const },
     {
       label: FREE_KPI_LABELS.checksFailed,
-      value: String(meta.criticalCount),
-      tone: alarmSeverity ? ("critical" as const) : ("default" as const),
+      value: String(issues.failed),
+      tone: alarmSeverity && issues.failed > 0 ? ("critical" as const) : ("default" as const),
     },
-    { label: FREE_KPI_LABELS.findings, value: String(meta.totalFindings), tone: "default" as const },
+    { label: FREE_KPI_LABELS.warnings, value: String(issues.warnings), tone: "default" as const },
   ]
 
   return (
@@ -193,7 +196,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
       body: content.insights.reputationGap,
     },
     {
-      label: "Revenue risk",
+      label: "Where you're exposed",
       parts: content.structuredInsights?.revenueRisk,
       body: content.insights.revenueRisk,
     },
@@ -211,7 +214,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
           <span className="font-normal text-gray-700">{headline.follow}</span>
         </p>
 
-        <KpiStrip meta={meta} alarmSeverity={alarmSeverity} />
+        <KpiStrip report={report} alarmSeverity={alarmSeverity} />
 
         <PriorityOrVerifiedBlock
           report={report}

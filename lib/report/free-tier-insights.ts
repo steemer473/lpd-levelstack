@@ -161,6 +161,31 @@ export function pickReputationPublicSignal(
   return best?.value
 }
 
+const BRAND_SEARCH_LABEL = /brand\s*search|page\s*1.*brand|brand\s*name/i
+const BRAND_RANK_SIGNAL = /\brank(?:s|ed)?\s*#?\d+\b|\bposition\s*#?\d+\b|\b#1\b|\btop\s*10\b|\bpage\s*1\b/i
+
+/** Best customer-facing search finding for the What prospects see exec teaser. */
+export function pickSearchPublicSignal(
+  report: LevelstackReportJson,
+): string | undefined {
+  const section = report.sections.find((s) => s.id === "search_footprint")
+  if (!section?.findings.length) return undefined
+
+  const candidates = section.findings.filter((f) => isCustomerFacingFinding(f.value))
+  if (candidates.length === 0) return undefined
+
+  const brandSearch = candidates.find((f) => BRAND_SEARCH_LABEL.test(f.label))
+  if (brandSearch) return brandSearch.value
+
+  const rankSignal = candidates.find((f) => BRAND_RANK_SIGNAL.test(f.value))
+  if (rankSignal) return rankSignal.value
+
+  const ranked = [...candidates].sort(
+    (a, b) => severityRank(a.severity) - severityRank(b.severity),
+  )
+  return ranked[0]?.value
+}
+
 function pickRevenuePublicSignal(report: LevelstackReportJson): string | undefined {
   const pools = [
     ...(report.sections.find((s) => s.id === "search_footprint")?.findings ?? []),
@@ -187,15 +212,20 @@ export function buildFreeTierWhatProspectsSeeParts(
   report: LevelstackReportJson,
 ): ExecutiveInsightPart[] {
   const { meta } = report
-  const searchSection = report.sections.find((s) => s.id === "search_footprint")
-  const publicSignal = searchSection?.findings.find((f) =>
-    isCustomerFacingFinding(f.value),
-  )?.value
+  const publicSignal = pickSearchPublicSignal(report)
+
+  const businessName = meta.businessName.trim() || "this business"
+  const categoryLabel = meta.businessCategory?.label?.trim()
+  const searchSubject =
+    categoryLabel &&
+    categoryLabel.toLowerCase() !== businessName.toLowerCase()
+      ? `${businessName} or ${categoryLabel}`
+      : businessName
 
   const parts: ExecutiveInsightPart[] = [
     {
       kind: "highlight",
-      text: `When prospects search for ${meta.ownerName} or ${meta.businessName}${marketPhrase(meta.marketLabel)}, the first screen shapes trust before they book your services.`,
+      text: `When prospects search for ${searchSubject}${marketPhrase(meta.marketLabel)}, the first screen shapes trust before they book your services.`,
     },
     {
       kind: "text",

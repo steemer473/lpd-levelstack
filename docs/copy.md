@@ -46,7 +46,15 @@ Runtime: `lib/report/free-executive-copy.ts` (single source for web, print, emai
 
 **Priority finding:** Failed audit signals first (snippet mismatch interpolates live evidence). Never promote a positive `#1` rank finding. On clean scans, suppress the slot and show "What we verified" (exclude Subdomain Exposure from that list).
 
-**Score treatment:** Label as **Free scan** based on 2 of 6 areas. KPI "Checks failed" (not "Critical issues") counts audit `fail` statuses.
+**Score treatment:** Label as **Grade so far** based on 2 of 6 areas (grade will change as locked areas open). KPI "Checks failed" and "Warnings" share one count source (`freeScanIssueCounts`) — audit `fail` / `warning` statuses. Do not use `totalFindings` for those KPIs.
+
+**Executive insight cards** (free only; runtime: `lib/report/free-tier-insights.ts` → `buildFreeTierStructuredExecutiveInsights`):
+
+1. **What prospects see** — When prospects search for [Business or category][market], the first screen shapes trust… Live Google + website signals disclaimer. `From public research:` + best brand/search finding (`pickSearchPublicSignal`). Tab pointer: Search footprint.
+2. **Social presence** — LinkedIn/Facebook credibility framing. `From public research:` + best social finding (`pickSocialPublicSignal`). Free limitation + `$97` upgrade for Reputation, Digital presence, trust gap analysis.
+3. **Where you're exposed** — Revenue-risk framing (conversion vs. trust/offer/landing-page mismatch). `From public research:` + cross-section signal (`pickRevenuePublicSignal`). Free limitation (no ad-spend intake) + `$97` upgrade for funnel diagnosis.
+
+Paid Action Roadmap uses the same builders with `includeUpgradeTeasers: false` (no `$97` lines).
 
 **Upgrade module (one per free snapshot):** Scope line + policy-safe credit note + `$97` primary + `$297` secondary + Placement-2 monitoring bridge. No scarcity ("at capacity", "spots remaining") on the free snapshot.
 

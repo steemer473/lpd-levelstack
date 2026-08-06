@@ -13,7 +13,7 @@ export const SAMPLE_REPORT: LevelstackReportJson = {
     planId: "levelstack-free-snapshot",
     reportTier: "free_snapshot",
     overallScore: 68,
-    letterGrade: "C",
+    letterGrade: "D+",
     totalFindings: 14,
     criticalCount: 4,
     highCount: 3,

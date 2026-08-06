@@ -45,12 +45,12 @@ describe("assembleReportJson", () => {
     expect(parsed.success).toBe(true)
     expect(json.meta.businessName).toBe("Test Co")
     expect(json.meta.overallScore).toBe(60)
-    expect(json.meta.letterGrade).toBe("D")
+    expect(json.meta.letterGrade).toBe("D-")
     expect(buildActionPlanFromSections(sections, intake).thisWeek.length).toBeGreaterThan(0)
     expect(json.actionPlan.thisWeek[0]?.findingRef).toBeDefined()
   })
 
-  it("excludes action_plan from Overall and uses letterGradeFromScore (incl. A)", () => {
+  it("excludes action_plan from Overall and uses letterGradeFromScore (incl. A-)", () => {
     const intake = {
       ...levelstackIntakeTestDefaults,
       primaryBusinessName: "Test Co",
@@ -84,6 +84,6 @@ describe("assembleReportJson", () => {
       null,
     )
     expect(json.meta.overallScore).toBe(90)
-    expect(json.meta.letterGrade).toBe("A")
+    expect(json.meta.letterGrade).toBe("A-")
   })
 })

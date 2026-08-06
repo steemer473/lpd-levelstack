@@ -47,10 +47,28 @@ export function statusToPercent(status: SignalStatus): number {
   return 0
 }
 
-export function letterGradeFromScore(score: number): string {
-  if (score >= 90) return "A"
-  if (score >= 80) return "B"
-  if (score >= 70) return "C"
-  if (score >= 60) return "D"
+/** Standard US academic 13-point scale (A+ through D-, unmodified F). */
+export const LETTER_GRADE_THRESHOLDS = [
+  { min: 97, grade: "A+" },
+  { min: 93, grade: "A" },
+  { min: 90, grade: "A-" },
+  { min: 87, grade: "B+" },
+  { min: 83, grade: "B" },
+  { min: 80, grade: "B-" },
+  { min: 77, grade: "C+" },
+  { min: 73, grade: "C" },
+  { min: 70, grade: "C-" },
+  { min: 67, grade: "D+" },
+  { min: 63, grade: "D" },
+  { min: 60, grade: "D-" },
+] as const
+
+export type LetterGrade = (typeof LETTER_GRADE_THRESHOLDS)[number]["grade"] | "F"
+
+export function letterGradeFromScore(score: number): LetterGrade {
+  const s = Number.isFinite(score) ? Math.round(score) : 0
+  for (const { min, grade } of LETTER_GRADE_THRESHOLDS) {
+    if (s >= min) return grade
+  }
   return "F"
 }

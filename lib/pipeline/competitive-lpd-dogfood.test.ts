@@ -202,7 +202,7 @@ describe("LPD dogfood paid taxonomy + scoring (P1-4 / P1-1)", () => {
       { id: "digital_presence", score: 62, status: "attention" },
     ])
     expect(derived.overallScore).toBe(70)
-    expect(derived.letterGrade).toBe("C")
+    expect(derived.letterGrade).toBe("C-")
   })
 
   it("shows taxonomy label in competitive grid Business category row", () => {
