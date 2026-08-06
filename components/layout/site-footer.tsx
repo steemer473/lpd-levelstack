@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { SITE_FOOTER_TAGLINE } from "@/lib/report/outcome-copy"
 import { getHubPricingUrl } from "@/lib/urls"
 
 /** Matches seo-foundation-audit /results/[auditId] footer */
@@ -38,7 +39,7 @@ export function SiteFooter() {
           </div>
         </div>
         <p className="text-xs text-muted-foreground text-center">
-          We spot gaps. You fix them. No rank or sales promises.
+          {SITE_FOOTER_TAGLINE}
         </p>
       </div>
     </footer>

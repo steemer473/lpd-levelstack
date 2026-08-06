@@ -505,5 +505,5 @@ export const FREE_UPGRADE_MODULE = {
   monitoringCta: "Learn about SEO Automator Pro",
 } as const
 
-export const REPORT_SCORE_FOOTER =
-  "Diagnostic only — LevelStack does not guarantee rankings or revenue outcomes." as const
+/** Alias of COPY_BANK §7.4 DISC-01 — keep free/paid score footers in sync. */
+export { REPORT_DIAGNOSTIC_DISCLAIMER as REPORT_SCORE_FOOTER } from "@/lib/report/outcome-copy"

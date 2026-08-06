@@ -59,7 +59,7 @@ Flat navy `#002147`. **Not** hero-mesh. **Not** market under the title.
 - AI Executive Assessment: 3 white insight cards + 3 tinted highlight cards (Critical / Impact / Opportunity)
 - What To Do First: 3-phase timeline with focus pills (`rounded-md`, not pill-shaped)
 - Competitive Snapshot + Key Strengths & Opportunities (two-column bottom)
-- Footer disclaimer: "Diagnostic only — LevelStack does not guarantee rankings or revenue outcomes."
+- Footer disclaimer: "Diagnostic only — LevelStack spots gaps. SEO Automator Pro fixes the technical layer. LevelStack does not guarantee rankings or revenue outcomes."
 - Free tier: keep inline `UpsellBlurOverlay` teasers in exec summary only
 
 ## Colors (report — not hub marketing)

@@ -1,4 +1,8 @@
 import { TERMS } from "@/lib/report/customer-terms"
+import {
+  REPORT_ACTION_PLAN_CALLOUT,
+  REPORT_DIAGNOSTIC_DISCLAIMER,
+} from "@/lib/report/outcome-copy"
 
 export const REPORT_INTRO = {
   title: "How to read your dashboard",
@@ -6,7 +10,7 @@ export const REPORT_INTRO = {
     "This is your LevelStack Visibility Snapshot — Search footprint and Social & off-site presence. Unlock the Action Roadmap for reputation, digital presence, funnel, competitors, and your prioritized plan.",
     "Findings use outcome labels like Revenue Risk and Visibility Leak so you see business impact, not jargon. Start with Executive summary, then use the tabs for detail.",
   ],
-  note: "Diagnostic only — you or your team execute the fixes. LevelStack does not guarantee rankings or revenue outcomes.",
+  note: REPORT_DIAGNOSTIC_DISCLAIMER,
 } as const
 
 /** Inline text: plain, bold, or brand accent */
@@ -472,7 +476,7 @@ export const SECTION_GUIDES: Record<string, SectionGuide> = {
         tone: "important",
         segments: [
           seg.b("Diagnostic only:"),
-          seg.t(" LevelStack lists what to fix — you or your team execute the work."),
+          seg.t(` ${REPORT_ACTION_PLAN_CALLOUT}`),
         ],
       },
     ],

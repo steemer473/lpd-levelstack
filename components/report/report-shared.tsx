@@ -49,7 +49,10 @@ import {
   SECTION_TAB_ORDER,
 } from "@/lib/report/display-helpers"
 import { REPORT_INTRO } from "@/lib/report/section-guides"
-import { UPGRADE_BANNER } from "@/lib/report/outcome-copy"
+import {
+  REPORT_DIAGNOSTIC_DISCLAIMER,
+  UPGRADE_BANNER,
+} from "@/lib/report/outcome-copy"
 import {
   FREE_UPGRADE_MODULE,
   diagnosticAreaCounts,
@@ -822,7 +825,13 @@ export function SectionPanel({
           <p className="rpt-caption my-3 mb-2">
             AI search visibility preview (as of {reportDate})
           </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-2">
+          <div
+            className={cn(
+              "grid grid-cols-1 gap-3 mb-2",
+              section.aiPreview.length === 2 && "lg:grid-cols-2",
+              section.aiPreview.length >= 3 && "lg:grid-cols-3",
+            )}
+          >
             {section.aiPreview.map((ai, i) => (
               <DataPanel key={i} className="mb-0">
                 <DataPanelLabel subtitle="Summary shown when prospects ask AI about you.">
@@ -1057,8 +1066,7 @@ export function ExecutiveSummaryPanel({
         ))}
       </ul>
       <p className="text-xs text-muted-foreground mt-4 italic">
-        Diagnostic only — you or your team execute fixes. LevelStack does not guarantee
-        rankings or revenue outcomes.
+        {REPORT_DIAGNOSTIC_DISCLAIMER}
       </p>
     </div>
   )

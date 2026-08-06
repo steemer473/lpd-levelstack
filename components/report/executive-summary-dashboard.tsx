@@ -17,6 +17,7 @@ import {
   TAB_ICONS,
 } from "@/lib/report/display-helpers"
 import { resolveExecutiveContent } from "@/lib/report/executive-summary-resolve"
+import { REPORT_DIAGNOSTIC_DISCLAIMER } from "@/lib/report/outcome-copy"
 import { priorityActionsFromReport } from "@/lib/report/roadmap-from-recommendations"
 import { cn } from "@/lib/utils"
 
@@ -382,7 +383,7 @@ export function ExecutiveSummaryDashboard({
       ) : null}
 
       <p className="rpt-muted-text text-xs text-center mt-8">
-        Diagnostic only — LevelStack does not guarantee rankings or revenue outcomes.
+        {REPORT_DIAGNOSTIC_DISCLAIMER}
       </p>
     </div>
   )

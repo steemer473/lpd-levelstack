@@ -15,7 +15,7 @@ export const ACTION_ROADMAP_FAQS: ActionRoadmapFaq[] = [
     id: "faq-00",
     question: "Why isn't this called a report?",
     answer:
-      "A report describes problems. The Action Roadmap gives prioritized fixes, copy-paste assets, and competitive context you can execute this week.",
+      "Most reports stop at diagnosis. The Action Roadmap includes prioritized fixes, copy-paste assets, and competitive context you can act on this week.",
   },
   {
     id: "faq-02",

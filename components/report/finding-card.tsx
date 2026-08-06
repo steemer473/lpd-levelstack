@@ -19,7 +19,7 @@ import {
   findingContextLine,
   findingSeverityExplanation,
 } from "@/lib/report/finding-context"
-import { flagLabel, severityToFlag } from "@/lib/report/display-helpers"
+import { flagLabel, severityPillClass, severityToFlag } from "@/lib/report/display-helpers"
 import { parseFindingDetail } from "@/lib/report/parse-finding-detail"
 import { type OutcomeLabelKey } from "@/lib/report/outcome-copy"
 import { AlertCircle, AlertTriangle, Check } from "lucide-react"
@@ -34,12 +34,31 @@ export function FindingFlag({ severity }: { severity: ReportFinding["severity"] 
     <span
       className={cn(
         "inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded",
-        kind === "critical" && "bg-red-100 text-red-800",
-        kind === "attention" && "bg-amber-100 text-amber-900",
-        kind === "good" && "bg-green-100 text-green-800",
+        severityPillClass(severity),
       )}
     >
       <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+      {flagLabel(severity)}
+    </span>
+  )
+}
+
+/** Compact severity pill for print views (no icon). */
+export function PrintSeverityPill({
+  severity,
+  className,
+}: {
+  severity: ReportFinding["severity"]
+  className?: string
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded",
+        severityPillClass(severity),
+        className,
+      )}
+    >
       {flagLabel(severity)}
     </span>
   )

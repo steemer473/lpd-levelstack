@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card"
 import { FormPanel } from "@/components/ui/form-panel"
 import { env } from "@/env.mjs"
+import { HONEST_SCOPE_CARD_COPY } from "@/lib/report/outcome-copy"
 import { getHubPricingUrl } from "@/lib/urls"
 
 const HIGHLIGHTS = [
@@ -28,7 +29,7 @@ const HIGHLIGHTS = [
   {
     icon: Shield,
     name: "Honest scope",
-    description: "We show priorities. You act. No rank or sales promises.",
+    description: HONEST_SCOPE_CARD_COPY,
   },
 ] as const
 

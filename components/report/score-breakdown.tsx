@@ -7,6 +7,7 @@ import { useState } from "react"
 import { deriveOverallFromSections } from "@/lib/audit/derive-overall-from-sections"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
 import { PAID_TAB_IDS, SECTION_TAB_ORDER } from "@/lib/report/display-helpers"
+import { REPORT_DIAGNOSTIC_DISCLAIMER } from "@/lib/report/outcome-copy"
 import { getHubUpgradeUrl } from "@/lib/urls"
 
 type ScoreBreakdownProps = {
@@ -164,8 +165,7 @@ export function ScoreBreakdown({ report, reportId }: ScoreBreakdownProps) {
             })}
           </ul>
           <p className="rpt-caption normal-case tracking-normal italic">
-            Diagnostic only — you or your team execute fixes. LevelStack does not guarantee
-            rankings or revenue outcomes.
+            {REPORT_DIAGNOSTIC_DISCLAIMER}
           </p>
         </div>
       )}
