@@ -335,9 +335,10 @@
 }
 
 .levelstack-report .rpt-upsell {
-  background: var(--rpt-navy);
+  background: var(--rpt-blue-tint-bg);
   border-radius: 0;
-  border-top: 1px solid var(--rpt-header-divider);
+  border-top: 1px solid var(--rpt-blue-tint-border);
+  color: var(--rpt-body);
 }
 
 .levelstack-report .rpt-upsell-btn {
@@ -897,9 +898,36 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 1.25rem;
   margin-bottom: 1.25rem;
+}
+
+.levelstack-report .rpt-conv-headline-block {
+  flex: 1 1 0%;
+  min-width: 0;
+  max-width: 36rem;
+}
+
+.levelstack-report .rpt-conv-dash-header .rpt-overall-score-card {
+  align-self: center;
+}
+
+@media (max-width: 639px) {
+  .levelstack-report .rpt-conv-dash-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .levelstack-report .rpt-conv-headline-block {
+    flex: none;
+    width: 100%;
+    max-width: none;
+  }
+
+  .levelstack-report .rpt-conv-dash-header .rpt-overall-score-card {
+    align-self: flex-start;
+  }
 }
 
 .levelstack-report .rpt-conv-headline {
@@ -908,10 +936,20 @@
   font-weight: 600;
   color: var(--rpt-heading);
   line-height: 1.35;
-  max-width: 36rem;
+  margin: 0 0 0.375rem;
+}
+
+.levelstack-report .rpt-conv-subheadline {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--rpt-heading);
   margin: 0;
-  flex: 1;
-  min-width: 0;
+}
+
+.levelstack-report .rpt-conv-subheadline-muted {
+  font-weight: 400;
+  color: var(--rpt-body);
 }
 
 .levelstack-report .rpt-conv-headline-accent {
@@ -1003,6 +1041,11 @@
 }
 
 .levelstack-report .rpt-conv-insights {
+  background: var(--rpt-card-bg);
+  border: 1px solid var(--rpt-card-border);
+  border-radius: var(--rpt-radius);
+  box-shadow: var(--rpt-shadow);
+  padding: 1.25rem 1.25rem 1.125rem;
   margin-bottom: 1.5rem;
 }
 
@@ -1030,9 +1073,9 @@
   margin-bottom: 1.5rem;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 768px) {
   .levelstack-report .rpt-conv-sec-cards {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1131,7 +1174,7 @@
 
 @media (min-width: 768px) {
   .levelstack-report .rpt-conv-bottom-row {
-    grid-template-columns: 1.2fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

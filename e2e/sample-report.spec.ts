@@ -11,7 +11,8 @@ test.describe("Sample report — public marketing preview", () => {
   test("shows sample badge and executive dashboard", async ({ page }) => {
     await expect(page.getByText("Sample Report", { exact: true })).toBeVisible()
     await expect(page.getByText(/all data is illustrative/i)).toBeVisible()
-    await expect(page.getByRole("heading", { name: /We checked 2 of the 6 areas/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /Executive Summary/i })).toBeVisible()
+    await expect(page.getByText(/We checked 2 of the 6 areas/i)).toBeVisible()
     await expect(page.locator(".rpt-conv-kpi-strip")).toBeVisible()
   })
 
@@ -58,15 +59,46 @@ test.describe("Sample report — public marketing preview", () => {
     await expect(card.getByText("Time")).toHaveCount(0)
   })
 
+  test("free exec shows three insight cards with dynamic research lines", async ({
+    page,
+  }) => {
+    const insights = page.locator(".rpt-conv-insights")
+    await expect(insights).toBeVisible()
+
+    await expect(insights.getByText("What prospects see", { exact: true })).toBeVisible()
+    await expect(insights.getByText("Social presence", { exact: true })).toBeVisible()
+    await expect(insights.getByText("Where you're exposed", { exact: true })).toBeVisible()
+
+    await expect(
+      insights.getByText(/When prospects search for/i),
+    ).toBeVisible()
+    await expect(
+      insights.getByText(/Findings are based on live Google search results/i),
+    ).toBeVisible()
+    await expect(insights.getByText(/From public research:/i).first()).toBeVisible()
+    await expect(
+      insights.getByText(/Social presence compares whether strangers can find credible LinkedIn/i),
+    ).toBeVisible()
+    await expect(
+      insights.getByText(/Upgrade to Action Roadmap \(\$97\)/i).first(),
+    ).toBeVisible()
+    await expect(
+      insights.getByText(/Revenue risk asks whether traffic and ad spend convert/i),
+    ).toBeVisible()
+  })
+
   test("shows Checks failed KPI and one upgrade module", async ({ page }) => {
     await expect(page.getByText("Checks failed", { exact: true })).toBeVisible()
-    await expect(page.getByText("Free scan", { exact: true }).first()).toBeVisible()
-    await expect(page.getByText(/Partial · 2 of 6/i).first()).toBeVisible()
+    await expect(page.getByText("Warnings", { exact: true })).toBeVisible()
+    await expect(page.getByText("Grade so far", { exact: true }).first()).toBeVisible()
 
-    await page.getByRole("button", { name: /About Free Scan/i }).click()
-    await expect(page.getByText("Free Scan", { exact: true })).toBeVisible()
+    await page.getByRole("button", { name: /About Grade so far/i }).click()
+    await expect(page.getByText("Grade so far", { exact: true }).nth(1)).toBeVisible()
     await expect(
       page.getByText(/Based on 2 of 6 areas checked/i),
+    ).toBeVisible()
+    await expect(
+      page.getByText(/This grade will change as locked areas are opened/i),
     ).toBeVisible()
 
     const upgrade = page.locator("[data-upgrade-module=action-roadmap]")

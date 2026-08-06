@@ -35,7 +35,8 @@ test.describe("Report mobile — dev preview", () => {
 
   test("executive tab loads without horizontal page scroll", async ({ page }) => {
     await assertNoHorizontalPageOverflow(page)
-    await expect(page.getByRole("heading", { name: /We checked 2 of the 6 areas/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /Executive Summary/i })).toBeVisible()
+    await expect(page.getByText(/We checked 2 of the 6 areas/i)).toBeVisible()
     await expect(page.locator(".rpt-conv-kpi-strip")).toBeVisible()
   })
 

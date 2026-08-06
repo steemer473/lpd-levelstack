@@ -46,10 +46,45 @@ export const FREE_KPI_LABELS = {
   score: "Score",
   grade: "Grade",
   checksFailed: "Checks failed",
-  findings: "Findings",
+  warnings: "Warnings",
 } as const
 
-export const FREE_SCORE_LABEL = "Free scan" as const
+export const FREE_SCORE_LABEL = "Grade so far" as const
+
+export type FreeScanIssueCounts = {
+  failed: number
+  warnings: number
+  passed: number
+}
+
+/**
+ * Single source of truth for free-scan check outcomes.
+ * Prefer signalRows when present; otherwise meta.criticalCount / highCount / lowCount
+ * (assemble stores fail / warning / pass there).
+ */
+export function freeScanIssueCounts(
+  report: LevelstackReportJson,
+): FreeScanIssueCounts {
+  const rows = report.signalRows
+  if (rows?.length) {
+    let failed = 0
+    let warnings = 0
+    let passed = 0
+    for (const row of rows) {
+      const value = row.value.toUpperCase()
+      if (value === "FAIL") failed += 1
+      else if (value === "WARNING" || value === "WARN") warnings += 1
+      else if (value === "PASS") passed += 1
+    }
+    return { failed, warnings, passed }
+  }
+
+  return {
+    failed: Math.max(0, report.meta.criticalCount ?? 0),
+    warnings: Math.max(0, report.meta.highCount ?? 0),
+    passed: Math.max(0, report.meta.lowCount ?? 0),
+  }
+}
 
 /** Never count Subdomain Exposure toward "what we verified" — it has never failed in production. */
 export const NON_DISCRIMINATING_SIGNAL_LABELS = new Set(["Subdomain Exposure"])
@@ -430,7 +465,7 @@ export function customerFacingTopFinding(
 
 export function freeScoreBasisLine(): string {
   const { checked, total } = diagnosticAreaCounts()
-  return `Based on ${checked} of ${total} areas checked. Reputation, Digital Presence, Revenue Funnel, and Competitive Context are still locked.`
+  return `Based on ${checked} of ${total} areas checked. This grade will change as locked areas are opened. Reputation, Digital Presence, Revenue Funnel, and Competitive Context are still locked.`
 }
 
 export type DiagnosticAreaGridItem = {

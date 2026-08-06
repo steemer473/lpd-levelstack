@@ -25,6 +25,7 @@ import {
   REPORT_SCORE_FOOTER,
   diagnosticAreaCounts,
   freeExecutiveHeadline,
+  freeScanIssueCounts,
   freeScoreBasisLine,
   verifiedChecksList,
 } from "@/lib/report/free-executive-copy"
@@ -42,45 +43,38 @@ type ExecutiveSummaryConversionProps = {
 function OverallScoreCard({
   meta,
   basisLine,
-  checked,
-  total,
 }: {
   meta: LevelstackReportJson["meta"]
   basisLine: string
-  checked: number
-  total: number
 }) {
   return (
     <div className="rpt-overall-score-card">
       <div className="score-main">
         <div className="mb-0.5 flex items-center gap-1">
           <p className="score-label mb-0">{FREE_SCORE_LABEL}</p>
-          <ReportFieldHint label="Free Scan" detail={basisLine} />
+          <ReportFieldHint label={FREE_SCORE_LABEL} detail={basisLine} />
         </div>
         <p className="score-val">
           {meta.overallScore}
           <span className="score-denom">/100</span>
         </p>
       </div>
-      <div className="flex flex-col items-center gap-0.5">
-        <p className="grade" aria-label={`Partial score, ${meta.letterGrade}`}>
-          {meta.letterGrade}
-        </p>
-        <p className="text-[0.6rem] font-semibold uppercase tracking-wide text-[var(--rpt-muted)]">
-          Partial · {checked} of {total}
-        </p>
-      </div>
+      <p className="grade" aria-label={`Grade so far, ${meta.letterGrade}`}>
+        {meta.letterGrade}
+      </p>
     </div>
   )
 }
 
 function KpiStrip({
-  meta,
+  report,
   alarmSeverity,
 }: {
-  meta: LevelstackReportJson["meta"]
+  report: LevelstackReportJson
   alarmSeverity: boolean
 }) {
+  const { meta } = report
+  const issues = freeScanIssueCounts(report)
   const items = [
     {
       label: FREE_KPI_LABELS.score,
@@ -96,13 +90,13 @@ function KpiStrip({
     },
     {
       label: FREE_KPI_LABELS.checksFailed,
-      value: String(meta.criticalCount),
-      critical: alarmSeverity && meta.criticalCount > 0,
+      value: String(issues.failed),
+      critical: alarmSeverity && issues.failed > 0,
       grade: false,
     },
     {
-      label: FREE_KPI_LABELS.findings,
-      value: String(meta.totalFindings),
+      label: FREE_KPI_LABELS.warnings,
+      value: String(issues.warnings),
       critical: false,
       grade: false,
     },
@@ -223,19 +217,17 @@ export function ExecutiveSummaryConversion({
   return (
     <div className="rpt-dash-panel rpt-conv-panel">
       <div className="rpt-conv-dash-header">
-        <h2 className="rpt-conv-headline">
-          {headline.lead}{" "}
-          <span className="font-normal text-[var(--rpt-body)]">{headline.follow}</span>
-        </h2>
-        <OverallScoreCard
-          meta={meta}
-          basisLine={basisLine}
-          checked={counts.checked}
-          total={counts.total}
-        />
+        <div className="rpt-conv-headline-block">
+          <h2 className="rpt-conv-headline">Executive Summary</h2>
+          <p className="rpt-conv-subheadline">
+            {headline.lead}{" "}
+            <span className="rpt-conv-subheadline-muted">{headline.follow}</span>
+          </p>
+        </div>
+        <OverallScoreCard meta={meta} basisLine={basisLine} />
       </div>
 
-      <KpiStrip meta={meta} alarmSeverity={alarmSeverity} />
+      <KpiStrip report={report} alarmSeverity={alarmSeverity} />
 
       <div className="mb-4">
         <ScoreBreakdown report={report} reportId={reportId} />

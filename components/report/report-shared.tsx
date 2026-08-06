@@ -50,7 +50,12 @@ import {
 } from "@/lib/report/display-helpers"
 import { REPORT_INTRO } from "@/lib/report/section-guides"
 import { UPGRADE_BANNER } from "@/lib/report/outcome-copy"
-import { diagnosticAreaCounts, diagnosticAreaGrid } from "@/lib/report/free-executive-copy"
+import {
+  FREE_UPGRADE_MODULE,
+  diagnosticAreaCounts,
+  diagnosticAreaGrid,
+  freeScanIssueCounts,
+} from "@/lib/report/free-executive-copy"
 import {
   ownerRoleLabel,
   roadmapBucketsFromReport,
@@ -237,18 +242,17 @@ export function UpgradeBanner({
 
   if (report.meta.reportTier !== "free_snapshot") return null
 
-  const failCount = report.meta.criticalCount ?? 0
-  const warnCount = report.meta.highCount ?? 0
+  const { failed, warnings } = freeScanIssueCounts(report)
   const { checked, total } = diagnosticAreaCounts()
 
   if (suppressLevelstackPurchaseCtas && actionRoadmapReportId) {
     return (
       <div className="rpt-upsell flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm leading-relaxed">
-          <p className="font-medium text-white">
+          <p className="font-medium text-[var(--rpt-heading)]">
             You already have an Action Roadmap
           </p>
-          <p className="mt-1 text-white/80">
+          <p className="mt-1 text-[var(--rpt-body)]">
             This page is a free Visibility Snapshot. Open your full Action Roadmap
             anytime.
           </p>
@@ -274,12 +278,7 @@ export function UpgradeBanner({
     source: "levelstack_report",
   })
 
-  const checksLine =
-    failCount > 0
-      ? `${failCount} check${failCount === 1 ? "" : "s"} failed on the free scan${warnCount > 0 ? `; ${warnCount} more warning${warnCount === 1 ? "" : "s"} flagged` : ""}.`
-      : warnCount > 0
-        ? `${warnCount} warning${warnCount === 1 ? "" : "s"} on the free scan — the unopened areas are where reputation and revenue gaps usually hide.`
-        : `Both free areas came back clean. The unopened areas are where reputation and revenue gaps usually hide.`
+  const checksLine = FREE_UPGRADE_MODULE.checksLine(failed, warnings)
 
   const areaGrid = diagnosticAreaGrid()
 
@@ -289,10 +288,10 @@ export function UpgradeBanner({
       data-upgrade-module="action-roadmap"
     >
       <div className="text-sm leading-relaxed">
-        <p className="font-medium text-white text-base">
+        <p className="font-medium text-[var(--rpt-heading)] text-base">
           {UPGRADE_BANNER.headerLine(checked, total)}
         </p>
-        <p className="mt-1 text-white/80">{checksLine}</p>
+        <p className="mt-1 text-[var(--rpt-body)]">{checksLine}</p>
       </div>
 
       <ul
@@ -306,8 +305,8 @@ export function UpgradeBanner({
             className={cn(
               "flex items-start gap-2 rounded-md border px-3 py-3 text-sm",
               area.unlocked
-                ? "border-white/25 bg-white/10 text-white"
-                : "border-white/10 bg-white/5 text-white/55",
+                ? "border-[var(--rpt-card-border)] bg-[var(--rpt-card-bg)] text-[var(--rpt-heading)]"
+                : "border-[var(--rpt-card-border)] bg-white/50 text-[var(--rpt-muted)]",
             )}
           >
             {area.unlocked ? (
@@ -316,14 +315,14 @@ export function UpgradeBanner({
                 aria-hidden
               />
             ) : (
-              <Lock className="h-4 w-4 mt-0.5 shrink-0 text-white/40" aria-hidden />
+              <Lock className="h-4 w-4 mt-0.5 shrink-0 text-[var(--rpt-muted)]" aria-hidden />
             )}
             <span className="leading-snug font-medium">{area.label}</span>
           </li>
         ))}
       </ul>
 
-      <p className="text-sm text-white/80 leading-relaxed">{UPGRADE_BANNER.valueLine}</p>
+      <p className="text-sm text-[var(--rpt-body)] leading-relaxed">{UPGRADE_BANNER.valueLine}</p>
 
       <div className="flex flex-col gap-2">
         <Button variant="brand" asChild className="min-h-10 shrink-0 self-start">
@@ -332,20 +331,23 @@ export function UpgradeBanner({
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </Button>
-        <p className="text-xs text-white/60 leading-relaxed max-w-xl">
+        <p className="text-xs text-[var(--rpt-muted)] leading-relaxed max-w-xl">
           {UPGRADE_BANNER.body}
         </p>
         <Link
           href={premiumUrl}
-          className="text-sm text-white/70 underline-offset-4 hover:underline hover:text-white self-start"
+          className="text-sm text-[var(--rpt-blue-link)] underline-offset-4 hover:underline self-start"
         >
           {UPGRADE_BANNER.secondaryCta}
         </Link>
       </div>
 
-      <p className="text-xs text-white/55 leading-relaxed">
+      <p className="text-xs text-[var(--rpt-muted)] leading-relaxed">
         {UPGRADE_BANNER.monitoringBridge}{" "}
-        <Link href={monitoringUrl} className="text-white underline underline-offset-2">
+        <Link
+          href={monitoringUrl}
+          className="text-[var(--rpt-blue-link)] underline underline-offset-2"
+        >
           {UPGRADE_BANNER.monitoringCta}
         </Link>
       </p>

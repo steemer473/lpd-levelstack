@@ -12,6 +12,7 @@ import {
   isPlaceholderReputationGap,
   marketPhrase,
   pickReputationPublicSignal,
+  pickSearchPublicSignal,
   polishFreeTierWhatProspectsSee,
 } from "@/lib/report/free-tier-insights"
 import { resolveExecutiveContent } from "@/lib/report/executive-summary-resolve"
@@ -201,9 +202,83 @@ describe("free-tier-insights", () => {
     expect(copy).not.toMatch(/From public research:.*Upgrade to the Action Roadmap/)
   })
 
+  it("prefers brand search findings for search public signal teaser", () => {
+    const report: LevelstackReportJson = {
+      ...freeReport,
+      meta: {
+        ...freeReport.meta,
+        businessName: "LT Printing & Promotion",
+        ownerName: "LT Printing & Promotion",
+      },
+      sections: [
+        {
+          id: "search_footprint",
+          label: "Search footprint",
+          status: "good",
+          score: 86,
+          findings: [
+            {
+              label: 'Google page 1 — "printing Atlanta" (service)',
+              value: "Your website ranks #4 for this service term.",
+              detail: "Competitors ahead.",
+              severity: "high",
+            },
+            {
+              label: 'Brand search — "LT Printing & Promotion"',
+              value: "Your business ranks #1 for its brand name",
+              detail: "Strong brand match.",
+              severity: "good",
+            },
+          ],
+        },
+        ...freeReport.sections.filter((s) => s.id !== "search_footprint"),
+      ],
+    }
+
+    expect(pickSearchPublicSignal(report)).toBe(
+      "Your business ranks #1 for its brand name",
+    )
+    const copy = buildFreeTierWhatProspectsSee(report)
+    expect(copy).toContain("From public research: Your business ranks #1 for its brand name")
+  })
+
+  it("surfaces highest-severity social finding in social presence teaser", () => {
+    const report: LevelstackReportJson = {
+      ...freeReport,
+      sections: [
+        ...freeReport.sections.filter((s) => s.id !== "social_offsite"),
+        {
+          id: "social_offsite",
+          label: "Social & off-site presence",
+          status: "good",
+          score: 78,
+          findings: [
+            {
+              label: "Facebook",
+              value: "No clear Facebook profile matched your brand in search",
+              detail: "Empty results.",
+              severity: "high",
+            },
+            {
+              label: "LinkedIn",
+              value: "LinkedIn profile linked from your website",
+              detail: "Profile URL found on homepage.",
+              severity: "good",
+            },
+          ],
+        },
+      ],
+    }
+
+    expect(buildFreeTierReputationGap(report)).toContain(
+      "From public research: No clear Facebook profile matched",
+    )
+  })
+
   it("replaces free-tier what prospects see with structured copy", () => {
     const copy = buildFreeTierWhatProspectsSee(freeReport)
-    expect(copy).toContain("When prospects search for Alex or Test Co")
+    expect(copy).toContain("When prospects search for Test Co")
+    expect(copy).not.toContain("Alex or Test Co")
     expect(copy).toContain("From public research:")
     expect(copy).toContain("top 10 organic results")
     expect(copy).toContain("Open the Search footprint tab")
@@ -223,7 +298,7 @@ describe("free-tier-insights", () => {
     const parts = buildFreeTierWhatProspectsSeeParts(freeReport)
     const highlight = parts.find((p) => p.kind === "highlight")
     expect(highlight?.kind === "highlight" ? highlight.text : "").toBe(
-      "When prospects search for Alex or Test Co in Atlanta, GA, the first screen shapes trust before they book your services.",
+      "When prospects search for Test Co in Atlanta, GA, the first screen shapes trust before they book your services.",
     )
   })
 
@@ -236,11 +311,54 @@ describe("free-tier-insights", () => {
     const highlight = parts.find((p) => p.kind === "highlight")
     const text = highlight?.kind === "highlight" ? highlight.text : ""
     expect(text).toBe(
-      "When prospects search for Alex or Test Co, the first screen shapes trust before they book your services.",
+      "When prospects search for Test Co, the first screen shapes trust before they book your services.",
     )
     expect(text).not.toMatch(/\bin\s*[,.]/)
     expect(text).not.toContain(" in ,")
     expect(text).not.toContain(" in .")
+  })
+
+  it("What prospects see does not double the business name when owner matches", () => {
+    const report: LevelstackReportJson = {
+      ...freeReport,
+      meta: {
+        ...freeReport.meta,
+        businessName: "LT Printing & Promotion",
+        ownerName: "LT Printing & Promotion",
+        marketLabel: "",
+      },
+    }
+    const parts = buildFreeTierWhatProspectsSeeParts(report)
+    const highlight = parts.find((p) => p.kind === "highlight")
+    const text = highlight?.kind === "highlight" ? highlight.text : ""
+    expect(text).toBe(
+      "When prospects search for LT Printing & Promotion, the first screen shapes trust before they book your services.",
+    )
+    expect(text).not.toMatch(/LT Printing & Promotion or LT Printing & Promotion/)
+  })
+
+  it("What prospects see can append a distinct category as the second search subject", () => {
+    const report: LevelstackReportJson = {
+      ...freeReport,
+      meta: {
+        ...freeReport.meta,
+        businessName: "LT Printing & Promotion",
+        ownerName: "LT Printing & Promotion",
+        marketLabel: "",
+        businessCategory: {
+          id: "local_consumer_services",
+          label: "printing services",
+          source: "inferred",
+          gbpCategoryRaw: null,
+        },
+      },
+    }
+    const parts = buildFreeTierWhatProspectsSeeParts(report)
+    const highlight = parts.find((p) => p.kind === "highlight")
+    const text = highlight?.kind === "highlight" ? highlight.text : ""
+    expect(text).toBe(
+      "When prospects search for LT Printing & Promotion or printing services, the first screen shapes trust before they book your services.",
+    )
   })
 
   it("polishes what prospects see placeholders", () => {

@@ -8,6 +8,7 @@ import {
   diagnosticAreaCounts,
   diagnosticAreaGrid,
   freeExecutiveHeadline,
+  freeScanIssueCounts,
   freeScoreBasisLine,
   resolvePriorityFinding,
   verifiedChecksList,
@@ -93,9 +94,10 @@ describe("diagnosticAreaGrid", () => {
 })
 
 describe("freeScoreBasisLine", () => {
-  it("names locked areas and does not repeat score or grade", () => {
+  it("names locked areas and states the grade will change", () => {
     const line = freeScoreBasisLine()
     expect(line).toContain("Based on 2 of 6 areas checked")
+    expect(line).toContain("This grade will change as locked areas are opened")
     expect(line).toContain("Reputation")
     expect(line).toContain("Digital Presence")
     expect(line).toContain("Revenue Funnel")
@@ -103,6 +105,52 @@ describe("freeScoreBasisLine", () => {
     expect(line).toContain("still locked")
     expect(line).not.toMatch(/\d+\/100/)
     expect(line).not.toMatch(/\([A-F][+-]?\)/)
+  })
+})
+
+describe("freeScanIssueCounts", () => {
+  it("prefers signalRows over meta when present", () => {
+    const report = {
+      meta: baseMeta({ criticalCount: 9, highCount: 9, lowCount: 9 }),
+      executiveSummary: {
+        paragraphs: [],
+        criticalIssue: "",
+        firstSteps: [],
+      },
+      sections: emptySections(),
+      actionPlan: { thisWeek: [], thisMonth: [], thisQuarter: [] },
+      signalRows: [
+        { label: "A", value: "FAIL", percent: 0, tone: "red" },
+        { label: "B", value: "WARNING", percent: 50, tone: "amber" },
+        { label: "C", value: "WARNING", percent: 50, tone: "amber" },
+        { label: "D", value: "PASS", percent: 100, tone: "green" },
+      ],
+    } as LevelstackReportJson
+
+    expect(freeScanIssueCounts(report)).toEqual({
+      failed: 1,
+      warnings: 2,
+      passed: 1,
+    })
+  })
+
+  it("falls back to meta when signalRows are absent", () => {
+    const report = {
+      meta: baseMeta({ criticalCount: 1, highCount: 2, lowCount: 3 }),
+      executiveSummary: {
+        paragraphs: [],
+        criticalIssue: "",
+        firstSteps: [],
+      },
+      sections: emptySections(),
+      actionPlan: { thisWeek: [], thisMonth: [], thisQuarter: [] },
+    } as LevelstackReportJson
+
+    expect(freeScanIssueCounts(report)).toEqual({
+      failed: 1,
+      warnings: 2,
+      passed: 3,
+    })
   })
 })
 

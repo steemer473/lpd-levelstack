@@ -12,7 +12,7 @@ P1-3 presentation rules (letter grade + severity chrome) are documented below.
 
 ```
 overallScore = round( mean( section.score for each scored diagnostic section ) )
-letterGrade  = letterGradeFromScore(overallScore)   // A≥90, B≥80, C≥70, D≥60, else F
+letterGrade  = letterGradeFromScore(overallScore)   // 13-point A+…D- / F; see Letter grades
 ```
 
 **Included:** every section present on the rendered report except:
@@ -85,15 +85,17 @@ Search Footprint includes a live **Google AI Overview** presence check derived f
 
 ## Letter grades
 
-**One threshold set everywhere:** `letterGradeFromScore` in `lib/audit/types.ts`.
+**One threshold set everywhere:** `letterGradeFromScore` / `LETTER_GRADE_THRESHOLDS` in `lib/audit/types.ts`. Grades may include `+` / `-` modifiers (standard US 13-point scale). F is unmodified.
 
-| Grade | Score |
-|-------|-------|
-| A | ≥ 90 |
-| B | ≥ 80 |
-| C | ≥ 70 |
-| D | ≥ 60 |
-| F | &lt; 60 |
+| Score | Grade | Score | Grade |
+|-------|-------|-------|-------|
+| 97–100 | A+ | 77–79 | C+ |
+| 93–96 | A | 73–76 | C |
+| 90–92 | A- | 70–72 | C- |
+| 87–89 | B+ | 67–69 | D+ |
+| 83–86 | B | 63–66 | D |
+| 80–82 | B- | 60–62 | D- |
+| | | 0–59 | F |
 
 Legacy inline thresholds in `assembleReportJson` (B/C/D at 80/70/55, no A) are removed as of P1-1.
 
@@ -103,7 +105,7 @@ Positioning: advisor, not SEO scare tool (critique §14.3). Scoring math is unch
 
 ### Letter grades (customer UI)
 
-- **Keep** A–F via `letterGradeFromScore` (thresholds above).
+- **Keep** A+–F via `letterGradeFromScore` (thresholds above; may include `+` / `-`).
 - **Keep** current letter size on score card / KPI / print.
 - Grade color uses the neutral report heading token (`--rpt-heading`) — **never** severity-critical / alarm red, including for F.
 - Grade styling is independent of banner severity (no shared severity class that pairs a red F with an alarm banner).

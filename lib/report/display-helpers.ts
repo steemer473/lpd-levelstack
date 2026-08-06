@@ -31,7 +31,7 @@ export const REPORT_ASSESSMENT_TITLE =
 /** Short subtitle shown in dashboard sidebar/header (Option A design). */
 export const REPORT_ASSESSMENT_SUBTITLE = "Digital Presence Assessment" as const
 
-/** Headline under overall score — demoted on free tier in favor of Free scan label. */
+/** Headline under overall score — demoted on free tier in favor of Grade so far label. */
 export function readinessHeadline(score: number): string {
   if (score >= 80) return "Strong performance"
   if (score >= 70) return "Established presence"

@@ -93,6 +93,7 @@ export function pickDistinctFindings(
 function sectionLabel(sectionId: string): string {
   const labels: Record<string, string> = {
     search_footprint: "search footprint",
+    social_offsite: "social & off-site presence",
     online_reputation: "reputation",
     digital_presence: "digital presence",
     revenue_funnel: "revenue funnel",

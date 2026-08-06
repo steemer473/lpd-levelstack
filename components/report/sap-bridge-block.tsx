@@ -18,7 +18,7 @@ export function SapBridgeBlock({ placement, reportId }: SapBridgeBlockProps) {
   return (
     <>
       <div className="rpt-upsell mt-6 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs leading-relaxed text-white/60 max-w-xl">{copy.body}</p>
+        <p className="text-xs leading-relaxed text-[var(--rpt-muted)] max-w-xl">{copy.body}</p>
         <button
           type="button"
           onClick={() => setSapModalOpen(true)}

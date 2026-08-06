@@ -9,9 +9,9 @@ describe("deriveOverallFromSections", () => {
       { id: "online_reputation", score: 62 },
       { id: "digital_presence", score: 62 },
     ])
-    // (87+62+62)/3 = 70.333… → 70, grade C
+    // (87+62+62)/3 = 70.333… → 70, grade C-
     expect(derived.overallScore).toBe(70)
-    expect(derived.letterGrade).toBe("C")
+    expect(derived.letterGrade).toBe("C-")
     expect(derived.includedSectionIds).toEqual([
       "search_footprint",
       "online_reputation",
@@ -29,8 +29,11 @@ describe("deriveOverallFromSections", () => {
     expect(derived.includedSectionIds).not.toContain("action_plan")
   })
 
-  it("uses letterGradeFromScore thresholds (A at 90)", () => {
+  it("uses letterGradeFromScore thresholds (A- at 90, A at 93)", () => {
     expect(deriveOverallFromSections([{ id: "search_footprint", score: 90 }]).letterGrade).toBe(
+      "A-",
+    )
+    expect(deriveOverallFromSections([{ id: "search_footprint", score: 93 }]).letterGrade).toBe(
       "A",
     )
     expect(deriveOverallFromSections([{ id: "search_footprint", score: 59 }]).letterGrade).toBe(
@@ -68,7 +71,7 @@ describe("deriveOverallFromSections", () => {
       { id: "social_offsite", score: 62 },
     ])
     expect(derived.overallScore).toBe(71)
-    expect(derived.letterGrade).toBe("C")
+    expect(derived.letterGrade).toBe("C-")
     expect(derived.includedSectionIds).toEqual([
       "search_footprint",
       "social_offsite",

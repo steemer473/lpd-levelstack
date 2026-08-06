@@ -1,5 +1,6 @@
 "use client"
 
+import type { ComponentProps } from "react"
 import { Info } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -14,10 +15,16 @@ export function ReportFieldHint({
   label,
   detail,
   className,
+  side = "bottom",
+  align = "start",
+  collisionPadding = 12,
 }: {
   label: string
   detail: string
   className?: string
+  side?: ComponentProps<typeof PopoverContent>["side"]
+  align?: ComponentProps<typeof PopoverContent>["align"]
+  collisionPadding?: number
 }) {
   return (
     <Popover>
@@ -35,7 +42,12 @@ export function ReportFieldHint({
           <Info className="size-3" aria-hidden />
         </Button>
       </PopoverTrigger>
-      <PopoverContent side="top" align="start" className="w-72 gap-2 p-3">
+      <PopoverContent
+        side={side}
+        align={align}
+        collisionPadding={collisionPadding}
+        className="w-72 max-w-[calc(100vw-1.5rem)] gap-2 p-3"
+      >
         <p className="text-[11px] font-semibold text-foreground">{label}</p>
         <p className="text-[12px] leading-relaxed text-muted-foreground">{detail}</p>
       </PopoverContent>
