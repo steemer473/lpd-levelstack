@@ -460,47 +460,116 @@ export function buildSectionsFromResearch(
   })
 
   const runsAds = intake.hasActiveAdSpend === "yes"
+  const funnelSite = bundle.revenueFunnel.website
   const funnelPsi = bundle.revenueFunnel.pageSpeed
+  const heroText =
+    bundle.revenueFunnel.heroText?.trim() || funnelSite.h1?.trim() || null
+  const navLabels = bundle.revenueFunnel.navLabels
+  const hasHero = Boolean(heroText)
+  const hasNav = navLabels.length > 0
+  const hasCta = funnelSite.hasCtaLanguage
+  const hasForm = funnelSite.hasContactForm
+  const formFieldCount = funnelSite.formFieldCount
+  const mobileScore = funnelPsi.mobileScore
+
+  const liveSignalGaps: string[] = []
+  if (!hasHero) liveSignalGaps.push("missing hero headline")
+  if (!hasNav) liveSignalGaps.push("no clear navigation labels")
+  if (!hasCta) liveSignalGaps.push(`weak ${TERMS.cta} language`)
+  if (!hasForm) liveSignalGaps.push("no contact form on homepage")
+  if (mobileScore != null && mobileScore < 60) {
+    liveSignalGaps.push(`slow mobile ${TERMS.pageSpeed} (${mobileScore}/100)`)
+  }
+
+  const readinessStrong =
+    hasHero && hasCta && (hasForm || hasNav) && (mobileScore == null || mobileScore >= 60)
+  const readinessSeverity: ReportFinding["severity"] = readinessStrong
+    ? "low"
+    : liveSignalGaps.length >= 3
+      ? "high"
+      : "medium"
+  const readinessValue = readinessStrong
+    ? "Homepage shows a usable conversion path"
+    : liveSignalGaps.length > 0
+      ? `Homepage conversion gaps: ${liveSignalGaps.slice(0, 3).join("; ")}`
+      : "Homepage conversion signals are incomplete"
+
   const funnelFindings: ReportFinding[] = [
     {
-      label: "Offer & conversion signals",
-      value: `${intake.primaryService} · ${intake.pricePoint}`,
+      label: "Homepage conversion readiness",
+      value: readinessValue,
       detail: [
-        bundle.revenueFunnel.intakeNotes,
-        site.hasCtaLanguage
+        hasHero
+          ? `Hero headline present: “${heroText!.slice(0, 80)}${heroText!.length > 80 ? "…" : ""}”.`
+          : "No clear H1/hero headline — prospects may not know what you offer in the first screen.",
+        hasNav
+          ? `Navigation labels detected (${navLabels.slice(0, 4).join(", ")}${navLabels.length > 4 ? "…" : ""}).`
+          : "Navigation labels were not detected — key paths may be hard to find.",
+        hasCta
           ? `${TERMS.cta} language detected on homepage.`
           : `Limited ${TERMS.cta} language on homepage — prospects may not see a clear next step.`,
-        funnelPsi.mobileScore != null
-          ? `Mobile ${TERMS.pageSpeed} score: ${funnelPsi.mobileScore}/100${funnelPsi.mobileScore < 60 ? " — slow mobile experience hurts ad and organic conversion." : "."}`
-          : null,
-      ]
-        .filter(Boolean)
-        .join(" "),
-      severity: site.hasCtaLanguage ? ("low" as const) : ("medium" as const),
+        hasForm
+          ? `Contact form detected on homepage (${formFieldCount} field${formFieldCount === 1 ? "" : "s"}).`
+          : "No contact form detected on the homepage — form friction beyond this page was not crawled in this pass.",
+        mobileScore != null
+          ? `Mobile ${TERMS.pageSpeed} score: ${mobileScore}/100${mobileScore < 60 ? " — slow mobile experience hurts conversion." : "."}`
+          : `Mobile ${TERMS.pageSpeed} was not available for this run.`,
+      ].join(" "),
+      severity: readinessSeverity,
     },
   ]
   const funnelChecks: SectionCheck[] = [
     {
-      availability: "negative",
-      severity: site.hasCtaLanguage ? "low" : "medium",
+      availability: readinessStrong ? "ok" : "negative",
+      severity: readinessSeverity,
     },
   ]
-  // Homepage CTA check is always "checked" from research — ok if strong CTA
-  funnelChecks[0]!.availability = site.hasCtaLanguage ? "ok" : "negative"
+
+  const offerClarityStrong = hasHero && hasCta
+  funnelFindings.push({
+    label: "Offer & conversion signals",
+    value: offerClarityStrong
+      ? "Offer and next step are visible on the homepage"
+      : hasHero
+        ? `Offer headline present; weak ${TERMS.cta} on homepage`
+        : `Unclear offer path — missing hero and/or ${TERMS.cta}`,
+    detail: [
+      offerClarityStrong
+        ? "Live homepage signals show both a headline and a call to action."
+        : "Prospects need a clear offer headline and a single obvious next step before they will convert.",
+      hasForm
+        ? "A homepage form is available for capture."
+        : "No homepage form — confirm the primary conversion path (call, book, or contact) is obvious without scrolling guesswork.",
+    ].join(" "),
+    severity: offerClarityStrong ? ("low" as const) : ("medium" as const),
+  })
+  funnelChecks.push({
+    availability: offerClarityStrong ? "ok" : "negative",
+    severity: offerClarityStrong ? "low" : "medium",
+  })
 
   if (runsAds) {
-    const adSeverity: ReportFinding["severity"] = site.hasCtaLanguage
-      ? "high"
-      : "critical"
+    const landingReady = hasCta && (mobileScore == null || mobileScore >= 50)
+    const adSeverity: ReportFinding["severity"] = landingReady ? "high" : "critical"
     funnelFindings.push({
       label: "Paid traffic → landing",
-      value: `Active ad spend (${intake.adPlatforms ?? "paid"} ~${intake.adBudget ?? "budget not specified"})`,
+      value: landingReady
+        ? "Landing shows basic conversion signals for paid traffic"
+        : "Landing is weak for paid traffic — fix before scaling spend",
       detail: [
-        "Prospects who click ads land on your site before they trust you from search.",
-        site.hasCtaLanguage
+        "You reported active ad spend in intake; prospects who click ads land here before they trust you from search.",
+        intake.adPlatforms || intake.adBudget
+          ? `Reported channels: ${intake.adPlatforms ?? "paid"} (~${intake.adBudget ?? "budget not specified"}).`
+          : null,
+        hasCta
           ? `Homepage shows some ${TERMS.cta} language; still verify message match with ad copy and offer.`
           : `Weak homepage ${TERMS.cta} and trust signals increase wasted spend — consider pausing scale until landing is fixed.`,
-      ].join(" "),
+        mobileScore != null && mobileScore < 50
+          ? `Mobile ${TERMS.pageSpeed} ${mobileScore}/100 will burn paid clicks.`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" "),
       severity: adSeverity,
     })
     funnelChecks.push({ availability: "negative", severity: adSeverity })
@@ -772,7 +841,15 @@ export function buildExecutiveSummaryFromResearch(
     paragraphs.push(
       `You reported active ad spend (${intake.adPlatforms ?? "paid channels"}, ~${intake.adBudget ?? "budget not specified"}). If landing page trust or message match is weak, a portion of that spend may reach clicks that never convert — fix trust signals before scaling budget.`,
     )
+  } else {
+    paragraphs.push(
+      "You reported no active ad spend. Organic and referral visitors still need a clear homepage offer and next step — conversion readiness is what this report's Revenue funnel section measures from live page signals.",
+    )
   }
+
+  paragraphs.push(
+    `Offer context from intake (not scored as funnel findings): ${intake.primaryService} at ${intake.pricePoint}. Email list size ~${intake.emailListSize}. Purchase motivation: ${intake.purchaseMotivation.slice(0, 160)}${intake.purchaseMotivation.length > 160 ? "…" : ""}.`,
+  )
 
   paragraphs.push(
     "This report is diagnostic only — LevelStack identifies gaps; you or your team execute fixes. No ranking or revenue outcomes are guaranteed.",

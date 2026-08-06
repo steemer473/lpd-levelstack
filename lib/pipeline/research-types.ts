@@ -67,6 +67,11 @@ export type ResearchBundle = {
   revenueFunnel: {
     website: WebsiteSignals
     pageSpeed: PageSpeedSignals
+    /** Homepage hero H1 from extended fetch (reuse — no extra network). */
+    heroText: string | null
+    /** Homepage nav labels from extended fetch (reuse — no extra network). */
+    navLabels: string[]
+    /** Intake context for exec summary — not used as finding values. */
     intakeNotes: string
   }
   competitiveContext: {
@@ -99,6 +104,8 @@ const emptyWebsite: WebsiteSignals = {
   h1: null,
   usesHttps: false,
   hasCtaLanguage: false,
+  hasContactForm: false,
+  formFieldCount: 0,
   wordCountApprox: 0,
   limitation: "Not fetched yet.",
 }
@@ -152,6 +159,8 @@ export function emptyResearchBundle(): ResearchBundle {
     revenueFunnel: {
       website: { ...emptyWebsite },
       pageSpeed: { ...emptyPageSpeed },
+      heroText: null,
+      navLabels: [],
       intakeNotes: "",
     },
     competitiveContext: {

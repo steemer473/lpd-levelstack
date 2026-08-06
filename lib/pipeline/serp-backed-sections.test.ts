@@ -677,3 +677,81 @@ describe("buildSectionsFromResearch P2-4 B2B reputation cluster", () => {
     expect(separateClutch).toHaveLength(0)
   })
 })
+
+describe("buildSectionsFromResearch revenue_funnel page analysis", () => {
+  it("emits live-page findings when hasActiveAdSpend is no (no intake-only values)", () => {
+    const bundle = emptyResearchBundle()
+    bundle.revenueFunnel.website = {
+      ...bundle.revenueFunnel.website,
+      url: "https://levelplaydigital.com",
+      h1: "We build operational systems",
+      hasCtaLanguage: true,
+      hasContactForm: true,
+      formFieldCount: 3,
+      title: "Level Play Digital",
+    }
+    bundle.revenueFunnel.heroText = "We build operational systems"
+    bundle.revenueFunnel.navLabels = ["Home", "Platform", "Pricing", "Contact"]
+    bundle.revenueFunnel.pageSpeed = {
+      mobileScore: 72,
+      lcp: null,
+      cls: null,
+      limitation: null,
+    }
+    bundle.digitalPresence.website = bundle.revenueFunnel.website
+
+    const noAdsIntake = {
+      ...intake,
+      hasActiveAdSpend: "no" as const,
+      primaryService: "Marketing ops systems",
+      pricePoint: "$5k–$15k projects",
+    }
+
+    const sections = buildSectionsFromResearch(noAdsIntake, bundle)
+    const funnel = sections.find((s) => s.id === "revenue_funnel")!
+
+    expect(funnel.findings.length).toBeGreaterThanOrEqual(1)
+    expect(
+      funnel.findings.some((f) => f.label === "Homepage conversion readiness"),
+    ).toBe(true)
+
+    const intakeOnlyValues = [
+      noAdsIntake.primaryService,
+      noAdsIntake.pricePoint,
+      `${noAdsIntake.primaryService} · ${noAdsIntake.pricePoint}`,
+    ]
+    for (const finding of funnel.findings) {
+      expect(intakeOnlyValues).not.toContain(finding.value)
+    }
+  })
+
+  it("does not put raw ad platform/budget strings in paid-traffic finding value", () => {
+    const bundle = emptyResearchBundle()
+    bundle.revenueFunnel.website = {
+      ...bundle.revenueFunnel.website,
+      url: "https://levelplaydigital.com",
+      h1: "Systems",
+      hasCtaLanguage: false,
+      hasContactForm: false,
+      formFieldCount: 0,
+    }
+    bundle.revenueFunnel.heroText = "Systems"
+    bundle.revenueFunnel.navLabels = []
+    bundle.digitalPresence.website = bundle.revenueFunnel.website
+
+    const adsIntake = {
+      ...intake,
+      hasActiveAdSpend: "yes" as const,
+      adPlatforms: "Google Ads",
+      adBudget: "$2k/mo",
+    }
+
+    const sections = buildSectionsFromResearch(adsIntake, bundle)
+    const funnel = sections.find((s) => s.id === "revenue_funnel")!
+    const paid = funnel.findings.find((f) => f.label === "Paid traffic → landing")!
+
+    expect(paid.value).not.toMatch(/Google Ads/)
+    expect(paid.value).not.toMatch(/\$2k/)
+    expect(paid.detail).toMatch(/Google Ads/)
+  })
+})

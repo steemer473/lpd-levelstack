@@ -258,24 +258,36 @@ export const SECTION_GUIDES: Record<string, SectionGuide> = {
         type: "p",
         segments: [
           seg.t("This tab answers: "),
-          seg.b("“Is your stated offer and path to action clear enough to convert interest?”"),
+          seg.b(
+            "“Is your homepage clear enough that an interested prospect knows what you sell and what to do next?”",
+          ),
         ],
       },
-      { type: "p", segments: [seg.b("What we check today:")] },
+      { type: "p", segments: [seg.b("What we check today (homepage signals):")] },
       {
         type: "ul",
         items: [
           [
-            seg.b("Your intake offer"),
-            seg.t(" — what you sell, price signals, and why buyers purchase"),
+            seg.b("Hero / offer clarity"),
+            seg.t(" — whether a clear H1 headline is present"),
           ],
           [
-            seg.b("Ad / list context"),
-            seg.t(" you reported (spend and email list size, when provided)"),
+            seg.b("Navigation labels"),
+            seg.t(" — whether key paths are discoverable"),
           ],
           [
-            seg.b("Homepage conversion signals"),
-            seg.t(` — whether ${TERMS.cta} language appears, plus mobile ${TERMS.pageSpeed}`),
+            seg.b(`${TERMS.cta} language`),
+            seg.t(" — book, contact, get started, and similar calls to action"),
+          ],
+          [
+            seg.b("Contact form on homepage"),
+            seg.t(
+              " — form present or absent (homepage only; deeper pages not crawled yet)",
+            ),
+          ],
+          [
+            seg.b(`Mobile ${TERMS.pageSpeed}`),
+            seg.t(" — slow pages burn both organic and paid visits"),
           ],
         ],
       },
@@ -283,10 +295,12 @@ export const SECTION_GUIDES: Record<string, SectionGuide> = {
         type: "callout",
         tone: "tip",
         segments: [
-          seg.t("This is "),
-          seg.b("not a full page-by-page funnel audit yet"),
           seg.t(
-            " — deeper landing-page and form analysis is still limited. Use it as a conversion readiness read, then validate the primary action on your key pages.",
+            "Ad spend, email list size, and purchase motivation from intake appear in the ",
+          ),
+          seg.b("executive summary"),
+          seg.t(
+            " for context — they are not scored as funnel findings. Multi-page funnel crawls (pricing/contact) are still out of scope for this pass.",
           ),
         ],
       },

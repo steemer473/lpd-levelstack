@@ -86,8 +86,17 @@ function compactBundleForPrompt(bundle: ResearchBundle): string {
       })),
     },
     revenueFunnel: {
-      intakeNotes: bundle.revenueFunnel.intakeNotes,
+      website: {
+        hasCtaLanguage: bundle.revenueFunnel.website.hasCtaLanguage,
+        hasContactForm: bundle.revenueFunnel.website.hasContactForm,
+        formFieldCount: bundle.revenueFunnel.website.formFieldCount,
+        h1: bundle.revenueFunnel.website.h1,
+      },
+      heroText: bundle.revenueFunnel.heroText,
+      navLabels: bundle.revenueFunnel.navLabels,
       pageSpeed: bundle.revenueFunnel.pageSpeed,
+      /** Intake context for narrative only — must not become finding values. */
+      intakeNotes: bundle.revenueFunnel.intakeNotes,
     },
     competitiveContext: {
       serviceSearch: bundle.competitiveContext.serviceSearch
