@@ -3,11 +3,13 @@
 import {
   ArrowUp,
   ArrowRight,
+  Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronUp,
   Info,
+  Lock,
 } from "lucide-react"
 import Link from "next/link"
 import {
@@ -48,7 +50,7 @@ import {
 } from "@/lib/report/display-helpers"
 import { REPORT_INTRO } from "@/lib/report/section-guides"
 import { UPGRADE_BANNER } from "@/lib/report/outcome-copy"
-import { diagnosticAreaCounts } from "@/lib/report/free-executive-copy"
+import { diagnosticAreaCounts, diagnosticAreaGrid } from "@/lib/report/free-executive-copy"
 import {
   ownerRoleLabel,
   roadmapBucketsFromReport,
@@ -279,34 +281,68 @@ export function UpgradeBanner({
         ? `${warnCount} warning${warnCount === 1 ? "" : "s"} on the free scan — the unopened areas are where reputation and revenue gaps usually hide.`
         : `Both free areas came back clean. The unopened areas are where reputation and revenue gaps usually hide.`
 
+  const areaGrid = diagnosticAreaGrid()
+
   return (
     <div
       className="rpt-upsell flex flex-col gap-4 px-6 py-5"
       data-upgrade-module="action-roadmap"
     >
       <div className="text-sm leading-relaxed">
-        <p className="font-medium text-white">{UPGRADE_BANNER.leadLine}</p>
-        <p className="mt-1 text-white/80">
-          This Visibility Snapshot opened {checked} of {total} diagnostic areas. The
-          Action Plan is a separate deliverable.
+        <p className="font-medium text-white text-base">
+          {UPGRADE_BANNER.headerLine(checked, total)}
         </p>
         <p className="mt-1 text-white/80">{checksLine}</p>
-        <p className="mt-2 text-white/60">{UPGRADE_BANNER.body}</p>
       </div>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Button variant="brand" asChild className="min-h-10 shrink-0">
+
+      <ul
+        className="grid grid-cols-2 sm:grid-cols-3 gap-2 list-none pl-0 m-0"
+        aria-label="Diagnostic areas"
+      >
+        {areaGrid.map((area) => (
+          <li
+            key={area.id}
+            data-area-unlocked={area.unlocked ? "true" : "false"}
+            className={cn(
+              "flex items-start gap-2 rounded-md border px-3 py-3 text-sm",
+              area.unlocked
+                ? "border-white/25 bg-white/10 text-white"
+                : "border-white/10 bg-white/5 text-white/55",
+            )}
+          >
+            {area.unlocked ? (
+              <Check
+                className="h-4 w-4 mt-0.5 shrink-0 text-[var(--rpt-green,#5cb85c)]"
+                aria-hidden
+              />
+            ) : (
+              <Lock className="h-4 w-4 mt-0.5 shrink-0 text-white/40" aria-hidden />
+            )}
+            <span className="leading-snug font-medium">{area.label}</span>
+          </li>
+        ))}
+      </ul>
+
+      <p className="text-sm text-white/80 leading-relaxed">{UPGRADE_BANNER.valueLine}</p>
+
+      <div className="flex flex-col gap-2">
+        <Button variant="brand" asChild className="min-h-10 shrink-0 self-start">
           <Link href={upgradeUrl}>
-            {UPGRADE_BANNER.button}
+            {UPGRADE_BANNER.button} · {UPGRADE_BANNER.ctaSuffix}
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </Button>
+        <p className="text-xs text-white/60 leading-relaxed max-w-xl">
+          {UPGRADE_BANNER.body}
+        </p>
         <Link
           href={premiumUrl}
-          className="text-sm text-white/70 underline-offset-4 hover:underline hover:text-white"
+          className="text-sm text-white/70 underline-offset-4 hover:underline hover:text-white self-start"
         >
           {UPGRADE_BANNER.secondaryCta}
         </Link>
       </div>
+
       <p className="text-xs text-white/55 leading-relaxed">
         {UPGRADE_BANNER.monitoringBridge}{" "}
         <Link href={monitoringUrl} className="text-white underline underline-offset-2">

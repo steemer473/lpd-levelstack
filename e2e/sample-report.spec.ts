@@ -60,10 +60,26 @@ test.describe("Sample report — public marketing preview", () => {
 
   test("shows Checks failed KPI and one upgrade module", async ({ page }) => {
     await expect(page.getByText("Checks failed", { exact: true })).toBeVisible()
-    await expect(page.getByText(/Free scan:/i).first()).toBeVisible()
-    await expect(page.locator("[data-upgrade-module=action-roadmap]")).toHaveCount(1)
+    await expect(page.getByText("Free scan", { exact: true }).first()).toBeVisible()
+    await expect(page.getByText(/Partial · 2 of 6/i).first()).toBeVisible()
+
+    await page.getByRole("button", { name: /About Free Scan/i }).click()
+    await expect(page.getByText("Free Scan", { exact: true })).toBeVisible()
     await expect(
-      page.getByRole("link", { name: /Unlock Action Roadmap — \$97/i }).first(),
+      page.getByText(/Based on 2 of 6 areas checked/i),
+    ).toBeVisible()
+
+    const upgrade = page.locator("[data-upgrade-module=action-roadmap]")
+    await expect(upgrade).toHaveCount(1)
+    await expect(upgrade.getByText(/You've seen 2 of 6 areas/i)).toBeVisible()
+    await expect(upgrade.locator("[data-area-unlocked]")).toHaveCount(6)
+    await expect(upgrade.locator('[data-area-unlocked="true"]')).toHaveCount(2)
+    await expect(upgrade.locator('[data-area-unlocked="false"]')).toHaveCount(4)
+    await expect(
+      upgrade.getByRole("link", { name: /Unlock Action Roadmap — \$97/i }),
+    ).toBeVisible()
+    await expect(
+      upgrade.getByText(/applies in full as a credit|assessment fee credits/i),
     ).toBeVisible()
     await expect(page.getByText(/at capacity/i)).toHaveCount(0)
   })

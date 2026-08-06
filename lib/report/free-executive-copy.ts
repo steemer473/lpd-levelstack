@@ -428,11 +428,24 @@ export function customerFacingTopFinding(
   return buildVariantCopy(variantId, warning).observation
 }
 
-export function freeScoreBasisLine(report: LevelstackReportJson): string {
+export function freeScoreBasisLine(): string {
   const { checked, total } = diagnosticAreaCounts()
-  const score = report.meta.overallScore
-  const grade = report.meta.letterGrade
-  return `${FREE_SCORE_LABEL}: ${score}/100 (${grade}) — based on ${checked} of ${total} diagnostic areas (Search footprint and Social & off-site).`
+  return `Based on ${checked} of ${total} areas checked. Reputation, Digital Presence, Revenue Funnel, and Competitive Context are still locked.`
+}
+
+export type DiagnosticAreaGridItem = {
+  id: string
+  label: string
+  unlocked: boolean
+}
+
+/** Six diagnostic areas for the free upgrade module grid (excludes Action Plan). */
+export function diagnosticAreaGrid(): DiagnosticAreaGridItem[] {
+  return PIPELINE_STEPS.filter((s) => s.id !== "action_plan").map((s) => ({
+    id: s.id,
+    label: s.label,
+    unlocked: FREE_TIER_SECTION_IDS.has(s.id),
+  }))
 }
 
 export const FREE_UPGRADE_MODULE = {

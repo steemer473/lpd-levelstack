@@ -6,7 +6,9 @@ import {
   buildPriorityFindingFromSignals,
   customerFacingTopFinding,
   diagnosticAreaCounts,
+  diagnosticAreaGrid,
   freeExecutiveHeadline,
+  freeScoreBasisLine,
   resolvePriorityFinding,
   verifiedChecksList,
 } from "@/lib/report/free-executive-copy"
@@ -71,6 +73,39 @@ describe("diagnosticAreaCounts", () => {
   })
 })
 
+describe("diagnosticAreaGrid", () => {
+  it("returns 6 areas with Search and Social unlocked", () => {
+    const grid = diagnosticAreaGrid()
+    expect(grid).toHaveLength(6)
+    expect(grid.filter((a) => a.unlocked)).toHaveLength(2)
+    expect(grid.filter((a) => !a.unlocked)).toHaveLength(4)
+    expect(grid[0]).toMatchObject({ id: "search_footprint", unlocked: true })
+    expect(grid[1]).toMatchObject({ id: "social_offsite", unlocked: true })
+    expect(grid.map((a) => a.id)).toEqual([
+      "search_footprint",
+      "social_offsite",
+      "online_reputation",
+      "digital_presence",
+      "revenue_funnel",
+      "competitive_context",
+    ])
+  })
+})
+
+describe("freeScoreBasisLine", () => {
+  it("names locked areas and does not repeat score or grade", () => {
+    const line = freeScoreBasisLine()
+    expect(line).toContain("Based on 2 of 6 areas checked")
+    expect(line).toContain("Reputation")
+    expect(line).toContain("Digital Presence")
+    expect(line).toContain("Revenue Funnel")
+    expect(line).toContain("Competitive Context")
+    expect(line).toContain("still locked")
+    expect(line).not.toMatch(/\d+\/100/)
+    expect(line).not.toMatch(/\([A-F][+-]?\)/)
+  })
+})
+
 describe("freeExecutiveHeadline", () => {
   it("uses failure wording when criticalCount > 0", () => {
     const report = {
@@ -91,6 +126,26 @@ describe("freeExecutiveHeadline", () => {
     expect(h.lead).toContain("1 critical issue")
     expect(h.follow).toContain("4 areas we haven't opened")
     expect(h.full).not.toMatch(/both came back clean/i)
+    expect(h.full).not.toMatch(/\bin\s*[.,]/)
+    expect(h.full).not.toContain(" in .")
+    expect(h.full).not.toContain(" in ,")
+  })
+
+  it("stays clean when marketLabel is empty (headline never interpolates market)", () => {
+    const report = {
+      meta: baseMeta({ criticalCount: 1, marketLabel: "" }),
+      executiveSummary: {
+        paragraphs: [],
+        criticalIssue: "Snippet mismatch",
+        firstSteps: [],
+      },
+      sections: emptySections(),
+      actionPlan: { thisWeek: [], thisMonth: [], thisQuarter: [] },
+    } as LevelstackReportJson
+
+    const h = freeExecutiveHeadline(report)
+    expect(h.full).not.toMatch(/\bin\s*[.,]/)
+    expect(h.full).not.toContain("strengthen conversion in")
   })
 
   it("uses clean-scan wording when criticalCount is 0", () => {
@@ -321,6 +376,9 @@ describe("outcome-copy drift", () => {
     expect(PRODUCT_NAMES.free).toBe("Visibility Snapshot")
     expect(PRODUCT_NAMES.paid).toBe("Action Roadmap")
     expect(UPGRADE_BANNER.button).toBe("Unlock Action Roadmap — $97")
+    expect(UPGRADE_BANNER.headerLine(2, 6)).toBe("You've seen 2 of 6 areas.")
+    expect(UPGRADE_BANNER.valueLine).toMatch(/opens all six areas/i)
+    expect(UPGRADE_BANNER.ctaSuffix).toMatch(/one-time, no subscription/i)
     expect(UPGRADE_BANNER.body).toMatch(/assessment fee credits/i)
     expect(UPGRADE_BANNER.body).not.toMatch(/at capacity/i)
     expect(UPGRADE_BANNER.body).not.toMatch(/spots remaining/i)

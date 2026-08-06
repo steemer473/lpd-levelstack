@@ -6,9 +6,11 @@ import {
   buildFreeTierReputationGap,
   buildFreeTierRevenueRisk,
   buildFreeTierWhatProspectsSee,
+  buildFreeTierWhatProspectsSeeParts,
   isAboutSubjectReputationFinding,
   isGenericDirectoryListing,
   isPlaceholderReputationGap,
+  marketPhrase,
   pickReputationPublicSignal,
   polishFreeTierWhatProspectsSee,
 } from "@/lib/report/free-tier-insights"
@@ -207,6 +209,38 @@ describe("free-tier-insights", () => {
     expect(copy).toContain("Open the Search footprint tab")
     expect(copy).not.toContain("Not specified")
     expect(copy).not.toContain("contactplatinum.com")
+  })
+
+  it("marketPhrase drops when empty and keeps when present", () => {
+    expect(marketPhrase("Atlanta, GA")).toBe(" in Atlanta, GA")
+    expect(marketPhrase("")).toBe("")
+    expect(marketPhrase("   ")).toBe("")
+    expect(marketPhrase(null)).toBe("")
+    expect(marketPhrase(undefined)).toBe("")
+  })
+
+  it("What prospects see reads cleanly when market is present", () => {
+    const parts = buildFreeTierWhatProspectsSeeParts(freeReport)
+    const highlight = parts.find((p) => p.kind === "highlight")
+    expect(highlight?.kind === "highlight" ? highlight.text : "").toBe(
+      "When prospects search for Alex or Test Co in Atlanta, GA, the first screen shapes trust before they book your services.",
+    )
+  })
+
+  it("What prospects see drops market clause when marketLabel is empty", () => {
+    const report: LevelstackReportJson = {
+      ...freeReport,
+      meta: { ...freeReport.meta, marketLabel: "" },
+    }
+    const parts = buildFreeTierWhatProspectsSeeParts(report)
+    const highlight = parts.find((p) => p.kind === "highlight")
+    const text = highlight?.kind === "highlight" ? highlight.text : ""
+    expect(text).toBe(
+      "When prospects search for Alex or Test Co, the first screen shapes trust before they book your services.",
+    )
+    expect(text).not.toMatch(/\bin\s*[,.]/)
+    expect(text).not.toContain(" in ,")
+    expect(text).not.toContain(" in .")
   })
 
   it("polishes what prospects see placeholders", () => {

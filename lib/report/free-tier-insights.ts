@@ -177,6 +177,12 @@ function pickRevenuePublicSignal(report: LevelstackReportJson): string | undefin
   return match?.value ?? pools.find((f) => isCustomerFacingFinding(f.value))?.value
 }
 
+/** Drop the " in {market}" clause when market/location is missing — never leave "in ." or "in ,". */
+export function marketPhrase(marketLabel: string | undefined | null): string {
+  const trimmed = marketLabel?.trim()
+  return trimmed ? ` in ${trimmed}` : ""
+}
+
 export function buildFreeTierWhatProspectsSeeParts(
   report: LevelstackReportJson,
 ): ExecutiveInsightPart[] {
@@ -189,7 +195,7 @@ export function buildFreeTierWhatProspectsSeeParts(
   const parts: ExecutiveInsightPart[] = [
     {
       kind: "highlight",
-      text: `When prospects search for ${meta.ownerName} or ${meta.businessName} in ${meta.marketLabel}, the first screen shapes trust before they book your services.`,
+      text: `When prospects search for ${meta.ownerName} or ${meta.businessName}${marketPhrase(meta.marketLabel)}, the first screen shapes trust before they book your services.`,
     },
     {
       kind: "text",

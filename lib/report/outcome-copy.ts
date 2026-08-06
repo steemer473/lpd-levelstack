@@ -28,8 +28,13 @@ export type OutcomeLabelKey = keyof typeof OUTCOME_LABELS
 
 export const UPGRADE_BANNER = {
   leadLine: `Ready for the prioritized plan? Unlock your ${PRODUCT_NAMES.paid}.`,
+  headerLine: (checked: number, total: number) =>
+    `You've seen ${checked} of ${total} areas.`,
+  valueLine:
+    "The Action Roadmap opens all six areas, ranks every issue by impact, and gives you copy-paste fixes with owner and time-to-fix for each.",
   body: `The $97 assessment fee credits toward your first founding-rate month of SEO Automator Pro when an eligible slot opens (same email as purchase).`,
   button: `Unlock ${PRODUCT_NAMES.paid} — $97`,
+  ctaSuffix: "one-time, no subscription",
   secondaryCta: `Prefer a walkthrough? ${PRODUCT_NAMES.premium} — $297`,
   monitoringBridge:
     "Already planning to act on what you found? The technical foundation your rankings depend on needs ongoing attention — not just a one-time fix. SEO Automator Pro monitors your site continuously so you can see what changed and address it before visibility slips between audits.",

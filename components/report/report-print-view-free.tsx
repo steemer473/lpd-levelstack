@@ -39,7 +39,7 @@ function splitFirstSentence(text: string): { first: string; rest: string } {
 
 function PrintHeader({ report }: { report: LevelstackReportJson }) {
   const { meta } = report
-  const basisLine = freeScoreBasisLine(report)
+  const basisLine = freeScoreBasisLine()
   return (
     <header className="border-b-2 border-gray-900 pb-4 mb-6 break-inside-avoid">
       <h1 className="text-xl font-semibold">{meta.businessName}</h1>

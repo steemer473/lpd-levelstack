@@ -8,6 +8,7 @@ import {
 
 import { ExecutiveInsightBody } from "@/components/report/executive-insight-body"
 import { FormattedReportText } from "@/components/report/formatted-report-text"
+import { ReportFieldHint } from "@/components/report/report-field-hint"
 import { ScoreBreakdown } from "@/components/report/score-breakdown"
 import type { LevelstackReportJson, ReportSection } from "@/lib/pipeline/report-types"
 import {
@@ -41,25 +42,34 @@ type ExecutiveSummaryConversionProps = {
 function OverallScoreCard({
   meta,
   basisLine,
+  checked,
+  total,
 }: {
   meta: LevelstackReportJson["meta"]
   basisLine: string
+  checked: number
+  total: number
 }) {
   return (
     <div className="rpt-overall-score-card">
       <div className="score-main">
-        <p className="score-label">{FREE_SCORE_LABEL}</p>
+        <div className="mb-0.5 flex items-center gap-1">
+          <p className="score-label mb-0">{FREE_SCORE_LABEL}</p>
+          <ReportFieldHint label="Free Scan" detail={basisLine} />
+        </div>
         <p className="score-val">
           {meta.overallScore}
           <span className="score-denom">/100</span>
         </p>
-        <p className="readiness text-[0.7rem] leading-snug max-w-[11rem]">
-          {basisLine}
+      </div>
+      <div className="flex flex-col items-center gap-0.5">
+        <p className="grade" aria-label={`Partial score, ${meta.letterGrade}`}>
+          {meta.letterGrade}
+        </p>
+        <p className="text-[0.6rem] font-semibold uppercase tracking-wide text-[var(--rpt-muted)]">
+          Partial · {checked} of {total}
         </p>
       </div>
-      <p className="grade" aria-label={`Grade ${meta.letterGrade}`}>
-        {meta.letterGrade}
-      </p>
     </div>
   )
 }
@@ -181,7 +191,7 @@ export function ExecutiveSummaryConversion({
   const alarmSeverity = shouldUseAlarmSeverity(report)
   const counts = diagnosticAreaCounts()
   const verified = verifiedChecksList(report.signalRows)
-  const basisLine = freeScoreBasisLine(report)
+  const basisLine = freeScoreBasisLine()
   const teaser = teaserRecommendations(report, 3)
 
   const insightRows = [
@@ -217,7 +227,12 @@ export function ExecutiveSummaryConversion({
           {headline.lead}{" "}
           <span className="font-normal text-[var(--rpt-body)]">{headline.follow}</span>
         </h2>
-        <OverallScoreCard meta={meta} basisLine={basisLine} />
+        <OverallScoreCard
+          meta={meta}
+          basisLine={basisLine}
+          checked={counts.checked}
+          total={counts.total}
+        />
       </div>
 
       <KpiStrip meta={meta} alarmSeverity={alarmSeverity} />
