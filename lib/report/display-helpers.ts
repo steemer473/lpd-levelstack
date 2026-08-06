@@ -42,13 +42,13 @@ export function readinessHeadline(score: number): string {
 
 /** Two free-tier section cards on conversion hybrid executive summary. */
 export const FREE_EXECUTIVE_SECTION_ORDER: { id: string; label: string }[] = [
-  { id: "search_footprint", label: "Search footprint" },
+  { id: "search_footprint", label: "Google visibility" },
   { id: "social_offsite", label: "Social & off-site presence" },
 ]
 
 /** Metric cards on Option A executive summary (excludes executive_summary tab). */
 export const EXECUTIVE_METRIC_CARD_ORDER: { id: string; label: string }[] = [
-  { id: "search_footprint", label: "Search footprint" },
+  { id: "search_footprint", label: "Google visibility" },
   { id: "social_offsite", label: "Social & off-site presence" },
   { id: "online_reputation", label: "Reputation" },
   { id: "digital_presence", label: "Digital presence" },
@@ -260,7 +260,7 @@ export function priorityBreakdown(meta: LevelstackReportJson["meta"]) {
 
 export const SECTION_TAB_ORDER: { id: string; label: string }[] = [
   { id: "executive_summary", label: "Executive Summary" },
-  { id: "search_footprint", label: "Search footprint" },
+  { id: "search_footprint", label: "Google visibility" },
   { id: "social_offsite", label: "Social & off-site presence" },
   { id: "online_reputation", label: "Reputation" },
   { id: "digital_presence", label: "Digital presence" },

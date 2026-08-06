@@ -333,7 +333,7 @@ export function ExecutiveSummaryConversion({
             </ul>
           ) : (
             <p className="rpt-muted-text text-sm">
-              See Search footprint and Social &amp; off-site for verified public signals.
+              See Google visibility and Social &amp; off-site for verified public signals.
             </p>
           )}
         </div>
@@ -381,7 +381,7 @@ export function ExecutiveSummaryConversion({
           <ul className="rpt-conv-action-list list-none pl-0">
             <NextDecisionItem
               title="Confirm what Google shows for your brand name"
-              summary="Open Search footprint, compare the live snippet to your site, and note any mismatch."
+              summary="Open Google visibility, compare the live snippet to your site, and note any mismatch."
             />
             <NextDecisionItem
               title="Check which social profiles appear publicly"

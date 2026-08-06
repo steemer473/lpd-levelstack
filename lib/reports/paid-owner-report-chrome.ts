@@ -42,3 +42,7 @@ export function resolveReportNavVariant(
 
 /** Purchase CTA copy that must not appear for paid owners viewing a free snapshot. */
 export const LEVELSTACK_UNLOCK_97_CTA = "Unlock Action Roadmap — $97"
+
+/** Narrow-viewport Unlock CTA — verb + price only (supporting copy stays outside the button). */
+export const LEVELSTACK_UNLOCK_97_CTA_MOBILE = "Unlock — $97"
+

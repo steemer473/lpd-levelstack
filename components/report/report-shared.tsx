@@ -23,6 +23,7 @@ import {
 
 import { ExecutiveSummaryConversion } from "@/components/report/executive-summary-conversion"
 import { ExecutiveSummaryDashboard } from "@/components/report/executive-summary-dashboard"
+import { Unlock97CtaLabel } from "@/components/report/unlock-97-cta-label"
 import { ActionItemMatrixRow } from "@/components/report/action-item-matrix-row"
 import { LockedSectionPreview } from "@/components/report/locked-section-preview"
 import { RecommendationMatrixRow } from "@/components/report/recommendation-matrix-row"
@@ -298,7 +299,7 @@ export function UpgradeBanner({
       </div>
 
       <ul
-        className="grid grid-cols-2 sm:grid-cols-3 gap-2 list-none pl-0 m-0"
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 list-none pl-0 m-0"
         aria-label="Diagnostic areas"
       >
         {areaGrid.map((area) => (
@@ -328,12 +329,19 @@ export function UpgradeBanner({
       <p className="text-sm text-[var(--rpt-body)] leading-relaxed">{UPGRADE_BANNER.valueLine}</p>
 
       <div className="flex flex-col gap-2">
-        <Button variant="brand" asChild className="min-h-10 shrink-0 self-start">
+        <Button
+          variant="brand"
+          asChild
+          className="min-h-11 w-full shrink-0 justify-center text-center md:min-h-10 md:w-auto md:self-start md:justify-center"
+        >
           <Link href={upgradeUrl}>
-            {UPGRADE_BANNER.button} · {UPGRADE_BANNER.ctaSuffix}
+            <Unlock97CtaLabel />
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </Button>
+        <p className="text-xs text-[var(--rpt-muted)] leading-relaxed">
+          {UPGRADE_BANNER.ctaSuffix}
+        </p>
         <p className="text-xs text-[var(--rpt-muted)] leading-relaxed max-w-xl">
           {UPGRADE_BANNER.body}
         </p>
@@ -802,7 +810,10 @@ export function SectionPanel({
       </div>
 
       <SectionPanelHeader
-        title={section.label}
+        title={
+          SECTION_TAB_ORDER.find((t) => t.id === section.id)?.label ??
+          section.label
+        }
         tabId={section.id}
         trailing={null}
       />
@@ -987,7 +998,7 @@ export function ReportTabNavigation({
   return (
     <div
       className={cn(
-        "rpt-footer-nav flex flex-wrap items-center justify-between gap-3 px-6 py-3",
+        "rpt-footer-nav flex flex-col items-stretch gap-3 px-6 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between",
         prominent && "shadow-[0_-4px_24px_rgba(0,0,0,0.06)]",
       )}
     >
@@ -997,12 +1008,15 @@ export function ReportTabNavigation({
         size={prominent ? "default" : "sm"}
         disabled={!prev}
         onClick={() => prev && onSelectTab(prev.id)}
-        className="gap-1 flex-1 sm:flex-none min-w-0"
+        className="min-h-11 w-full gap-1 sm:min-h-0 sm:w-auto sm:flex-none min-w-0"
       >
         <ChevronLeft className="h-4 w-4 shrink-0" aria-hidden />
-        <span className="truncate">{prev ? `Previous: ${prev.label}` : "Previous"}</span>
+        <span className="truncate sm:hidden">{prev ? prev.label : "Previous"}</span>
+        <span className="hidden truncate sm:inline">
+          {prev ? `Previous: ${prev.label}` : "Previous"}
+        </span>
       </Button>
-      <span className="text-xs text-muted-foreground tabular-nums shrink-0">
+      <span className="text-center text-xs text-muted-foreground tabular-nums shrink-0">
         {idx + 1} of {tabs.length}
       </span>
       <Button
@@ -1011,9 +1025,12 @@ export function ReportTabNavigation({
         size={prominent ? "default" : "sm"}
         disabled={!next}
         onClick={() => next && onSelectTab(next.id)}
-        className="gap-1 flex-1 sm:flex-none min-w-0"
+        className="min-h-11 w-full gap-1 sm:min-h-0 sm:w-auto sm:flex-none min-w-0"
       >
-        <span className="truncate">{next ? `Next: ${next.label}` : "Next"}</span>
+        <span className="truncate sm:hidden">{next ? next.label : "Next"}</span>
+        <span className="hidden truncate sm:inline">
+          {next ? `Next: ${next.label}` : "Next"}
+        </span>
         <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
       </Button>
     </div>

@@ -105,7 +105,7 @@ export function resolveExecutiveContent(
       : {
           whatProspectsSee:
             summary.paragraphs[0] ??
-            "Review the Search footprint section for what prospects likely see today.",
+            "Review the Google visibility section for what prospects likely see today.",
           reputationGap:
             summary.paragraphs[1] ??
             "Compare your self-assessment with reputation findings in this report.",

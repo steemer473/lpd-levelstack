@@ -15,10 +15,11 @@ import {
 } from "@/components/report/report-shared"
 import { LockedSectionUnlockModal } from "@/components/report/locked-section-unlock-modal"
 import { PaidOwnerReportProvider } from "@/components/report/paid-owner-report-context"
+import { useRegisterReportMobileMenu } from "@/components/report/report-mobile-menu-context"
 import { ReportFaqSection } from "@/components/report/report-faq-section"
 import { ReportSidebar } from "@/components/report/report-sidebar"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
 type LevelstackReportViewProps = {
   report: LevelstackReportJson
@@ -41,6 +42,29 @@ export function LevelstackReportView({
   const isExecutive = nav.activeTab === "executive_summary"
   const [unlockModalOpen, setUnlockModalOpen] = useState(defaultUnlockModalOpen)
 
+  const sidebarTabs = useMemo(
+    () =>
+      nav.tabs.map((t) => ({
+        id: t.id,
+        label: t.label,
+        locked: t.locked,
+      })),
+    [nav.tabs],
+  )
+
+  const mobileMenuRegistration = useMemo(
+    () => ({
+      tabs: sidebarTabs,
+      activeTab: nav.activeTab,
+      onSelectTab: nav.selectTab,
+      onLockedTabClick: () => setUnlockModalOpen(true),
+      reportId,
+    }),
+    [sidebarTabs, nav.activeTab, nav.selectTab, reportId],
+  )
+
+  useRegisterReportMobileMenu(mobileMenuRegistration)
+
   return (
     <PaidOwnerReportProvider
       value={{
@@ -54,11 +78,7 @@ export function LevelstackReportView({
       >
         <ReportSidebar
           meta={meta}
-          tabs={nav.tabs.map((t) => ({
-            id: t.id,
-            label: t.label,
-            locked: t.locked,
-          }))}
+          tabs={sidebarTabs}
           activeTab={nav.activeTab}
           onSelectTab={nav.selectTab}
           onLockedTabClick={() => setUnlockModalOpen(true)}

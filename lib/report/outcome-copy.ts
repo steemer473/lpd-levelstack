@@ -125,7 +125,7 @@ export function formatRoiLine(tier: string): string | null {
 export const SCORE_DISCLAIMER = {
   title: "About these scores",
   product:
-    `${PRODUCT_NAMES.free} is a limited free view (Search footprint and Social & off-site). ${PRODUCT_NAMES.paid} is the full paid diagnostic with every unlocked section.`,
+    `${PRODUCT_NAMES.free} is a limited free view (Google visibility and Social & off-site). ${PRODUCT_NAMES.paid} is the full paid diagnostic with every unlocked section.`,
   scoreBasis:
     "Free and paid Overall scores often differ because they average different section sets — not because one run is “wrong.”",
   methodology:

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   LEVELSTACK_UNLOCK_97_CTA,
+  LEVELSTACK_UNLOCK_97_CTA_MOBILE,
   resolvePaidOwnerFreeChrome,
   resolveReportNavVariant,
 } from "@/lib/reports/paid-owner-report-chrome"
@@ -76,5 +77,12 @@ describe("LEVELSTACK_UNLOCK_97_CTA", () => {
   it("documents the purchase string paid-owner chrome must suppress", () => {
     expect(LEVELSTACK_UNLOCK_97_CTA).toMatch(/\$97/)
     expect(LEVELSTACK_UNLOCK_97_CTA).not.toMatch(/View your Action Roadmap/i)
+  })
+
+  it("exposes a short mobile unlock label with price", () => {
+    expect(LEVELSTACK_UNLOCK_97_CTA_MOBILE).toBe("Unlock — $97")
+    expect(LEVELSTACK_UNLOCK_97_CTA_MOBILE.length).toBeLessThan(
+      LEVELSTACK_UNLOCK_97_CTA.length,
+    )
   })
 })

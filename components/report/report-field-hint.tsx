@@ -46,10 +46,12 @@ export function ReportFieldHint({
         side={side}
         align={align}
         collisionPadding={collisionPadding}
-        className="w-72 max-w-[calc(100vw-1.5rem)] gap-2 p-3"
+        className="w-72 max-w-[calc(100vw-1.5rem)] gap-2 p-3 max-h-[min(70dvh,20rem)] overflow-y-auto overflow-x-hidden overscroll-contain"
       >
-        <p className="text-[11px] font-semibold text-foreground">{label}</p>
-        <p className="text-[12px] leading-relaxed text-muted-foreground">{detail}</p>
+        <p className="text-[11px] font-semibold text-foreground break-words">{label}</p>
+        <p className="text-[12px] leading-relaxed text-muted-foreground break-words">
+          {detail}
+        </p>
       </PopoverContent>
     </Popover>
   )

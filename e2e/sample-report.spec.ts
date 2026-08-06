@@ -1,6 +1,24 @@
-import { expect, test } from "@playwright/test"
+import { expect, test, type Page } from "@playwright/test"
 
 const SAMPLE_PATH = "/sample-report"
+
+async function openMobileMenu(page: Page) {
+  await page
+    .getByRole("navigation", { name: "LevelStack" })
+    .getByRole("button", { name: /Open menu/i })
+    .click()
+  await expect(page.getByRole("dialog", { name: "Menu" })).toBeVisible()
+}
+
+function reportSectionsNav(page: Page) {
+  const menuNav = page
+    .getByRole("dialog", { name: "Menu" })
+    .getByRole("navigation", { name: "Report sections" })
+  const inlineNav = page.locator("aside.rpt-sidebar").getByRole("navigation", {
+    name: "Report sections",
+  })
+  return menuNav.or(inlineNav)
+}
 
 test.describe("Sample report — public marketing preview", () => {
   test.beforeEach(async ({ page }) => {
@@ -17,9 +35,10 @@ test.describe("Sample report — public marketing preview", () => {
   })
 
   test("sidebar has eight tabs including executive summary", async ({ page }) => {
-    const nav = page.getByRole("navigation", { name: "Report sections" })
+    await openMobileMenu(page)
+    const nav = reportSectionsNav(page)
     await expect(nav.getByRole("button", { name: /Executive Summary/i })).toBeVisible()
-    await expect(nav.getByRole("button", { name: /Search footprint/i })).toBeVisible()
+    await expect(nav.getByRole("button", { name: /Google visibility/i })).toBeVisible()
     await expect(nav.getByRole("button", { name: /Social & off-site presence/i })).toBeVisible()
     await expect(nav.getByRole("button", { name: /Reputation/i })).toBeVisible()
     await expect(nav.getByRole("button", { name: /Digital presence/i })).toBeVisible()
@@ -28,20 +47,22 @@ test.describe("Sample report — public marketing preview", () => {
     await expect(nav.getByRole("button", { name: /Action plan/i })).toBeVisible()
   })
 
-  test("search footprint tab shows Google AI Overview preview", async ({ page }) => {
-    await page
-      .getByRole("navigation", { name: "Report sections" })
-      .getByRole("button", { name: /Search footprint/i })
+  test("Google visibility tab shows Google AI Overview preview", async ({ page }) => {
+    await openMobileMenu(page)
+    await reportSectionsNav(page)
+      .getByRole("button", { name: /Google visibility/i })
       .click()
     await expect(page.getByText(/Google AI Overview/i)).toBeVisible()
   })
 
   test("locked tab opens unlock modal", async ({ page }) => {
-    await page
-      .getByRole("navigation", { name: "Report sections" })
+    await openMobileMenu(page)
+    await reportSectionsNav(page)
       .getByRole("button", { name: /Revenue funnel/i })
       .click()
-    await expect(page.getByRole("dialog")).toBeVisible()
+    await expect(
+      page.getByRole("dialog", { name: /Unlock Your|Included in your Action Roadmap/i }),
+    ).toBeVisible()
   })
 
   test("OD-5 B: free exec shows capped teaser titles without Who/Time matrix", async ({
@@ -117,14 +138,16 @@ test.describe("Sample report — public marketing preview", () => {
   })
 
   test("OD-5 B: action plan tab stays locked with unlock modal", async ({ page }) => {
-    await page
-      .getByRole("navigation", { name: "Report sections" })
+    await openMobileMenu(page)
+    await reportSectionsNav(page)
       .getByRole("button", { name: /Action plan/i })
       .click()
-    const dialog = page.getByRole("dialog")
+    const dialog = page.getByRole("dialog", {
+      name: /Unlock Your|Included in your Action Roadmap/i,
+    })
     await expect(dialog).toBeVisible()
     await expect(
-      dialog.getByRole("link", { name: /Unlock Action Roadmap — \$97/i }),
+      dialog.getByRole("link", { name: /Unlock — \$97|Unlock Action Roadmap — \$97/i }),
     ).toBeVisible()
     await expect(dialog.getByText(/Action Roadmap shows how to close them/i)).toBeVisible()
   })

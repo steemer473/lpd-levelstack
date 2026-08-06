@@ -48,17 +48,19 @@ export function SectionGuideInfo({
       <PopoverContent
         side="bottom"
         align="start"
+        collisionPadding={16}
         className={cn(
-          "w-auto gap-0 p-4 max-h-[min(70vh,28rem)] overflow-y-auto",
-          isRich ? "max-w-md" : "max-w-sm",
+          "w-[min(24rem,calc(100vw-2rem))] gap-0 p-3 sm:p-4",
+          "max-h-[min(80dvh,28rem)] overflow-y-auto overflow-x-hidden overscroll-contain",
+          isRich ? "sm:max-w-md" : "sm:max-w-sm",
         )}
       >
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
           What this section shows
         </p>
         <SectionGuideBody content={guide.what} />
 
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mt-4 mb-2">
+        <p className="mb-2 mt-4 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
           Why it matters for your business
         </p>
         <div className="text-muted-foreground [&_strong]:text-foreground [&_p]:text-muted-foreground [&_li]:text-muted-foreground">

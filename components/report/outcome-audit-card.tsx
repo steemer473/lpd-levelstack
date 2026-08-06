@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { linkifyText } from "@/lib/report/linkify-urls"
 import { OUTCOME_LABELS, type OutcomeLabelKey } from "@/lib/report/outcome-copy"
 import { cn } from "@/lib/utils"
 
@@ -60,20 +61,24 @@ export function OutcomeAuditCard({
   const visibleBullets = bullets.filter(Boolean).slice(0, 3)
 
   return (
-    <div className={cn("rpt-finding-card mb-3", className)}>
+    <div className={cn("rpt-finding-card mb-3 min-w-0 overflow-hidden", className)}>
       <div className="mb-2 flex items-center gap-2">
         <Badge variant="outline" className={cn("gap-1.5", style.badgeClass)}>
           <Icon className="size-3.5" aria-hidden />
           {OUTCOME_LABELS[outcome]}
         </Badge>
       </div>
-      <p className="text-sm font-semibold leading-snug text-[var(--rpt-heading)]">{headline}</p>
+      <p className="text-sm font-semibold leading-snug text-[var(--rpt-heading)] break-words [overflow-wrap:anywhere]">
+        {linkifyText(headline)}
+      </p>
       {visibleBullets.length > 0 ? (
-        <ul className="mt-2 space-y-1.5 list-none pl-0">
+        <ul className="mt-2 min-w-0 space-y-1.5 list-none pl-0">
           {visibleBullets.map((bullet, index) => (
-            <li key={`${outcome}-${index}`} className="flex items-start gap-2 text-[13px]">
+            <li key={`${outcome}-${index}`} className="flex min-w-0 items-start gap-2 text-[13px]">
               <Icon className={cn("mt-0.5 h-3.5 w-3.5 shrink-0", style.bulletClass)} aria-hidden />
-              <span className="leading-relaxed text-[var(--rpt-body)]">{bullet}</span>
+              <span className="min-w-0 leading-relaxed text-[var(--rpt-body)] break-words [overflow-wrap:anywhere]">
+                {linkifyText(bullet)}
+              </span>
             </li>
           ))}
         </ul>
