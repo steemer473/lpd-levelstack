@@ -361,7 +361,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
           ) : null}
 
           <div className="rounded border border-gray-200 p-4">
-            <h3 className="font-medium mb-2">Search footprint highlight</h3>
+            <h3 className="font-medium mb-2">Google visibility highlight</h3>
             {searchFinding && searchFindingSeverity ? (
               <>
                 <FormattedReportText
@@ -382,7 +382,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
                 />
               </>
             ) : (
-              <p className="text-xs text-gray-600">See Search footprint section below.</p>
+              <p className="text-xs text-gray-600">See Google visibility section below.</p>
             )}
           </div>
         </div>
@@ -496,7 +496,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
       <section className="mb-6 rounded border border-orange-200 bg-orange-50 p-4 break-inside-avoid">
         <h3 className="font-semibold text-orange-900 mb-1">Upgrade to Action Roadmap — $97</h3>
         <p className="text-xs text-orange-950 leading-relaxed">
-          This free snapshot covers search footprint and social &amp; off-site presence. The Full
+          This free snapshot covers Google visibility and social &amp; off-site presence. The Full
           Report adds reputation, digital presence, revenue funnel diagnosis, competitive
           context, a complete prioritized 90-day action plan, and a downloadable PDF for your team.
         </p>

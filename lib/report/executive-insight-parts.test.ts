@@ -13,13 +13,13 @@ describe("executive-insight-parts", () => {
         kind: "finding",
         prefix: "From public research:",
         text: "Your site was not in the top 10.",
-        suffix: "Open Search footprint.",
+        suffix: "Open Google visibility.",
       },
       { kind: "muted", text: "Upgrade to the Action Roadmap ($97)." },
     ])
 
     expect(flat).toContain("Frame paragraph.")
-    expect(flat).toContain("From public research: Your site was not in the top 10. Open Search footprint.")
+    expect(flat).toContain("From public research: Your site was not in the top 10. Open Google visibility.")
     expect(flat).toContain("Upgrade to the Action Roadmap ($97).")
   })
 

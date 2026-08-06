@@ -76,7 +76,7 @@ export function ScoreBreakdown({ report, reportId }: ScoreBreakdownProps) {
           {isFree ? (
             <p className="rpt-caption normal-case tracking-normal">
               Free {meta.reportTier === "free_snapshot" ? "Visibility Snapshot" : "reports"} average{" "}
-              Search footprint and Social &amp; off-site only. Paid Action Roadmap scores include
+              Google visibility and Social &amp; off-site only. Paid Action Roadmap scores include
               every unlocked diagnostic section.
             </p>
           ) : null}

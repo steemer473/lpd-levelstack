@@ -140,7 +140,7 @@ export async function buildReportSections(
   const sections: ReportSection[] = [
     {
       id: "search_footprint",
-      label: "Search footprint review",
+      label: "Google visibility",
       ...scoreFromFindings(searchFindings),
       findings: searchFindings,
     },

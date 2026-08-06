@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
 
 import { usePaidOwnerReportChrome } from "@/components/report/paid-owner-report-context"
+import { Unlock97CtaLabel } from "@/components/report/unlock-97-cta-label"
 import {
   Dialog,
   DialogContent,
@@ -37,9 +38,6 @@ export function LockedSectionUnlockModal({
   const primaryHref = paidOwner
     ? `/reports/${actionRoadmapReportId}`
     : getHubCartUrl({ reportId, source: "levelstack_report" })
-  const primaryLabel = paidOwner
-    ? "View your Action Roadmap"
-    : LOCKED_SECTION_MODAL.primaryCta(price)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -76,14 +74,25 @@ export function LockedSectionUnlockModal({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="h-auto min-h-10 w-full whitespace-normal py-2 sm:w-auto"
+            className="h-auto min-h-10 w-full whitespace-normal py-2 text-center sm:w-auto sm:text-left"
           >
             {LOCKED_SECTION_MODAL.secondaryCta}
           </Button>
           <div className="flex w-full flex-col items-stretch gap-1.5 sm:w-auto sm:items-end">
-            <Button variant="brand" size="lg" asChild className="w-full sm:w-auto">
+            <Button
+              variant="brand"
+              size="lg"
+              asChild
+              className="w-full justify-center text-center sm:w-auto"
+            >
               <Link href={primaryHref}>
-                {primaryLabel}
+                {paidOwner ? (
+                  "View your Action Roadmap"
+                ) : price && price !== "$97" ? (
+                  LOCKED_SECTION_MODAL.primaryCta(price)
+                ) : (
+                  <Unlock97CtaLabel mobileBreakpoint="sm" />
+                )}
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
             </Button>

@@ -238,12 +238,12 @@ export function buildFreeTierWhatProspectsSeeParts(
       kind: "finding",
       prefix: "From public research:",
       text: publicSignal,
-      suffix: "Open the Search footprint tab for the full read.",
+      suffix: "Open the Google visibility tab for the full read.",
     })
   } else {
     parts.push({
       kind: "text",
-      text: "Open the Search footprint tab for what we found in live Google results.",
+      text: "Open the Google visibility tab for what we found in live Google results.",
     })
   }
 
@@ -336,15 +336,15 @@ export function buildFreeTierRevenueRiskParts(
       prefix: "From public research:",
       text: publicSignal,
       suffix: includeUpgradeTeasers
-        ? "See Search footprint and Social & off-site presence for the full read."
-        : "See Search footprint, Social & off-site presence, and Revenue funnel for the full read.",
+        ? "See Google visibility and Social & off-site presence for the full read."
+        : "See Google visibility, Social & off-site presence, and Revenue funnel for the full read.",
     })
   } else {
     parts.push({
       kind: "text",
       text: includeUpgradeTeasers
-        ? "See Search footprint and Social & off-site presence for conversion-related signals from public research."
-        : "See Search footprint, Social & off-site presence, and Revenue funnel for conversion-related signals.",
+        ? "See Google visibility and Social & off-site presence for conversion-related signals from public research."
+        : "See Google visibility, Social & off-site presence, and Revenue funnel for conversion-related signals.",
     })
   }
 

@@ -2,6 +2,7 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 
 import { DETAIL_KEY_LABELS } from "@/lib/report/customer-terms"
+import { linkifyText } from "@/lib/report/linkify-urls"
 import { cn } from "@/lib/utils"
 import {
   parseFindingDetail,
@@ -59,11 +60,11 @@ function ParsedDetailBody({ parsed }: { parsed: ParsedFindingDetail }) {
       return (
         <ul className="mt-2 space-y-1.5 list-none pl-0">
           {parsed.items.map((item) => (
-            <li key={item.key} className="text-[13px] leading-relaxed rpt-body-text">
+            <li key={item.key} className="text-[13px] leading-relaxed rpt-body-text break-words [overflow-wrap:anywhere]">
               <span className="font-semibold text-[var(--rpt-heading)]">
                 {DETAIL_KEY_LABELS[item.key] ?? item.key}:{" "}
               </span>
-              {item.value}
+              {linkifyText(item.value)}
             </li>
           ))}
         </ul>
@@ -72,8 +73,8 @@ function ParsedDetailBody({ parsed }: { parsed: ParsedFindingDetail }) {
       return (
         <ul className="mt-2 space-y-1.5 list-disc pl-4 marker:text-lpd-orange">
           {parsed.items.map((item, i) => (
-            <li key={i} className="text-[13px] leading-relaxed rpt-body-text">
-              {item}
+            <li key={i} className="text-[13px] leading-relaxed rpt-body-text break-words [overflow-wrap:anywhere]">
+              {linkifyText(item)}
             </li>
           ))}
         </ul>
@@ -82,15 +83,17 @@ function ParsedDetailBody({ parsed }: { parsed: ParsedFindingDetail }) {
       return (
         <div className="mt-2 space-y-2">
           {parsed.paragraphs.map((p, i) => (
-            <p key={i} className="text-[13px] leading-relaxed rpt-body-text">
-              {p}
+            <p key={i} className="text-[13px] leading-relaxed rpt-body-text break-words [overflow-wrap:anywhere]">
+              {linkifyText(p)}
             </p>
           ))}
         </div>
       )
     case "plain":
       return (
-        <p className="text-[13px] leading-relaxed rpt-body-text mt-2">{parsed.text}</p>
+        <p className="text-[13px] leading-relaxed rpt-body-text mt-2 break-words [overflow-wrap:anywhere]">
+          {linkifyText(parsed.text)}
+        </p>
       )
     default:
       return null
@@ -102,14 +105,16 @@ export function FindingValueHeadline({ value }: { value: string }) {
 
   if (!emphasis) {
     return (
-      <p className="text-sm font-semibold text-[var(--rpt-heading)] leading-snug">{value}</p>
+      <p className="text-sm font-semibold text-[var(--rpt-heading)] leading-snug break-words [overflow-wrap:anywhere]">
+        {linkifyText(value)}
+      </p>
     )
   }
 
   return (
-    <p className="text-sm leading-snug text-[var(--rpt-heading)]">
-      <span className="font-semibold">{lead} </span>
-      <span className="font-semibold text-lpd-orange">{emphasis}</span>
+    <p className="text-sm leading-snug text-[var(--rpt-heading)] break-words [overflow-wrap:anywhere]">
+      <span className="font-semibold">{linkifyText(lead)} </span>
+      <span className="font-semibold text-lpd-orange">{linkifyText(emphasis)}</span>
     </p>
   )
 }

@@ -82,7 +82,7 @@ OUTPUT — single search_footprint section JSON:
 {
   "section": {
     "id": "search_footprint",
-    "label": "Search footprint",
+    "label": "Google visibility",
     "status": "critical" | "attention" | "good",
     "score": 0-100,
     "findings": [

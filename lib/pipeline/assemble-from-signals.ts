@@ -126,7 +126,7 @@ export function buildSectionsFromSignals(
   const sections: ReportSection[] = [
     options?.searchFootprintOverride ?? {
       id: "search_footprint",
-      label: "Search footprint",
+      label: "Google visibility",
       status: sectionStatus(searchSignals),
       score: scoreFromSignals(searchSignals),
       findings: searchSignals.map(mapFinding),

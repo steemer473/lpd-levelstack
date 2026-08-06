@@ -75,7 +75,7 @@ export const SAMPLE_REPORT: LevelstackReportJson = {
   sections: [
     {
       id: "search_footprint",
-      label: "Search footprint",
+      label: "Google visibility",
       status: "critical",
       score: 74,
       findings: [

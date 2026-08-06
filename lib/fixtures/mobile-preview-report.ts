@@ -46,7 +46,7 @@ export const MOBILE_PREVIEW_FREE_REPORT: LevelstackReportJson = {
   sections: [
     {
       id: "search_footprint",
-      label: "Search footprint",
+      label: "Google visibility",
       status: "attention",
       score: 60,
       findings: [

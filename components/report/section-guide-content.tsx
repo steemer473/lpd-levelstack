@@ -29,13 +29,13 @@ function GuideBlock({ block }: { block: SectionGuideBlock }) {
   switch (block.type) {
     case "p":
       return (
-        <p className="text-sm leading-relaxed text-foreground">
+        <p className="text-sm leading-relaxed text-foreground break-words">
           <GuideSegments segments={block.segments} />
         </p>
       )
     case "ul":
       return (
-        <ul className="list-disc space-y-1.5 pl-4 text-sm leading-relaxed text-foreground marker:text-lpd-orange">
+        <ul className="list-disc space-y-1.5 pl-4 text-sm leading-relaxed text-foreground break-words marker:text-lpd-orange">
           {block.items.map((item, i) => (
             <li key={i}>
               <GuideSegments segments={item} />
@@ -45,7 +45,7 @@ function GuideBlock({ block }: { block: SectionGuideBlock }) {
       )
     case "ol":
       return (
-        <ol className="list-decimal space-y-1.5 pl-4 text-sm leading-relaxed text-foreground marker:font-semibold marker:text-lpd-orange">
+        <ol className="list-decimal space-y-1.5 pl-4 text-sm leading-relaxed text-foreground break-words marker:font-semibold marker:text-lpd-orange">
           {block.items.map((item, i) => (
             <li key={i} className="pl-0.5">
               <GuideSegments segments={item} />
@@ -57,7 +57,7 @@ function GuideBlock({ block }: { block: SectionGuideBlock }) {
       return (
         <div
           className={cn(
-            "rounded-md border-l-2 px-3 py-2 text-sm leading-relaxed",
+            "rounded-md border-l-2 px-3 py-2 text-sm leading-relaxed break-words",
             block.tone === "tip" &&
               "border-l-lpd-orange bg-muted/60 text-muted-foreground",
             block.tone === "important" &&
@@ -78,7 +78,11 @@ export function SectionGuideBody({
   content: string | SectionGuideBlock[]
 }) {
   if (typeof content === "string") {
-    return <p className="text-sm leading-relaxed text-foreground">{content}</p>
+    return (
+      <p className="text-sm leading-relaxed text-foreground break-words">
+        {content}
+      </p>
+    )
   }
 
   return (

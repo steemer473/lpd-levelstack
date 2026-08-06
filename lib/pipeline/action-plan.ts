@@ -178,7 +178,7 @@ export function buildActionPlanFromSections(
         : "Next step: Support AI/search snippets and comparison shoppers with clear entity pages.",
       who: runsAds ? "You" : "Freelancer",
       time: runsAds ? "2 hrs" : "3–4 hrs",
-      findingRef: runsAds ? "Paid traffic readiness" : "Search footprint",
+      findingRef: runsAds ? "Paid traffic readiness" : "Google visibility",
     },
   ]
 
