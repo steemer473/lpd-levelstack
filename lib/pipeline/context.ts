@@ -11,13 +11,21 @@ export type PipelineContext = {
 }
 
 export function marketLabelFromIntake(intake: LevelstackIntakeFormValues): string {
+  const location = marketLocationLabel(intake)
+  // Free-intake placeholder — omit so UI can suppress National + General.
+  if (
+    intake.geoMarket === "national" &&
+    !location &&
+    intake.primaryService === "General business services"
+  ) {
+    return ""
+  }
   const geo =
     intake.geoMarket === "local"
       ? "Local market"
       : intake.geoMarket === "regional"
         ? "Regional market"
         : "National market"
-  const location = marketLocationLabel(intake)
   return location
     ? `${geo} · ${location} · ${intake.primaryService}`
     : `${geo} · ${intake.primaryService}`

@@ -8,6 +8,7 @@ import type {
   LevelstackReportJson,
   ReportSection,
 } from "@/lib/pipeline/report-types"
+import { formatAssessmentDate } from "@/lib/report/free-executive-copy"
 
 export { buildActionPlanFromSections as buildActionPlan } from "@/lib/pipeline/action-plan"
 
@@ -228,11 +229,7 @@ export function assembleReportJson(
       businessName: intake.primaryBusinessName,
       ownerName: intake.ownerName,
       marketLabel: marketLabelFromIntake(intake),
-      reportDate: new Date().toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      }),
+      reportDate: formatAssessmentDate(),
       planId,
       overallScore,
       letterGrade,

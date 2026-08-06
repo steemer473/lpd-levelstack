@@ -27,9 +27,13 @@ export const OUTCOME_LABELS = {
 export type OutcomeLabelKey = keyof typeof OUTCOME_LABELS
 
 export const UPGRADE_BANNER = {
-  leadLine: "Ready for the prioritized plan? Unlock your Action Roadmap — or join the Automator waitlist when you want help deploying fixes.",
-  body: `SEO Automator Pro is currently at capacity to ensure maximum performance for our charter members. Unlock your ${PRODUCT_NAMES.paid} ($97) today to secure a priority position on our waitlist. When a spot opens up, your $97 assessment fee will be credited 100% toward your first month of service.`,
+  leadLine: `Ready for the prioritized plan? Unlock your ${PRODUCT_NAMES.paid}.`,
+  body: `The $97 assessment fee credits toward your first founding-rate month of SEO Automator Pro when an eligible slot opens (same email as purchase).`,
   button: `Unlock ${PRODUCT_NAMES.paid} — $97`,
+  secondaryCta: `Prefer a walkthrough? ${PRODUCT_NAMES.premium} — $297`,
+  monitoringBridge:
+    "Already planning to act on what you found? The technical foundation your rankings depend on needs ongoing attention — not just a one-time fix. SEO Automator Pro monitors your site continuously so you can see what changed and address it before visibility slips between audits.",
+  monitoringCta: "Learn about SEO Automator Pro",
 } as const
 
 export const LOCKED_SECTION_MODAL = {
@@ -43,7 +47,7 @@ export const LOCKED_SECTION_MODAL = {
   ] as const,
   primaryCta: (price = "$97") => `Unlock ${PRODUCT_NAMES.paid} — ${price}`,
   creditNote:
-    "100% assessment fee credited if you join the SEO Automator Pro waitlist.",
+    "The $97 assessment fee credits toward your first founding-rate month when an eligible SEO Automator Pro slot opens.",
   secondaryCta: `Return to ${PRODUCT_NAMES.free}`,
 } as const
 

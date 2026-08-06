@@ -48,11 +48,17 @@ import {
 } from "@/lib/report/display-helpers"
 import { REPORT_INTRO } from "@/lib/report/section-guides"
 import { UPGRADE_BANNER } from "@/lib/report/outcome-copy"
+import { diagnosticAreaCounts } from "@/lib/report/free-executive-copy"
 import {
   ownerRoleLabel,
   roadmapBucketsFromReport,
 } from "@/lib/report/roadmap-from-recommendations"
-import { getHubCartUrl, getHubSeoWaitlistUrl, getHubWorkflowWaitlistUrl } from "@/lib/urls"
+import {
+  getHubCartUrl,
+  getHubSeoWaitlistUrl,
+  getHubUpgradeUrl,
+  getHubWorkflowWaitlistUrl,
+} from "@/lib/urls"
 import { cn } from "@/lib/utils"
 
 export type ReportViewProps = {
@@ -229,9 +235,9 @@ export function UpgradeBanner({
 
   if (report.meta.reportTier !== "free_snapshot") return null
 
-  const issueCount =
-    report.meta.issueCountForUpgrade ??
-    report.meta.criticalCount + report.meta.highCount
+  const failCount = report.meta.criticalCount ?? 0
+  const warnCount = report.meta.highCount ?? 0
+  const { checked, total } = diagnosticAreaCounts()
 
   if (suppressLevelstackPurchaseCtas && actionRoadmapReportId) {
     return (
@@ -256,22 +262,57 @@ export function UpgradeBanner({
   }
 
   const upgradeUrl = getHubCartUrl({ reportId, source: "levelstack_report" })
+  const premiumUrl = getHubUpgradeUrl({
+    reportId,
+    planId: "levelstack-strategy-call",
+    source: "levelstack_report_premium",
+  })
+  const monitoringUrl = getHubSeoWaitlistUrl({
+    reportId,
+    source: "levelstack_report",
+  })
+
+  const checksLine =
+    failCount > 0
+      ? `${failCount} check${failCount === 1 ? "" : "s"} failed on the free scan${warnCount > 0 ? `; ${warnCount} more warning${warnCount === 1 ? "" : "s"} flagged` : ""}.`
+      : warnCount > 0
+        ? `${warnCount} warning${warnCount === 1 ? "" : "s"} on the free scan — the unopened areas are where reputation and revenue gaps usually hide.`
+        : `Both free areas came back clean. The unopened areas are where reputation and revenue gaps usually hide.`
 
   return (
-    <div className="rpt-upsell flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <div
+      className="rpt-upsell flex flex-col gap-4 px-6 py-5"
+      data-upgrade-module="action-roadmap"
+    >
       <div className="text-sm leading-relaxed">
         <p className="font-medium text-white">{UPGRADE_BANNER.leadLine}</p>
         <p className="mt-1 text-white/80">
-          We found {issueCount} issue{issueCount === 1 ? "" : "s"} in your public presence.
+          This Visibility Snapshot opened {checked} of {total} diagnostic areas. The
+          Action Plan is a separate deliverable.
         </p>
-        <p className="mt-1 text-white/60">{UPGRADE_BANNER.body}</p>
+        <p className="mt-1 text-white/80">{checksLine}</p>
+        <p className="mt-2 text-white/60">{UPGRADE_BANNER.body}</p>
       </div>
-      <Button variant="brand" asChild className="min-h-10 shrink-0">
-        <Link href={upgradeUrl}>
-          {UPGRADE_BANNER.button}
-          <ArrowRight className="h-4 w-4" aria-hidden />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Button variant="brand" asChild className="min-h-10 shrink-0">
+          <Link href={upgradeUrl}>
+            {UPGRADE_BANNER.button}
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        </Button>
+        <Link
+          href={premiumUrl}
+          className="text-sm text-white/70 underline-offset-4 hover:underline hover:text-white"
+        >
+          {UPGRADE_BANNER.secondaryCta}
         </Link>
-      </Button>
+      </div>
+      <p className="text-xs text-white/55 leading-relaxed">
+        {UPGRADE_BANNER.monitoringBridge}{" "}
+        <Link href={monitoringUrl} className="text-white underline underline-offset-2">
+          {UPGRADE_BANNER.monitoringCta}
+        </Link>
+      </p>
     </div>
   )
 }
@@ -964,7 +1005,9 @@ export function ExecutiveSummaryPanel({
           Your most critical issue
         </p>
         <p className="text-sm text-red-950 dark:text-red-100 leading-relaxed">
-          {summary.criticalIssue}
+          {summary.criticalIssue?.trim()
+            ? summary.criticalIssue
+            : "No adverse priority finding on this scan."}
         </p>
       </div>
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mt-4 mb-2">
@@ -1062,7 +1105,7 @@ export function ReportTabContent({
     )
   }
 
-  const lockedIds = new Set(["revenue_funnel", "competitive_context", "action_plan"])
+  const lockedIds = PAID_TAB_IDS
 
   if (
     report.meta.reportTier === "free_snapshot" &&

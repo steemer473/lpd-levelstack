@@ -39,6 +39,7 @@ import { resolveReportPlanId } from "@/lib/pipeline/resolve-report-plan-id"
 import { validateResearchQuality } from "@/lib/pipeline/research-quality"
 import { sanitizeReportJson } from "@/lib/pipeline/sanitize-report-sections"
 import { attachSearchReputationRecommendations } from "@/lib/pipeline/build-recommendations"
+import { customerFacingTopFinding } from "@/lib/report/free-executive-copy"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 const STEP_DELAY_MS = 50
@@ -353,9 +354,7 @@ export async function runReportPipeline({
       const { recordPdfDeliveryPath } = await import("@/lib/pdf/record-pdf-path")
       await recordPdfDeliveryPath(reportId, admin).catch(() => undefined)
 
-      const topFinding =
-        audit.signals.find((s) => s.status === "fail")?.finding ??
-        audit.signals.find((s) => s.status === "warning")?.finding
+      const topFinding = customerFacingTopFinding(audit.signals)
 
       // Zero-friction access for both tiers: a signed token opens the report
       // (and its PDF) from any device for the token's lifetime, independent of

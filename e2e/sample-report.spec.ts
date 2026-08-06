@@ -11,7 +11,7 @@ test.describe("Sample report — public marketing preview", () => {
   test("shows sample badge and executive dashboard", async ({ page }) => {
     await expect(page.getByText("Sample Report", { exact: true })).toBeVisible()
     await expect(page.getByText(/all data is illustrative/i)).toBeVisible()
-    await expect(page.getByRole("heading", { name: /Your public presence scores/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /We checked 2 of the 6 areas/i })).toBeVisible()
     await expect(page.locator(".rpt-conv-kpi-strip")).toBeVisible()
   })
 
@@ -52,24 +52,33 @@ test.describe("Sample report — public marketing preview", () => {
     await expect(card).toBeVisible()
     await expect(card.getByText("Respond to both negative Google reviews")).toBeVisible()
     await expect(
-      page.getByRole("button", { name: /View full action plan \(locked\)/i }),
+      card.getByText(/Full prioritized action plan stays locked/i),
     ).toBeVisible()
     await expect(card.getByText("Owner")).toHaveCount(0)
     await expect(card.getByText("Time")).toHaveCount(0)
   })
 
-  test("OD-5 B: action plan tab stays locked with blurred teaser", async ({ page }) => {
+  test("shows Checks failed KPI and one upgrade module", async ({ page }) => {
+    await expect(page.getByText("Checks failed", { exact: true })).toBeVisible()
+    await expect(page.getByText(/Free scan:/i).first()).toBeVisible()
+    await expect(page.locator("[data-upgrade-module=action-roadmap]")).toHaveCount(1)
+    await expect(
+      page.getByRole("link", { name: /Unlock Action Roadmap — \$97/i }).first(),
+    ).toBeVisible()
+    await expect(page.getByText(/at capacity/i)).toHaveCount(0)
+  })
+
+  test("OD-5 B: action plan tab stays locked with unlock modal", async ({ page }) => {
     await page
       .getByRole("navigation", { name: "Report sections" })
       .getByRole("button", { name: /Action plan/i })
       .click()
+    const dialog = page.getByRole("dialog")
+    await expect(dialog).toBeVisible()
     await expect(
-      page.getByRole("button", { name: /Unlock Action Roadmap — \$97/i }),
+      dialog.getByRole("link", { name: /Unlock Action Roadmap — \$97/i }),
     ).toBeVisible()
-    await expect(page.getByText(/prioritized action/i).first()).toBeVisible()
-    await expect(page.getByText("Respond to both negative Google reviews")).toBeVisible()
-    // Full matrix labels stay paid-only
-    await expect(page.getByText("If ignored")).toHaveCount(0)
+    await expect(dialog.getByText(/Action Roadmap shows how to close them/i)).toBeVisible()
   })
 })
 

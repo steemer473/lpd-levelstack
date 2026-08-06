@@ -111,7 +111,7 @@ function buildBusinessImpact(
     return fallback
   }
   if (!criticalFinding) {
-    return `Unresolved gaps can reduce trust and marketing efficiency for ${businessName}.`
+    return `Open the remaining diagnostic areas to see where reputation and revenue gaps usually hide for ${businessName}.`
   }
   const theme = sectionLabel(criticalFinding.sectionId)
   const service = primaryService ?? "your services"

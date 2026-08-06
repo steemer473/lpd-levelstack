@@ -13,6 +13,7 @@ import type { SerpSearchResponse } from "@/lib/research/serp"
 import type { WebsiteExtendedSignals, WebsiteSignals } from "@/lib/research/website"
 import type { InsightSeverity } from "@/lib/audit/types"
 import type { BusinessCategoryClassification } from "@/lib/taxonomy/business-category"
+import { formatAssessmentDate } from "@/lib/report/free-executive-copy"
 
 export type SubdomainFinding = {
   hostname: string
@@ -128,11 +129,7 @@ const emptyGbp: GbpSignals = {
 }
 
 export function emptyResearchBundle(): ResearchBundle {
-  const reportDate = new Date().toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  })
+  const reportDate = formatAssessmentDate()
 
   return {
     searchFootprint: { searches: [], reportDate },

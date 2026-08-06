@@ -11,6 +11,10 @@ import {
   FREE_TIER_SECTION_IDS,
   PAID_ONLY_SECTION_IDS,
 } from "@/lib/pipeline/constants"
+import {
+  buildPriorityFindingFromSignals,
+  formatAssessmentDate,
+} from "@/lib/report/free-executive-copy"
 import type {
   LevelstackReportJson,
   ReportSection,
@@ -185,6 +189,18 @@ export function assembleFreeReportFromResearch(
     sections,
   )
 
+  const priorityFinding = buildPriorityFindingFromSignals(audit.signals)
+  // Keep criticalIssue aligned with failed audit signals — never a positive finding.
+  executiveSummary.criticalIssue = priorityFinding?.fullText ?? ""
+  if (executiveSummary.highlights) {
+    executiveSummary.highlights = {
+      ...executiveSummary.highlights,
+      businessImpact: priorityFinding
+        ? priorityFinding.consequence
+        : executiveSummary.highlights.businessImpact,
+    }
+  }
+
   const rawPlan = buildActionPlanFromSections(sections, intake)
   const teaserActionCount =
     rawPlan.thisWeek.length + rawPlan.thisMonth.length + rawPlan.thisQuarter.length
@@ -207,11 +223,7 @@ export function assembleFreeReportFromResearch(
       businessName: intake.primaryBusinessName,
       ownerName: intake.ownerName,
       marketLabel: marketLabelFromIntake(intake),
-      reportDate: new Date().toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      }),
+      reportDate: formatAssessmentDate(),
       planId,
       reportTier: "free_snapshot",
       overallScore,

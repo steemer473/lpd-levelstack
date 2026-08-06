@@ -1,5 +1,11 @@
 "use client"
 
+/**
+ * Quarantined — not used by production `LevelstackReportView`.
+ * Free executive chrome lives in `executive-summary-conversion.tsx`
+ * + `lib/report/free-executive-copy.ts`. Do not add new customer copy here.
+ */
+
 import type { ReactNode } from "react"
 
 import {
