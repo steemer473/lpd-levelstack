@@ -1,9 +1,11 @@
 import { ExecutiveInsightBody } from "@/components/report/executive-insight-body"
-import { FindingPrintBlock } from "@/components/report/finding-card"
+import {
+  FindingPrintBlock,
+  PrintSeverityPill,
+} from "@/components/report/finding-card"
 import { FormattedReportText } from "@/components/report/formatted-report-text"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
 import {
-  flagLabel,
   FREE_EXECUTIVE_SECTION_ORDER,
   planDisplayName,
   REPORT_ASSESSMENT_SUBTITLE,
@@ -13,6 +15,7 @@ import {
   resolveCompetitiveSnapshot,
   resolveExecutiveContent,
 } from "@/lib/report/executive-summary-resolve"
+import { effectiveFindingSeverity } from "@/lib/report/finding-context"
 import {
   FREE_KPI_LABELS,
   FREE_SCORE_LABEL,
@@ -178,9 +181,17 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
   const upgradeUrl = getHubUpgradeUrl({ reportId, source: "levelstack_print" })
   const alarmSeverity = shouldUseAlarmSeverity(report)
   const criticalIssue = content.highlights.criticalIssue
+  const priority = content.highlights.priorityFinding
+  /** Observation-only for the "What it means" priority card — avoids duplicating consequence. */
+  const whatItMeansIssue = priority?.observation ?? criticalIssue
+  const whatItMeansImpact =
+    priority?.consequence ?? content.highlights.businessImpact
 
   const search = sections.find((s) => s.id === "search_footprint")
   const searchFinding = search?.findings[0]
+  const searchFindingSeverity = searchFinding
+    ? effectiveFindingSeverity("search_footprint", searchFinding)
+    : null
   const previewCompetitor = competitive?.rows[0]
   const teaser = teaserRecommendations(report, 3)
 
@@ -291,22 +302,22 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
           <PriorityOrVerifiedBlock
             report={report}
             alarmSeverity={alarmSeverity}
-            criticalIssue={criticalIssue}
+            criticalIssue={whatItMeansIssue}
             className={cn(
               "rounded border p-3",
-              alarmSeverity && criticalIssue
+              alarmSeverity && whatItMeansIssue
                 ? "border-red-200 bg-red-50"
                 : "border-amber-200 bg-amber-50",
             )}
             bodyClassName={cn(
               "text-xs",
-              alarmSeverity && criticalIssue ? "text-red-950" : "text-gray-900",
+              alarmSeverity && whatItMeansIssue ? "text-red-950" : "text-gray-900",
             )}
           />
           <div className="rounded border border-sky-200 bg-sky-50 p-3">
             <p className="text-[10px] font-semibold uppercase text-sky-800 mb-1">Business impact</p>
             <FormattedReportText
-              text={content.highlights.businessImpact}
+              text={whatItMeansImpact}
               paragraphClassName="text-xs text-sky-950"
               emphasizeLeadIn={false}
             />
@@ -351,7 +362,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
 
           <div className="rounded border border-gray-200 p-4">
             <h3 className="font-medium mb-2">Search footprint highlight</h3>
-            {searchFinding ? (
+            {searchFinding && searchFindingSeverity ? (
               <>
                 <FormattedReportText
                   text={searchFinding.value || searchFinding.label}
@@ -365,9 +376,10 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
                     emphasizeLeadIn={false}
                   />
                 ) : null}
-                <span className="inline-block mt-2 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-red-50 text-red-800">
-                  {flagLabel(searchFinding.severity)}
-                </span>
+                <PrintSeverityPill
+                  severity={searchFindingSeverity}
+                  className="mt-2"
+                />
               </>
             ) : (
               <p className="text-xs text-gray-600">See Search footprint section below.</p>
@@ -452,6 +464,28 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
                 ? `${label} (${section.score}/100)`
                 : `${label} (Insufficient data)`}
             </h2>
+            {section.aiPreview && section.aiPreview.length > 0 ? (
+              <div className="mb-4">
+                <h3 className="text-xs font-semibold uppercase text-gray-500 mb-2">
+                  AI search visibility preview
+                </h3>
+                {section.aiPreview.map((ai, i) => (
+                  <div
+                    key={i}
+                    className="mb-2 rounded border border-gray-200 p-3"
+                  >
+                    <p className="text-xs font-semibold text-gray-600">
+                      {ai.platform}
+                    </p>
+                    <p className="text-sm text-gray-800 mt-1">{ai.result}</p>
+                    <PrintSeverityPill
+                      severity={ai.severity}
+                      className="mt-2"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : null}
             {section.findings.map((f, i) => (
               <FindingPrintBlock key={i} sectionId={id} finding={f} />
             ))}

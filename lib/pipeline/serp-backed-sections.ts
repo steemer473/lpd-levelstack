@@ -41,6 +41,7 @@ import {
   ownerSearchSeverity,
 } from "@/lib/pipeline/search-finding-severity"
 import { TERMS } from "@/lib/report/customer-terms"
+import { REPORT_PIPELINE_DISCLAIMER } from "@/lib/report/outcome-copy"
 import {
   customerGbpFindingDetail,
   customerGbpFindingValue,
@@ -851,9 +852,7 @@ export function buildExecutiveSummaryFromResearch(
     `Offer context from intake (not scored as funnel findings): ${intake.primaryService} at ${intake.pricePoint}. Email list size ~${intake.emailListSize}. Purchase motivation: ${intake.purchaseMotivation.slice(0, 160)}${intake.purchaseMotivation.length > 160 ? "…" : ""}.`,
   )
 
-  paragraphs.push(
-    "This report is diagnostic only — LevelStack identifies gaps; you or your team execute fixes. No ranking or revenue outcomes are guaranteed.",
-  )
+  paragraphs.push(REPORT_PIPELINE_DISCLAIMER)
 
   const whatProspectsSee = paragraphs[0] ?? ""
   const reputationGap = paragraphs[1] ?? ""

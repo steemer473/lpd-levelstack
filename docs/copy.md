@@ -118,11 +118,23 @@ Mirror: COPY_BANK §7.2.
 | Section h2 | What you get |
 | Card 1 | **First impression** — Search and presence. Where prospects decide. |
 | Card 2 | **Live research** — Real data from your market. Not a generic checklist. |
-| Card 3 | **Honest scope** — We show priorities. You act. No rank or sales promises. |
-| Footer | We spot gaps. You fix them. No rank or sales promises. |
+| Card 3 | **Honest scope** — We show priorities. SEO Automator Pro fixes them. No rank or sales promises. |
+| Footer | We spot gaps. SEO Automator Pro fixes them. No rank or sales promises. |
 | Meta | What prospects see before they call. Free snapshot. Action Roadmap $97. |
 
 **Readability (tiered):** Hero FK ≤ 6; body/card FK ≤ 5; CTAs/footer FK ≤ 4; sentences ≤ 15 words.
+
+## Report disclaimers
+
+Mirror: COPY_BANK §7.4.
+
+| ID | Use | Copy |
+|---|---|---|
+| DISC-01 | Score footer, executive summary, print view | Diagnostic only — LevelStack spots gaps. SEO Automator Pro fixes the technical layer. LevelStack does not guarantee rankings or revenue outcomes. |
+| DISC-02 | Action plan section callout | LevelStack lists what to fix. SEO Automator Pro fixes the technical layer. |
+| DISC-03 | Pipeline executive summary fallback | This report is diagnostic only — LevelStack identifies gaps. SEO Automator Pro fixes the technical layer. No ranking or revenue outcomes are guaranteed. |
+
+**Runtime:** `lib/report/outcome-copy.ts` (`REPORT_DIAGNOSTIC_DISCLAIMER`, `REPORT_ACTION_PLAN_CALLOUT`, `REPORT_PIPELINE_DISCLAIMER`).
 
 ## FAQs
 

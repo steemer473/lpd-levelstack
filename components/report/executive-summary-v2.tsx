@@ -23,6 +23,7 @@ import {
   resolveExecutiveContent,
 } from "@/lib/report/executive-summary-resolve"
 import { filterDistinctActionTasks } from "@/lib/report/executive-dedup"
+import { REPORT_DIAGNOSTIC_DISCLAIMER } from "@/lib/report/outcome-copy"
 import { cn } from "@/lib/utils"
 
 type ExecutiveSummaryV2Props = {
@@ -509,7 +510,7 @@ export function ExecutiveSummaryV2({ report, onSelectTab }: ExecutiveSummaryV2Pr
       </div>
 
       <p className="rpt-muted-text text-xs text-center px-6 pb-4">
-        Diagnostic only — LevelStack does not guarantee rankings or revenue outcomes.
+        {REPORT_DIAGNOSTIC_DISCLAIMER}
       </p>
     </div>
   )

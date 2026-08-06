@@ -22,6 +22,7 @@ import {
   scoreBarColor,
   sectionDotClass,
 } from "@/lib/report/display-helpers"
+import { REPORT_DIAGNOSTIC_DISCLAIMER } from "@/lib/report/outcome-copy"
 import { cn } from "@/lib/utils"
 
 export function ReportVariationC({ report }: ReportViewProps) {
@@ -221,7 +222,7 @@ function ExecutiveNarrative({
         </div>
       )}
       <p className="text-xs text-muted-foreground mt-4 italic">
-        Diagnostic only — you or your team execute fixes.
+        {REPORT_DIAGNOSTIC_DISCLAIMER}
       </p>
     </div>
   )

@@ -7,6 +7,7 @@ import type {
 import { severitySchema } from "@/lib/pipeline/report-types"
 import { buildExecutiveSummaryFromResearch } from "@/lib/pipeline/serp-backed-sections"
 import type { ResearchBundle } from "@/lib/pipeline/research-types"
+import { REPORT_PIPELINE_DISCLAIMER } from "@/lib/report/outcome-copy"
 
 const SECTION_IDS = [
   "search_footprint",
@@ -498,7 +499,7 @@ export function normalizeSynthesisPayload(
     : {
         paragraphs: [
           `This report summarizes how prospects may perceive ${intake.primaryBusinessName} online.`,
-          "Diagnostic only — you or your team execute the fixes listed in the action plan.",
+          REPORT_PIPELINE_DISCLAIMER,
         ],
         criticalIssue: "Review section findings for the highest-priority trust or conversion gaps.",
         firstSteps: [],

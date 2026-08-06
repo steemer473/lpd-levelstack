@@ -25,7 +25,7 @@ function minimalReport(
     executiveSummary: {
       paragraphs: [
         "When prospects search for Alex Owner or Test Co, they see example.com at position #2.",
-        "Diagnostic only — you execute fixes.",
+        "Diagnostic only — LevelStack spots gaps. SEO Automator Pro fixes the technical layer. LevelStack does not guarantee rankings or revenue outcomes.",
       ],
       criticalIssue: "Homepage trust signals are weak for Test Co.",
       firstSteps: ["Fix landing CTA"],

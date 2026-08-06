@@ -333,6 +333,19 @@ describe("LT Printing contradiction regression", () => {
       "search_snippet_accuracy",
     )
 
+    const priority = content.highlights.priorityFinding
+    expect(priority).toBeTruthy()
+    expect(priority!.observation).toBeTruthy()
+    expect(priority!.consequence).toBeTruthy()
+    expect(priority!.consequence).not.toContain(priority!.observation)
+    expect(priority!.fullText).toBe(
+      `${priority!.observation} ${priority!.consequence}`,
+    )
+    // Print "What it means" cards use observation vs consequence separately —
+    // businessImpact must match consequence so cards do not repeat the same sentence.
+    expect(content.highlights.businessImpact).toBe(priority!.consequence)
+    expect(content.highlights.criticalIssue).toBe(priority!.fullText)
+
     const headline = freeExecutiveHeadline(report)
     expect(headline.failedCount).toBe(1)
     expect(headline.unopened).toBe(4)

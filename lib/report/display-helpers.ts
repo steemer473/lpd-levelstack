@@ -160,6 +160,14 @@ export function severityToFlag(severity: string): "critical" | "attention" | "go
   return "good"
 }
 
+/** Shared severity → Tailwind pill classes for web FindingFlag and print pills. */
+export function severityPillClass(severity: string): string {
+  const kind = severityToFlag(severity)
+  if (kind === "critical") return "bg-red-100 text-red-800"
+  if (kind === "attention") return "bg-amber-100 text-amber-900"
+  return "bg-green-100 text-green-800"
+}
+
 export function flagLabel(severity: string): string {
   const normalized = severity.trim().toLowerCase()
   if (normalized === "critical" || normalized === "high" || normalized === "medium") {

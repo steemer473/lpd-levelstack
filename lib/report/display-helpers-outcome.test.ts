@@ -4,6 +4,8 @@ import {
   findingBulletsForDisplay,
   findingHeadlineForDisplay,
   flagLabel,
+  severityPillClass,
+  severityToFlag,
 } from "@/lib/report/display-helpers"
 import { formatRoiLine } from "@/lib/report/outcome-copy"
 
@@ -43,6 +45,21 @@ describe("display-helpers outcome adapters", () => {
   it("maps outcome severity to badge label", () => {
     expect(flagLabel("revenue risk")).toBe("Revenue Risk")
     expect(flagLabel("visibility leak")).toBe("Visibility Leak")
+  })
+
+  it("maps severity to flag kind and pill classes", () => {
+    expect(severityToFlag("good")).toBe("good")
+    expect(severityToFlag("low")).toBe("good")
+    expect(severityToFlag("medium")).toBe("attention")
+    expect(severityToFlag("high")).toBe("critical")
+    expect(severityToFlag("critical")).toBe("critical")
+
+    expect(severityPillClass("good")).toContain("bg-green-100")
+    expect(severityPillClass("good")).toContain("text-green-800")
+    expect(severityPillClass("low")).toContain("bg-green-100")
+    expect(severityPillClass("medium")).toContain("bg-amber-100")
+    expect(severityPillClass("high")).toContain("bg-red-100")
+    expect(severityPillClass("critical")).toContain("bg-red-100")
   })
 })
 

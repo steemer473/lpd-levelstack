@@ -1,9 +1,30 @@
 /**
  * Customer-facing product names and static UI copy.
  * Canonical glossary: lpd-planning/COPY_BANK.md §7.0
+ * Landing/footer/disclaimers: COPY_BANK §7.2 / §7.4
  *
  * Jargon polish lives in customer-copy.ts — do not duplicate SNIPPET_* there.
  */
+
+/** COPY_BANK §7.2 — site footer tagline */
+export const SITE_FOOTER_TAGLINE =
+  "We spot gaps. SEO Automator Pro fixes them. No rank or sales promises." as const
+
+/** COPY_BANK §7.2 — Honest scope landing card */
+export const HONEST_SCOPE_CARD_COPY =
+  "We show priorities. SEO Automator Pro fixes them. No rank or sales promises." as const
+
+/** COPY_BANK §7.4 DISC-01 — score footer, executive summary, print view */
+export const REPORT_DIAGNOSTIC_DISCLAIMER =
+  "Diagnostic only — LevelStack spots gaps. SEO Automator Pro fixes the technical layer. LevelStack does not guarantee rankings or revenue outcomes." as const
+
+/** COPY_BANK §7.4 DISC-02 — action plan section callout */
+export const REPORT_ACTION_PLAN_CALLOUT =
+  "LevelStack lists what to fix. SEO Automator Pro fixes the technical layer." as const
+
+/** COPY_BANK §7.4 DISC-03 — pipeline-generated executive summary fallback */
+export const REPORT_PIPELINE_DISCLAIMER =
+  "This report is diagnostic only — LevelStack identifies gaps. SEO Automator Pro fixes the technical layer. No ranking or revenue outcomes are guaranteed." as const
 
 export const PRODUCT_NAMES = {
   free: "Visibility Snapshot",
