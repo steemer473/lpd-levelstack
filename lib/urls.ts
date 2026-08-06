@@ -22,6 +22,7 @@ export function getHubPricingUrl(): string {
 
 export type HubUpgradeSource =
   | "levelstack_report"
+  | "levelstack_report_premium"
   | "levelstack_email"
   | "levelstack_print"
 

@@ -6,16 +6,16 @@ export type ActionRoadmapFaq = {
 
 export const ACTION_ROADMAP_FAQS: ActionRoadmapFaq[] = [
   {
-    id: "faq-00",
-    question: "Why isn't this called a report?",
-    answer:
-      "A report describes problems. The Action Roadmap gives prioritized fixes, copy-paste assets, and competitive context you can execute this week.",
-  },
-  {
     id: "faq-01",
     question: "What am I actually buying for $97?",
     answer:
       "Your Action Roadmap includes prioritized fixes with Who/Time/Impact, copy-paste rewrites, competitive benchmarks, and your 90-day blueprint in the dashboard.",
+  },
+  {
+    id: "faq-00",
+    question: "Why isn't this called a report?",
+    answer:
+      "A report describes problems. The Action Roadmap gives prioritized fixes, copy-paste assets, and competitive context you can execute this week.",
   },
   {
     id: "faq-02",

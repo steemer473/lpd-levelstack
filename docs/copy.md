@@ -35,11 +35,28 @@ See `lib/prompts/levelstackCopyPrompt.ts` and AGENTS.md § LevelStack Data-to-Co
 
 ## Approved static strings
 
+### Free executive summary (Visibility Snapshot)
+
+Runtime: `lib/report/free-executive-copy.ts` (single source for web, print, email topFinding).
+
+**Headline states** (derive 2 / 6 / 4 from diagnostic-area helpers — never hardcode; Action Plan is not a judgment area):
+
+- Failures present: "We checked 2 of the 6 areas prospects use to judge [Business] — and already found [N] critical issue(s). The 4 areas we haven't opened yet are where reputation and revenue problems usually hide."
+- Clean free scan: "We checked 2 of the 6 areas prospects use to judge [Business] — both came back clean. The 4 areas we haven't opened yet are where reputation and revenue problems usually hide."
+
+**Priority finding:** Failed audit signals first (snippet mismatch interpolates live evidence). Never promote a positive `#1` rank finding. On clean scans, suppress the slot and show "What we verified" (exclude Subdomain Exposure from that list).
+
+**Score treatment:** Label as **Free scan** based on 2 of 6 areas. KPI "Checks failed" (not "Critical issues") counts audit `fail` statuses.
+
+**Upgrade module (one per free snapshot):** Scope line + policy-safe credit note + `$97` primary + `$297` secondary + Placement-2 monitoring bridge. No scarcity ("at capacity", "spots remaining") on the free snapshot.
+
 ### Upgrade banner
 
-- Lead: "Ready for the prioritized plan? Unlock your Action Roadmap — or join the Automator waitlist when you want help deploying fixes."
-- Body: SAP at capacity + Action Roadmap $97 + waitlist + assessment fee credit
-- Button: "Unlock Action Roadmap — $97" (waitlist credit stays in body copy)
+- Lead: "Ready for the prioritized plan? Unlock your Action Roadmap."
+- Body: "The $97 assessment fee credits toward your first founding-rate month of SEO Automator Pro when an eligible slot opens (same email as purchase)."
+- Button: "Unlock Action Roadmap — $97"
+- Secondary: "Prefer a walkthrough? Action Roadmap + Strategy Call — $297"
+- Monitoring CTA: "Learn about SEO Automator Pro"
 
 ### Locked section modal
 
@@ -47,7 +64,7 @@ See `lib/prompts/levelstackCopyPrompt.ts` and AGENTS.md § LevelStack Data-to-Co
 - Description: "Your free snapshot found the gaps. The Action Roadmap shows how to close them."
 - Bullets: 90-day plan, unlocked modules, dashboard + PDF
 - Primary CTA: "Unlock Action Roadmap — $97"
-- Credit note (below button): "100% assessment fee credited if you join the SEO Automator Pro waitlist."
+- Credit note (below button): "The $97 assessment fee credits toward your first founding-rate month when an eligible SEO Automator Pro slot opens."
 - Secondary: "Return to Visibility Snapshot"
 
 ### SAP waitlist modal

@@ -6,6 +6,7 @@ import {
   PAID_ONLY_SECTION_IDS,
 } from "@/lib/pipeline/constants"
 import { extractUpgradeTeasers } from "@/lib/pipeline/assemble-free-report"
+import { formatAssessmentDate } from "@/lib/report/free-executive-copy"
 import { hostnameFromUrl } from "@/lib/research/serp"
 import type {
   LevelstackReportJson,
@@ -290,11 +291,7 @@ export function assembleReportFromSignals(
       businessName: intake.primaryBusinessName,
       ownerName: intake.ownerName,
       marketLabel: marketLabelFromIntake(intake),
-      reportDate: new Date().toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      }),
+      reportDate: formatAssessmentDate(),
       planId,
       reportTier,
       overallScore: audit.overallScore,

@@ -215,6 +215,46 @@ describe("resolveExecutiveContent", () => {
     const content = resolveExecutiveContent(report)
     expect(content.highlights.criticalIssue).toBe("Not fetched yet")
   })
+
+  it("never promotes a positive finding into the priority slot", () => {
+    const report: LevelstackReportJson = {
+      ...baseReport,
+      meta: {
+        ...baseReport.meta,
+        criticalCount: 0,
+        highCount: 0,
+        reportTier: "free_snapshot",
+      },
+      executiveSummary: {
+        paragraphs: ["A", "B", "C"],
+        criticalIssue: "Review search footprint first.",
+        firstSteps: [],
+      },
+      sections: [
+        {
+          id: "search_footprint",
+          label: "Search",
+          status: "good",
+          score: 90,
+          findings: [
+            {
+              label: "Brand search",
+              value: "You rank #1 for your brand name",
+              detail: "Strong.",
+              severity: "good",
+            },
+          ],
+        },
+      ],
+      signalRows: [
+        { label: "Google Indexing", value: "PASS", percent: 100, tone: "green" },
+      ],
+    }
+
+    const content = resolveExecutiveContent(report)
+    expect(content.highlights.criticalIssue).toBeNull()
+    expect(content.highlights.priorityFinding).toBeNull()
+  })
 })
 
 describe("resolveCompetitiveSnapshot", () => {

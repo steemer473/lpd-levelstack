@@ -35,7 +35,7 @@ test.describe("Report mobile — dev preview", () => {
 
   test("executive tab loads without horizontal page scroll", async ({ page }) => {
     await assertNoHorizontalPageOverflow(page)
-    await expect(page.getByRole("heading", { name: /Your public presence scores/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /We checked 2 of the 6 areas/i })).toBeVisible()
     await expect(page.locator(".rpt-conv-kpi-strip")).toBeVisible()
   })
 
@@ -119,7 +119,13 @@ test.describe("Report mobile — dev preview", () => {
   })
 
   test("all seven sidebar tabs are reachable without page overflow", async ({ page }) => {
-    const lockedTabs = [/Revenue funnel/i, /Competitive context/i, /Action plan/i]
+    const lockedTabs = [
+      /Reputation/i,
+      /Digital presence/i,
+      /Revenue funnel/i,
+      /Competitive context/i,
+      /Action plan/i,
+    ]
     const tabs = [
       /Executive Summary/i,
       /Search footprint/i,

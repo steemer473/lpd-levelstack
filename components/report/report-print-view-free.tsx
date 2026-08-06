@@ -3,11 +3,9 @@ import { FindingPrintBlock } from "@/components/report/finding-card"
 import { FormattedReportText } from "@/components/report/formatted-report-text"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
 import {
-  executiveConversionHeadlineParts,
   flagLabel,
   FREE_EXECUTIVE_SECTION_ORDER,
   planDisplayName,
-  readinessHeadline,
   REPORT_ASSESSMENT_SUBTITLE,
   sectionScoreAccent,
 } from "@/lib/report/display-helpers"
@@ -15,6 +13,14 @@ import {
   resolveCompetitiveSnapshot,
   resolveExecutiveContent,
 } from "@/lib/report/executive-summary-resolve"
+import {
+  FREE_KPI_LABELS,
+  FREE_SCORE_LABEL,
+  REPORT_SCORE_FOOTER,
+  freeExecutiveHeadline,
+  freeScoreBasisLine,
+  verifiedChecksList,
+} from "@/lib/report/free-executive-copy"
 import { shouldUseAlarmSeverity } from "@/lib/report/severity-presentation"
 import { teaserRecommendations } from "@/lib/report/roadmap-from-recommendations"
 import { getHubUpgradeUrl } from "@/lib/urls"
@@ -33,6 +39,7 @@ function splitFirstSentence(text: string): { first: string; rest: string } {
 
 function PrintHeader({ report }: { report: LevelstackReportJson }) {
   const { meta } = report
+  const basisLine = freeScoreBasisLine(report)
   return (
     <header className="border-b-2 border-gray-900 pb-4 mb-6 break-inside-avoid">
       <h1 className="text-xl font-semibold">{meta.businessName}</h1>
@@ -44,18 +51,22 @@ function PrintHeader({ report }: { report: LevelstackReportJson }) {
       </p>
       <div className="flex flex-wrap gap-4 mt-3 text-xs text-gray-600">
         <span>{meta.ownerName}</span>
-        <span>Market: {meta.marketLabel}</span>
+        {meta.marketLabel?.trim() ? (
+          <span>Market: {meta.marketLabel}</span>
+        ) : null}
         <span>Date: {meta.reportDate}</span>
         <span>Type: {planDisplayName(meta.planId)}</span>
       </div>
       <div className="mt-4 inline-block rounded border border-gray-200 px-4 py-3 text-center">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Overall</p>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+          {FREE_SCORE_LABEL}
+        </p>
         <p className="text-2xl font-bold">
           {meta.overallScore}
           <span className="text-base font-normal text-sky-600">/100</span>
         </p>
-        <p className="text-xs font-semibold text-orange-600 capitalize">
-          {readinessHeadline(meta.overallScore)}
+        <p className="text-[10px] font-medium text-gray-600 leading-snug max-w-[14rem] mx-auto mt-1">
+          {basisLine}
         </p>
         <p className="text-3xl font-bold text-gray-900 leading-none mt-1">{meta.letterGrade}</p>
       </div>
@@ -71,14 +82,14 @@ function KpiStrip({
   alarmSeverity: boolean
 }) {
   const items = [
-    { label: "Score", value: String(meta.overallScore), tone: "default" as const },
-    { label: "Grade", value: meta.letterGrade, tone: "grade" as const },
+    { label: FREE_KPI_LABELS.score, value: String(meta.overallScore), tone: "default" as const },
+    { label: FREE_KPI_LABELS.grade, value: meta.letterGrade, tone: "grade" as const },
     {
-      label: "Critical",
+      label: FREE_KPI_LABELS.checksFailed,
       value: String(meta.criticalCount),
       tone: alarmSeverity ? ("critical" as const) : ("default" as const),
     },
-    { label: "Findings", value: String(meta.totalFindings), tone: "default" as const },
+    { label: FREE_KPI_LABELS.findings, value: String(meta.totalFindings), tone: "default" as const },
   ]
 
   return (
@@ -102,15 +113,68 @@ function KpiStrip({
   )
 }
 
+function PriorityOrVerifiedBlock({
+  report,
+  alarmSeverity,
+  criticalIssue,
+  className,
+  bodyClassName,
+}: {
+  report: LevelstackReportJson
+  alarmSeverity: boolean
+  criticalIssue: string | null
+  className?: string
+  bodyClassName?: string
+}) {
+  const verified = verifiedChecksList(report.signalRows)
+
+  if (criticalIssue) {
+    return (
+      <div className={className}>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1">
+          {alarmSeverity ? "Most critical issue" : "Priority finding"}
+        </p>
+        <FormattedReportText
+          text={criticalIssue}
+          paragraphClassName={bodyClassName}
+          emphasizeLeadIn={false}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div className={className}>
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1">
+        What we verified
+      </p>
+      {verified.length > 0 ? (
+        <ul className="list-none pl-0 space-y-1">
+          {verified.map((label) => (
+            <li key={label} className="text-sm text-gray-800">
+              {label}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className={cn("text-sm font-medium text-gray-900", bodyClassName)}>
+          Both free diagnostic areas came back clean on the checks we ran.
+        </p>
+      )}
+    </div>
+  )
+}
+
 export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreeProps) {
   const { meta, sections } = report
   const content = resolveExecutiveContent(report)
   const competitive = resolveCompetitiveSnapshot(report)
-  const headlineParts = executiveConversionHeadlineParts(report)
+  const headline = freeExecutiveHeadline(report)
   const leverage = splitFirstSentence(content.highlights.highestLeverageOpportunity)
   const sectionById = new Map(sections.map((s) => [s.id, s]))
   const upgradeUrl = getHubUpgradeUrl({ reportId, source: "levelstack_print" })
   const alarmSeverity = shouldUseAlarmSeverity(report)
+  const criticalIssue = content.highlights.criticalIssue
 
   const search = sections.find((s) => s.id === "search_footprint")
   const searchFinding = search?.findings[0]
@@ -143,34 +207,27 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
         <h2 className="text-base font-semibold mb-3">Executive Summary</h2>
 
         <p className="text-base font-semibold text-gray-900 mb-4 leading-snug">
-          Your public presence scores{" "}
-          <span className="text-orange-600">{headlineParts.score}/100</span>
-          {" — "}
-          {headlineParts.pain} in {headlineParts.market}.
+          {headline.lead}{" "}
+          <span className="font-normal text-gray-700">{headline.follow}</span>
         </p>
 
         <KpiStrip meta={meta} alarmSeverity={alarmSeverity} />
 
-        <div
+        <PriorityOrVerifiedBlock
+          report={report}
+          alarmSeverity={alarmSeverity}
+          criticalIssue={criticalIssue}
           className={cn(
             "border-l-4 px-4 py-3 mb-6 break-inside-avoid",
-            alarmSeverity
+            alarmSeverity && criticalIssue
               ? "border-red-600 bg-red-50"
               : "border-amber-500 bg-amber-50",
           )}
-        >
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1">
-            {alarmSeverity ? "Most critical issue" : "Priority finding"}
-          </p>
-          <FormattedReportText
-            text={content.highlights.criticalIssue}
-            paragraphClassName={cn(
-              "text-sm font-medium",
-              alarmSeverity ? "text-red-900" : "text-gray-900",
-            )}
-            emphasizeLeadIn={false}
-          />
-        </div>
+          bodyClassName={cn(
+            "text-sm font-medium",
+            alarmSeverity && criticalIssue ? "text-red-900" : "text-gray-900",
+          )}
+        />
 
         <div className="mb-6 space-y-3 break-inside-avoid">
           {insightRows.map((row) => (
@@ -228,31 +285,21 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
           What it means
         </h3>
         <div className="grid sm:grid-cols-3 gap-3 mb-6 break-inside-avoid">
-          <div
+          <PriorityOrVerifiedBlock
+            report={report}
+            alarmSeverity={alarmSeverity}
+            criticalIssue={criticalIssue}
             className={cn(
               "rounded border p-3",
-              alarmSeverity
+              alarmSeverity && criticalIssue
                 ? "border-red-200 bg-red-50"
                 : "border-amber-200 bg-amber-50",
             )}
-          >
-            <p
-              className={cn(
-                "text-[10px] font-semibold uppercase mb-1",
-                alarmSeverity ? "text-red-800" : "text-amber-900",
-              )}
-            >
-              {alarmSeverity ? "Most critical issue" : "Priority finding"}
-            </p>
-            <FormattedReportText
-              text={content.highlights.criticalIssue}
-              paragraphClassName={cn(
-                "text-xs",
-                alarmSeverity ? "text-red-950" : "text-gray-900",
-              )}
-              emphasizeLeadIn={false}
-            />
-          </div>
+            bodyClassName={cn(
+              "text-xs",
+              alarmSeverity && criticalIssue ? "text-red-950" : "text-gray-900",
+            )}
+          />
           <div className="rounded border border-sky-200 bg-sky-50 p-3">
             <p className="text-[10px] font-semibold uppercase text-sky-800 mb-1">Business impact</p>
             <FormattedReportText
@@ -421,7 +468,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
 
       <footer className="border-t pt-4 text-xs text-gray-500 italic">
         Generated by LevelStack · Level Play Digital. As of {meta.reportDate}. Free snapshot —
-        diagnostic only. You or your team execute fixes.
+        {REPORT_SCORE_FOOTER}
       </footer>
     </article>
   )

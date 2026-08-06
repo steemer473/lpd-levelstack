@@ -31,7 +31,7 @@ export const REPORT_ASSESSMENT_TITLE =
 /** Short subtitle shown in dashboard sidebar/header (Option A design). */
 export const REPORT_ASSESSMENT_SUBTITLE = "Digital Presence Assessment" as const
 
-/** Headline under overall score on dashboard executive summary. */
+/** Headline under overall score — demoted on free tier in favor of Free scan label. */
 export function readinessHeadline(score: number): string {
   if (score >= 80) return "Strong performance"
   if (score >= 70) return "Established presence"
@@ -74,13 +74,13 @@ export function executiveDashboardIntro(report: LevelstackReportJson): string {
   return "Your digital presence has gaps that may be costing you leads — prioritize the actions below to close them."
 }
 
-/** Editorial headline parts for conversion hybrid exec (free tier). */
+/** @deprecated Prefer freeExecutiveHeadline from free-executive-copy.ts */
 export function executiveConversionHeadlineParts(report: LevelstackReportJson): {
   score: number
   pain: string
   market: string
 } {
-  const market = report.meta.marketLabel ?? "your market"
+  const market = observableMarketLabel(report) ?? "your market"
   const score = report.meta.overallScore
   let pain: string
   if (score < 55) {
@@ -91,6 +91,18 @@ export function executiveConversionHeadlineParts(report: LevelstackReportJson): 
     pain = "targeted improvements could strengthen conversion"
   }
   return { score, pain, market }
+}
+
+/** Omit free-intake placeholder market labels (National market · General business services). */
+export function observableMarketLabel(
+  report: LevelstackReportJson,
+): string | null {
+  const label = report.meta.marketLabel?.trim()
+  if (!label) return null
+  if (/national market/i.test(label) && /general business services/i.test(label)) {
+    return null
+  }
+  return label
 }
 
 const SECTION_SCORE_ACCENTS: Record<string, { bar: string; icon: string }> = {
@@ -231,10 +243,10 @@ export function biggestProblemSections(
 
 export function priorityBreakdown(meta: LevelstackReportJson["meta"]) {
   return [
-    { label: "Critical", count: meta.criticalCount, color: LPD.red },
-    { label: "High", count: meta.highCount, color: LPD.amber },
+    { label: "Checks failed", count: meta.criticalCount, color: LPD.red },
+    { label: "Warnings", count: meta.highCount, color: LPD.amber },
     { label: "Medium", count: meta.mediumCount, color: LPD.amber },
-    { label: "Low", count: meta.lowCount, color: LPD.green },
+    { label: "Passed", count: meta.lowCount, color: LPD.green },
   ]
 }
 

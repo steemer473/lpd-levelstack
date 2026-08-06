@@ -97,7 +97,7 @@ function HighlightCard({
   icon: Icon,
 }: {
   title: string
-  body: string
+  body: string | null
   tintClass: string
   icon: LucideIcon
 }) {
@@ -107,10 +107,16 @@ function HighlightCard({
         <Icon className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
         <p className="rpt-caption">{title}</p>
       </div>
-      <FormattedReportText
-        text={body}
-        paragraphClassName="rpt-highlight-body text-sm leading-relaxed"
-      />
+      {body ? (
+        <FormattedReportText
+          text={body}
+          paragraphClassName="rpt-highlight-body text-sm leading-relaxed"
+        />
+      ) : (
+        <p className="rpt-highlight-body text-sm leading-relaxed text-[var(--rpt-muted)]">
+          Both free diagnostic areas came back clean on the checks we ran.
+        </p>
+      )}
     </div>
   )
 }
@@ -231,10 +237,13 @@ export function ExecutiveSummaryV2({ report, onSelectTab }: ExecutiveSummaryV2Pr
   const { actionPlan } = report
 
   const phaseItems = {
-    thisWeek: filterDistinctActionTasks(actionPlan.thisWeek, [
-      content.highlights.criticalIssue,
-      content.highlights.highestLeverageOpportunity,
-    ]),
+    thisWeek: filterDistinctActionTasks(
+      actionPlan.thisWeek,
+      [
+        content.highlights.criticalIssue,
+        content.highlights.highestLeverageOpportunity,
+      ].filter((t): t is string => Boolean(t)),
+    ),
     thisMonth: actionPlan.thisMonth,
     thisQuarter: actionPlan.thisQuarter,
   }
@@ -280,7 +289,11 @@ export function ExecutiveSummaryV2({ report, onSelectTab }: ExecutiveSummaryV2Pr
 
         <div className="grid md:grid-cols-3 gap-3">
           <HighlightCard
-            title="Most Critical Issue"
+            title={
+              content.highlights.criticalIssue
+                ? "Most Critical Issue"
+                : "What we verified"
+            }
             body={content.highlights.criticalIssue}
             tintClass="rpt-highlight-critical"
             icon={AlertTriangle}

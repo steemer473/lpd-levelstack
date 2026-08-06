@@ -3,26 +3,31 @@
 import {
   AlertTriangle,
   ArrowRight,
-  BarChart3,
   Check,
-  Target,
 } from "lucide-react"
 
 import { ExecutiveInsightBody } from "@/components/report/executive-insight-body"
 import { FormattedReportText } from "@/components/report/formatted-report-text"
-import { UpsellBlurOverlay } from "@/components/report/upsell-blur-overlay"
+import { ScoreBreakdown } from "@/components/report/score-breakdown"
 import type { LevelstackReportJson, ReportSection } from "@/lib/pipeline/report-types"
 import {
-  executiveConversionHeadlineParts,
-  flagLabel,
   FREE_EXECUTIVE_SECTION_ORDER,
-  readinessHeadline,
   sectionScoreAccent,
 } from "@/lib/report/display-helpers"
 import {
   resolveCompetitiveSnapshot,
   resolveExecutiveContent,
 } from "@/lib/report/executive-summary-resolve"
+import {
+  FREE_KPI_LABELS,
+  FREE_SCORE_LABEL,
+  REPORT_SCORE_FOOTER,
+  diagnosticAreaCounts,
+  freeExecutiveHeadline,
+  freeScoreBasisLine,
+  verifiedChecksList,
+} from "@/lib/report/free-executive-copy"
+import { PRODUCT_NAMES } from "@/lib/report/outcome-copy"
 import { shouldUseAlarmSeverity } from "@/lib/report/severity-presentation"
 import { teaserRecommendations } from "@/lib/report/roadmap-from-recommendations"
 import { cn } from "@/lib/utils"
@@ -33,22 +38,24 @@ type ExecutiveSummaryConversionProps = {
   reportId?: string
 }
 
-function splitFirstSentence(text: string): { first: string; rest: string } {
-  const match = text.match(/^(.+?[.!?])(?:\s+([\s\S]+))?$/)
-  if (!match?.[1]) return { first: text, rest: "" }
-  return { first: match[1], rest: match[2] ?? "" }
-}
-
-function OverallScoreCard({ meta }: { meta: LevelstackReportJson["meta"] }) {
+function OverallScoreCard({
+  meta,
+  basisLine,
+}: {
+  meta: LevelstackReportJson["meta"]
+  basisLine: string
+}) {
   return (
     <div className="rpt-overall-score-card">
       <div className="score-main">
-        <p className="score-label">Overall</p>
+        <p className="score-label">{FREE_SCORE_LABEL}</p>
         <p className="score-val">
           {meta.overallScore}
           <span className="score-denom">/100</span>
         </p>
-        <p className="readiness">{readinessHeadline(meta.overallScore)}</p>
+        <p className="readiness text-[0.7rem] leading-snug max-w-[11rem]">
+          {basisLine}
+        </p>
       </div>
       <p className="grade" aria-label={`Grade ${meta.letterGrade}`}>
         {meta.letterGrade}
@@ -65,15 +72,30 @@ function KpiStrip({
   alarmSeverity: boolean
 }) {
   const items = [
-    { label: "Score", value: String(meta.overallScore), critical: false, grade: false },
-    { label: "Grade", value: meta.letterGrade, critical: false, grade: true },
     {
-      label: "Critical issues",
-      value: String(meta.criticalCount),
-      critical: alarmSeverity,
+      label: FREE_KPI_LABELS.score,
+      value: String(meta.overallScore),
+      critical: false,
       grade: false,
     },
-    { label: "Findings", value: String(meta.totalFindings), critical: false, grade: false },
+    {
+      label: FREE_KPI_LABELS.grade,
+      value: meta.letterGrade,
+      critical: false,
+      grade: true,
+    },
+    {
+      label: FREE_KPI_LABELS.checksFailed,
+      value: String(meta.criticalCount),
+      critical: alarmSeverity && meta.criticalCount > 0,
+      grade: false,
+    },
+    {
+      label: FREE_KPI_LABELS.findings,
+      value: String(meta.totalFindings),
+      critical: false,
+      grade: false,
+    },
   ]
 
   return (
@@ -105,19 +127,20 @@ function FreeSectionCard({
   onSelect: () => void
 }) {
   const accent = sectionScoreAccent(section.id)
+  const hasScore =
+    typeof section.score === "number" && section.status !== "insufficient_data"
 
   return (
     <button type="button" onClick={onSelect} className="rpt-conv-sec-card">
       <p className="rpt-conv-sec-score">
-        {typeof section.score === "number" &&
-        section.status !== "insufficient_data" ? (
+        {hasScore ? (
           <>
             <span style={{ color: accent.bar }}>{section.score}</span>
             <span className="rpt-conv-sec-denom">/100</span>
           </>
         ) : (
           <span style={{ color: accent.bar }} className="text-[0.75em]">
-            Insufficient data
+            Not scored — limited data in this scan
           </span>
         )}
       </p>
@@ -130,180 +153,18 @@ function FreeSectionCard({
   )
 }
 
-function MeansCard({
+function NextDecisionItem({
   title,
-  body,
-  tintClass,
-  icon: Icon,
-  blurRest,
-  reportId,
+  summary,
 }: {
   title: string
-  body: string
-  tintClass: string
-  icon: typeof AlertTriangle
-  blurRest?: string
-  reportId?: string
+  summary?: string
 }) {
   return (
-    <div className={cn("rounded-lg border p-4 h-full", tintClass)}>
-      <div className="flex items-start gap-2 mb-2">
-        <Icon className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
-        <p className="rpt-caption">{title}</p>
-      </div>
-      {blurRest ? (
-        <>
-          <FormattedReportText
-            text={body}
-            paragraphClassName="rpt-highlight-body text-sm leading-relaxed"
-            className="mb-2"
-          />
-          <UpsellBlurOverlay
-            message="Unlock full competitive and funnel analysis — $97"
-            reportId={reportId}
-          >
-            <FormattedReportText
-              text={blurRest}
-              paragraphClassName="rpt-highlight-body text-sm leading-relaxed"
-            />
-          </UpsellBlurOverlay>
-        </>
-      ) : (
-        <FormattedReportText
-          text={body}
-          paragraphClassName="rpt-highlight-body text-sm leading-relaxed"
-        />
-      )}
-    </div>
-  )
-}
-
-function SearchFootprintHighlight({
-  report,
-  onSelectTab,
-}: {
-  report: LevelstackReportJson
-  onSelectTab: (tabId: string) => void
-}) {
-  const search = report.sections.find((s) => s.id === "search_footprint")
-  const finding = search?.findings[0]
-
-  if (!finding) {
-    return (
-      <div className="rpt-card p-5 h-full">
-        <h3 className="rpt-card-title mb-3">Search footprint highlight</h3>
-        <p className="rpt-muted-text text-sm">
-          Open Search footprint for live Google and AI visibility findings.
-        </p>
-        <button
-          type="button"
-          onClick={() => onSelectTab("search_footprint")}
-          className="rpt-link mt-4 inline-flex items-center gap-1"
-        >
-          View Search footprint
-          <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-        </button>
-      </div>
-    )
-  }
-
-  return (
-    <div className="rpt-card p-5 h-full">
-      <h3 className="rpt-card-title mb-3">Search footprint highlight</h3>
-      <FormattedReportText
-        text={finding.value || finding.label}
-        paragraphClassName="text-sm font-medium text-[var(--rpt-heading)] leading-snug"
-        emphasizeLeadIn={false}
-      />
-      {finding.detail ? (
-        <FormattedReportText
-          text={finding.detail}
-          paragraphClassName="rpt-muted-text text-sm mt-2"
-          emphasizeLeadIn={false}
-        />
-      ) : null}
-      <span
-        className={cn(
-          "inline-block mt-2 text-[0.625rem] font-semibold px-2 py-0.5 rounded",
-          finding.severity === "critical" || finding.severity === "high"
-            ? "bg-red-50 text-red-800"
-            : "bg-amber-50 text-amber-900",
-        )}
-      >
-        {flagLabel(finding.severity)}
-      </span>
-      <button
-        type="button"
-        onClick={() => onSelectTab("search_footprint")}
-        className="rpt-link mt-4 inline-flex items-center gap-1"
-      >
-        View Search footprint
-        <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-      </button>
-    </div>
-  )
-}
-
-function CompetitiveSnapshotPanel({
-  competitive,
-  onSelectTab,
-}: {
-  competitive: NonNullable<ReturnType<typeof resolveCompetitiveSnapshot>>
-  onSelectTab: (tabId: string) => void
-}) {
-  const previewCompetitor = competitive.rows[0]
-  const hiddenCompetitorCount = Math.max(
-    0,
-    (competitive.competitorCount ?? 0) - (previewCompetitor ? 1 : 0),
-  )
-  const leadingRank = competitive.businessRank
-
-  return (
-    <div className="rpt-card p-5 h-full">
-      <h3 className="rpt-card-title mb-3">Competitive snapshot</h3>
-      <p className="rpt-caption mb-2 normal-case tracking-normal">
-        Search: &apos;{competitive.searchQuery}&apos;
-      </p>
-      <div className="rpt-alert-red rounded-md px-3 py-2 mb-3">
-        <FormattedReportText
-          text={competitive.positionAlert}
-          paragraphClassName="text-sm font-medium"
-          emphasizeLeadIn={false}
-        />
-      </div>
-      {previewCompetitor ? (
-        <div className="rpt-conv-comp-row">
-          <span>
-            <strong>#1 result</strong> {previewCompetitor.domain}
-          </span>
-          <span className="rpt-muted-text tabular-nums">SERP #{previewCompetitor.serpPosition}</span>
-        </div>
-      ) : leadingRank != null && leadingRank <= 3 ? (
-        <p className="rpt-body-text text-sm mb-2">
-          You rank <strong>#{leadingRank}</strong> for your business name in Google — no other
-          domains appeared above you in this snapshot.
-        </p>
-      ) : null}
-      {hiddenCompetitorCount > 0 ? (
-        <p className="rpt-muted-text text-sm mt-3">
-          {previewCompetitor
-            ? `Top organic result: ${previewCompetitor.domain} — unlock to see all ${competitive.competitorCount ?? hiddenCompetitorCount + 1} results and how you compare`
-            : `${competitive.competitorCount ?? hiddenCompetitorCount} competitors analyzed — unlock to see who ranks above you`}
-        </p>
-      ) : !previewCompetitor && !(leadingRank != null && leadingRank <= 3) ? (
-        <p className="rpt-muted-text text-xs">
-          Unlock the Action Roadmap for competitive rankings from live search data.
-        </p>
-      ) : null}
-      <button
-        type="button"
-        onClick={() => onSelectTab("competitive_context")}
-        className="rpt-link mt-4 inline-flex items-center gap-1"
-      >
-        Unlock full competitive analysis
-        <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-      </button>
-    </div>
+    <li>
+      <strong>{title}</strong>
+      {summary ? <span>{summary}</span> : null}
+    </li>
   )
 }
 
@@ -316,10 +177,11 @@ export function ExecutiveSummaryConversion({
   const content = resolveExecutiveContent(report)
   const competitive = resolveCompetitiveSnapshot(report)
   const sectionById = new Map(sections.map((s) => [s.id, s]))
-  const leverage = splitFirstSentence(content.highlights.highestLeverageOpportunity)
-  const headlineParts = executiveConversionHeadlineParts(report)
+  const headline = freeExecutiveHeadline(report)
   const alarmSeverity = shouldUseAlarmSeverity(report)
-
+  const counts = diagnosticAreaCounts()
+  const verified = verifiedChecksList(report.signalRows)
+  const basisLine = freeScoreBasisLine(report)
   const teaser = teaserRecommendations(report, 3)
 
   const insightRows = [
@@ -334,46 +196,79 @@ export function ExecutiveSummaryConversion({
       body: content.insights.reputationGap,
     },
     {
-      label: "Revenue risk",
+      label: "Where you're exposed",
       parts: content.structuredInsights?.revenueRisk,
       body: content.insights.revenueRisk,
     },
   ]
 
-  const visibleStrengths = content.strengths.slice(0, 1)
-  const hiddenStrengths = content.strengths.slice(1)
-  const visibleOpps = content.topOpportunities.slice(0, 1)
-  const hiddenOpps = content.topOpportunities.slice(1)
+  const workingItems = content.strengths.slice(0, 3)
+  const exposedItems = [
+    ...content.topOpportunities.slice(0, 2),
+    `Reputation, digital presence, revenue funnel, and competitive context (${counts.unopened} areas) remain locked on this Visibility Snapshot.`,
+  ]
+
+  const priority = content.highlights.priorityFinding
 
   return (
     <div className="rpt-dash-panel rpt-conv-panel">
       <div className="rpt-conv-dash-header">
         <h2 className="rpt-conv-headline">
-          Your public presence scores{" "}
-          <em className="rpt-conv-headline-accent">{headlineParts.score}/100</em>
-          {" — "}
-          {headlineParts.pain} in {headlineParts.market}.
+          {headline.lead}{" "}
+          <span className="font-normal text-[var(--rpt-body)]">{headline.follow}</span>
         </h2>
-        <OverallScoreCard meta={meta} />
+        <OverallScoreCard meta={meta} basisLine={basisLine} />
       </div>
 
       <KpiStrip meta={meta} alarmSeverity={alarmSeverity} />
 
-      <div
-        className={cn(
-          "rpt-conv-pull-quote",
-          alarmSeverity ? "is-alarm" : "is-priority",
-        )}
-      >
-        <p className="rpt-conv-pull-quote-label">
-          {alarmSeverity ? "Most critical issue" : "Priority finding"}
-        </p>
-        <FormattedReportText
-          text={content.highlights.criticalIssue}
-          paragraphClassName="rpt-conv-pull-quote-body text-[0.9375rem] font-medium leading-snug"
-          emphasizeLeadIn={false}
-        />
+      <div className="mb-4">
+        <ScoreBreakdown report={report} reportId={reportId} />
       </div>
+
+      {priority ? (
+        <div
+          className={cn(
+            "rpt-conv-pull-quote",
+            alarmSeverity ? "is-alarm" : "is-priority",
+          )}
+        >
+          <p className="rpt-conv-pull-quote-label">
+            {alarmSeverity ? "Most critical issue" : "Priority finding"}
+          </p>
+          <FormattedReportText
+            text={priority.observation}
+            paragraphClassName="rpt-conv-pull-quote-body text-[0.9375rem] font-medium leading-snug"
+            emphasizeLeadIn={false}
+          />
+          <FormattedReportText
+            text={priority.consequence}
+            paragraphClassName="rpt-muted-text text-sm mt-2 leading-snug"
+            emphasizeLeadIn={false}
+          />
+        </div>
+      ) : (
+        <div className="rpt-conv-pull-quote is-priority">
+          <p className="rpt-conv-pull-quote-label">What we verified</p>
+          {verified.length > 0 ? (
+            <ul className="list-none pl-0 space-y-1.5 mt-1">
+              {verified.map((label) => (
+                <li key={label} className="flex items-start gap-2 text-sm">
+                  <Check
+                    className="h-3.5 w-3.5 mt-0.5 shrink-0 text-[var(--rpt-green,#5cb85c)]"
+                    aria-hidden
+                  />
+                  <span>{label}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="rpt-conv-pull-quote-body text-[0.9375rem] font-medium leading-snug">
+              Both free diagnostic areas came back clean on the checks we ran.
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="rpt-conv-insights">
         {insightRows.map((row) => (
@@ -411,130 +306,99 @@ export function ExecutiveSummaryConversion({
         })}
       </div>
 
-      <div className="rpt-conv-means-grid">
-        <MeansCard
-          title="Business impact"
-          body={content.highlights.businessImpact}
-          tintClass="rpt-highlight-blue"
-          icon={BarChart3}
-        />
-        <MeansCard
-          title="Highest leverage opportunity"
-          body={
-            leverage.rest
-              ? leverage.first
-              : content.highlights.highestLeverageOpportunity
-          }
-          tintClass="rpt-highlight-green"
-          icon={Target}
-          blurRest={leverage.rest || undefined}
-          reportId={reportId}
-        />
-      </div>
-
-      <div className={cn("rpt-conv-two-col", !competitive && "is-single")}>
-        {competitive ? (
-          <CompetitiveSnapshotPanel
-            competitive={competitive}
-            onSelectTab={onSelectTab}
-          />
-        ) : null}
-        <SearchFootprintHighlight report={report} onSelectTab={onSelectTab} />
-      </div>
-
       <div className="rpt-conv-bottom-row">
         <div className="rpt-card p-5">
-          <h3 className="rpt-card-title mb-4">Your next decisions</h3>
-          {teaser.titles.length > 0 ? (
-            <ul className="rpt-conv-action-list list-none pl-0">
-              {teaser.titles.map((title, i) => (
-                <li key={i}>
-                  <strong>{title}</strong>
-                  {teaser.summaries[i] ? (
-                    <span>{teaser.summaries[i]}</span>
-                  ) : null}
+          <h3 className="rpt-card-title mb-4">What&apos;s working</h3>
+          {workingItems.length > 0 ? (
+            <ul className="space-y-2 list-none pl-0">
+              {workingItems.map((s, i) => (
+                <li key={i} className="rpt-conv-strength-item">
+                  <span className="rpt-conv-strength-icon is-strength" aria-hidden>
+                    <Check className="h-3 w-3" strokeWidth={2.5} />
+                  </span>
+                  <FormattedReportText
+                    text={s}
+                    paragraphClassName="text-sm text-[var(--rpt-body)]"
+                    emphasizeLeadIn={false}
+                  />
                 </li>
               ))}
             </ul>
           ) : (
             <p className="rpt-muted-text text-sm">
-              Prioritized actions appear in your Action Roadmap after funnel and competitive analysis.
+              See Search footprint and Social &amp; off-site for verified public signals.
             </p>
           )}
-          <button
-            type="button"
-            onClick={() => onSelectTab("action_plan")}
-            className="rpt-link mt-4 inline-flex items-center gap-1"
-          >
-            View full action plan (locked)
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-          </button>
         </div>
 
         <div className="rpt-card p-5">
-          <h3 className="rpt-card-title mb-4">Strengths &amp; opportunities</h3>
-          {visibleStrengths.map((s, i) => (
-            <div key={`s-${i}`} className="rpt-conv-strength-item">
-              <span className="rpt-conv-strength-icon is-strength" aria-hidden>
-                <Check className="h-3 w-3" strokeWidth={2.5} />
-              </span>
-              <FormattedReportText
-                text={s}
-                paragraphClassName="text-sm text-[var(--rpt-body)]"
-                emphasizeLeadIn={false}
-              />
-            </div>
-          ))}
-          {visibleOpps.map((o, i) => (
-            <div key={`o-${i}`} className="rpt-conv-strength-item">
-              <span className="rpt-conv-strength-icon is-opportunity" aria-hidden>
-                <AlertTriangle className="h-3 w-3" strokeWidth={2.5} />
-              </span>
-              <FormattedReportText
-                text={o}
-                paragraphClassName="text-sm text-[var(--rpt-body)]"
-                emphasizeLeadIn={false}
-              />
-            </div>
-          ))}
-          {hiddenStrengths.length > 0 || hiddenOpps.length > 0 ? (
-            <div className="mt-3">
-              <UpsellBlurOverlay
-                message="Unlock all strengths and opportunities in your Action Roadmap — $97"
-                reportId={reportId}
-              >
-                <div className="space-y-2">
-                  {hiddenStrengths.map((s, i) => (
-                    <div key={i} className="rpt-conv-strength-item">
-                      <span className="rpt-conv-strength-icon is-strength" aria-hidden>
-                        <Check className="h-3 w-3" />
-                      </span>
-                      <span className="text-sm">{s}</span>
-                    </div>
-                  ))}
-                  {hiddenOpps.map((o, i) => (
-                    <div key={i} className="rpt-conv-strength-item">
-                      <span className="rpt-conv-strength-icon is-opportunity" aria-hidden>
-                        <AlertTriangle className="h-3 w-3" />
-                      </span>
-                      <span className="text-sm">{o}</span>
-                    </div>
-                  ))}
-                </div>
-              </UpsellBlurOverlay>
-            </div>
-          ) : null}
-          {visibleStrengths.length === 0 && visibleOpps.length === 0 ? (
-            <p className="rpt-muted-text text-sm">
-              See section tabs above for detailed findings from your free snapshot.
-            </p>
-          ) : null}
+          <h3 className="rpt-card-title mb-4">Where you&apos;re exposed</h3>
+          <ul className="space-y-2 list-none pl-0">
+            {exposedItems.map((o, i) => (
+              <li key={i} className="rpt-conv-strength-item">
+                <span className="rpt-conv-strength-icon is-opportunity" aria-hidden>
+                  <AlertTriangle className="h-3 w-3" strokeWidth={2.5} />
+                </span>
+                <FormattedReportText
+                  text={o}
+                  paragraphClassName="text-sm text-[var(--rpt-body)]"
+                  emphasizeLeadIn={false}
+                />
+              </li>
+            ))}
+          </ul>
+          <p className="rpt-muted-text text-xs mt-3">
+            {counts.unopened} diagnostic areas remain locked — open them in your{" "}
+            {PRODUCT_NAMES.paid}.
+          </p>
         </div>
       </div>
 
-      <p className="rpt-muted-text text-xs text-center mt-8">
-        Diagnostic only — LevelStack does not guarantee rankings or revenue outcomes.
-      </p>
+      <div className="rpt-card p-5 mt-4">
+        <h3 className="rpt-card-title mb-4">Your next decisions</h3>
+        {teaser.titles.length > 0 ? (
+          <ul className="rpt-conv-action-list list-none pl-0">
+            {teaser.titles.map((title, i) => (
+              <NextDecisionItem
+                key={i}
+                title={title}
+                summary={
+                  teaser.summaries[i]
+                    ? teaser.summaries[i]
+                    : "Decide whether to act on this signal, then check the matching Search or Social section for evidence."
+                }
+              />
+            ))}
+          </ul>
+        ) : (
+          <ul className="rpt-conv-action-list list-none pl-0">
+            <NextDecisionItem
+              title="Confirm what Google shows for your brand name"
+              summary="Open Search footprint, compare the live snippet to your site, and note any mismatch."
+            />
+            <NextDecisionItem
+              title="Check which social profiles appear publicly"
+              summary="Open Social & off-site, decide which missing profiles matter for how prospects vet you."
+            />
+            <NextDecisionItem
+              title="Decide whether to unlock the remaining four areas"
+              summary="Reputation, digital presence, funnel, and competitive context are where revenue problems usually hide."
+            />
+          </ul>
+        )}
+        <p className="rpt-muted-text text-xs mt-4">
+          Full prioritized action plan stays locked on this Visibility Snapshot.
+        </p>
+      </div>
+
+      {competitive ? (
+        <p className="rpt-muted-text text-xs mt-4 text-center">
+          Competitive rankings for &apos;{competitive.searchQuery}&apos; sit in a locked
+          area — open them in your Action Roadmap.
+        </p>
+      ) : null}
+
+      <p className="rpt-muted-text text-xs text-center mt-8">{REPORT_SCORE_FOOTER}</p>
     </div>
   )
 }

@@ -374,6 +374,21 @@ function coerceStringArray(value: unknown, max: number): string[] | undefined {
   return items.length > 0 ? items : undefined
 }
 
+/**
+ * Remove invented absolute score claims from LLM executive prose
+ * (e.g. "78/100", "scores 78") so the UI score card stays authoritative.
+ */
+export function stripInventedScoreClaims(text: string): string {
+  return text
+    .replace(/\b\d{1,3}\s*\/\s*100\b/g, "")
+    .replace(/\bscores?\s+\d{1,3}\b/gi, "")
+    .replace(/\brated\s+\d{1,3}\s*(?:out\s+of\s+100|\/\s*100)?\b/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([.,;:!?])/g, "$1")
+    .replace(/^[.,;:\s]+|[.,;:\s]+$/g, "")
+    .trim()
+}
+
 function normalizeExecutiveSummary(
   raw: unknown,
   fallback: LevelstackReportJson["executiveSummary"],
@@ -383,7 +398,9 @@ function normalizeExecutiveSummary(
 
   const paragraphs = Array.isArray(o.paragraphs)
     ? o.paragraphs
-        .map((p) => (typeof p === "string" ? p.trim() : ""))
+        .map((p) =>
+          typeof p === "string" ? stripInventedScoreClaims(p.trim()) : "",
+        )
         .filter(Boolean)
     : []
 

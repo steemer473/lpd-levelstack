@@ -6,6 +6,10 @@ import {
   buildFreeTierStructuredExecutiveInsights,
 } from "@/lib/report/free-tier-insights"
 import {
+  resolvePriorityFinding,
+  type PriorityFinding,
+} from "@/lib/report/free-executive-copy"
+import {
   deriveBuyerHostFromReport,
   extractBusinessSearchRank,
   parseSerpRowsFromDetail,
@@ -21,7 +25,9 @@ export type ResolvedExecutiveContent = {
   }
   structuredInsights?: StructuredExecutiveInsights
   highlights: {
-    criticalIssue: string
+    /** Null when no failed check / urgent adverse finding exists (clean scan). */
+    criticalIssue: string | null
+    priorityFinding: PriorityFinding | null
     businessImpact: string
     highestLeverageOpportunity: string
   }
@@ -54,15 +60,15 @@ function hasStructuredInsights(
   )
 }
 
-function ensureCriticalIssue(
+/**
+ * Resolve an adverse priority finding only.
+ * Failed audit signals first, then urgent (critical/high) findings.
+ * Never promotes a positive finding. Returns null on clean scans.
+ */
+export function ensureCriticalIssue(
   report: LevelstackReportJson,
   distinct: ReturnType<typeof resolveDistinctHighlights>,
-): string {
-  const trimmed = distinct.criticalIssue?.trim()
-  const isGeneric = !trimmed || trimmed === "Review search footprint first."
-
-  if (!isGeneric) return trimmed
-
+): PriorityFinding | null {
   const urgent = report.sections
     .flatMap((section) =>
       section.findings.map((finding) => ({ ...finding, sectionId: section.id })),
@@ -74,13 +80,17 @@ function ensureCriticalIssue(
       return rank(a.severity) - rank(b.severity)
     })
 
-  const fromFinding = urgent.find((f) => f.value.trim())?.value.trim()
-  if (fromFinding) return fromFinding
+  const fromUrgent = urgent.find((f) => f.value.trim())?.value.trim() ?? null
 
-  const anyFinding = report.sections.flatMap((s) => s.findings).find((f) => f.value.trim())
-  if (anyFinding) return anyFinding.value.trim()
+  const distinctIssue = distinct.criticalIssue?.trim()
+  const distinctIsGeneric =
+    !distinctIssue ||
+    distinctIssue === "Review search footprint first." ||
+    /\brank(?:s|ed)?\s*#?1\b/i.test(distinctIssue)
 
-  return trimmed || "Review search footprint first."
+  return resolvePriorityFinding(report, {
+    urgentFinding: fromUrgent ?? (distinctIsGeneric ? null : distinctIssue),
+  })
 }
 
 export function resolveExecutiveContent(
@@ -107,14 +117,15 @@ export function resolveExecutiveContent(
   )
 
   const distinct = resolveDistinctHighlights(report)
-  const criticalIssue = ensureCriticalIssue(report, distinct)
+  const priorityFinding = ensureCriticalIssue(report, distinct)
 
   return {
     insights,
     structuredInsights: buildFreeTierStructuredExecutiveInsights(report),
     highlights: {
-      criticalIssue,
-      businessImpact: distinct.businessImpact,
+      criticalIssue: priorityFinding?.fullText ?? null,
+      priorityFinding,
+      businessImpact: priorityFinding?.consequence ?? distinct.businessImpact,
       highestLeverageOpportunity: distinct.highestLeverageOpportunity,
     },
     strengths: distinct.strengths,
