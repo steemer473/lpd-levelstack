@@ -56,7 +56,7 @@ Separately, the report URL requires sign-in before first view, which burns the p
 | **P1** | Finding dedup (reputation) | 0.5 day | Clutch/G2/Capterra merged to one finding |
 | **P2** | Action plan specificity | 2–3 days | Tasks include copy-paste artifacts |
 | **P2** | SERP evidence links | 1 day | Findings link to search URL used |
-| **P2** | Revenue funnel analysis | 2 days | Page-level CTA/trust audit, not intake echo |
+| **P2** | Revenue funnel analysis | 2 days | **Shipped 2026-08-05** — homepage CTA/hero/nav/form/PageSpeed; not intake echo |
 | **P2** | Paid unlock moment | 1 day | Welcome banner + print CTA on `full_report` |
 | **P3** | AI search visibility parity | 2–3 days | Production matches sample report AI cards |
 | **P3** | Dollar framing in exec summary | 1 day | Click-share ranges on rank gaps |
@@ -585,9 +585,12 @@ Paid funnel section surfaces intake answers ("no ad spend", "email list 0") as f
 
 ### Acceptance criteria
 
-- [ ] Revenue funnel section has ≥1 finding from live page signals when `hasActiveAdSpend === "no"`
-- [ ] No finding whose value is only the raw intake field
+- [x] Revenue funnel section has ≥1 finding from live page signals when `hasActiveAdSpend === "no"` — **shipped 2026-08-05** (homepage-only: hero/nav/CTA/form/PageSpeed; zero new fetches)
+- [x] No finding whose value is only the raw intake field — **shipped 2026-08-05** (`revenue_funnel` added to `LLM_GUARDRAIL_SECTION_IDS`)
 
+### Shipped notes
+
+Homepage-scoped only. Multi-page contact/pricing crawl deferred until paid pipeline timeout risk (sprint item F) is addressed.
 ---
 
 ## P2 — Paid unlock UX moment
@@ -635,7 +638,7 @@ When `meta.reportTier === "full_report"`:
 
 7. P2 action plan artifacts
 8. P2 SERP evidence links
-9. P2 revenue funnel rewrite
+9. ~~P2 revenue funnel rewrite~~ — **shipped 2026-08-05** (homepage-only)
 10. P2 paid welcome banner + print CTA
 
 ---

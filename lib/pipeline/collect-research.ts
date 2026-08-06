@@ -108,6 +108,8 @@ export async function collectPrimaryDomainFetch(
   bundle.digitalPresence.website = website
   bundle.digitalPresence.websiteExtended = extended
   bundle.revenueFunnel.website = website
+  bundle.revenueFunnel.heroText = extended?.heroText ?? website.h1
+  bundle.revenueFunnel.navLabels = extended?.navLabels ?? []
 
   const host = hostnameFromUrl(intake.websiteUrl)
   if (host) {

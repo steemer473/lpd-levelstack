@@ -177,6 +177,7 @@ function applySearchFootprintScoreFloor(
 const LLM_GUARDRAIL_SECTION_IDS = new Set([
   "search_footprint",
   "online_reputation",
+  "revenue_funnel",
 ])
 
 function severityRank(severity: ReportFinding["severity"]): number {

@@ -186,6 +186,75 @@ describe("normalizeSynthesisPayload", () => {
     )
   })
 
+  it("preserves baseline revenue_funnel findings when LLM injects intake regurgitation", () => {
+    const funnelBaseline = {
+      ...baseline[4]!,
+      findings: [
+        {
+          label: "Homepage conversion readiness",
+          value: "Homepage shows a usable conversion path",
+          detail: "Hero and CTA present.",
+          severity: "low" as const,
+        },
+        {
+          label: "Offer & conversion signals",
+          value: "Offer and next step are visible on the homepage",
+          detail: "Live homepage signals.",
+          severity: "low" as const,
+        },
+      ],
+    }
+    const sections = [
+      ...baseline.slice(0, 4),
+      funnelBaseline,
+      ...baseline.slice(5),
+    ]
+
+    const payload = normalizeSynthesisPayload(
+      {
+        sections: [
+          {
+            id: "revenue_funnel",
+            status: "attention",
+            score: 40,
+            findings: [
+              {
+                label: "Offer regurgitated",
+                value: "Consulting · $5k–$15k",
+                detail: "Raw intake echo",
+                severity: "medium",
+              },
+              {
+                label: "Homepage conversion readiness",
+                value: "Still usable — reworded",
+                detail: "Editorial polish only",
+                severity: "low",
+              },
+            ],
+          },
+        ],
+        executiveSummary: {
+          paragraphs: ["One", "Two"],
+          criticalIssue: "Issue",
+          firstSteps: ["Step"],
+        },
+      },
+      sections,
+      intake,
+      null,
+    )
+
+    const funnel = payload.sections.find((s) => s.id === "revenue_funnel")!
+    expect(funnel.findings).toHaveLength(2)
+    expect(funnel.findings.some((f) => f.label === "Offer regurgitated")).toBe(false)
+    expect(funnel.findings[0]?.label).toBe("Homepage conversion readiness")
+    expect(funnel.findings[0]?.value).toBe("Still usable — reworded")
+    expect(funnel.findings[1]?.label).toBe("Offer & conversion signals")
+    expect(funnel.findings[1]?.value).toBe(
+      "Offer and next step are visible on the homepage",
+    )
+  })
+
   it("preserves good baseline reputation findings when LLM injects alarmist copy", () => {
     const reputationBaseline: ReportSection = {
       ...baseline[2]!,

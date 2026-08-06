@@ -7,6 +7,10 @@ export type WebsiteSignals = {
   h1: string | null
   usesHttps: boolean
   hasCtaLanguage: boolean
+  /** Homepage contains at least one `<form>` element. */
+  hasContactForm: boolean
+  /** Approximate count of `<input>` / `<textarea>` fields on the homepage. */
+  formFieldCount: number
   wordCountApprox: number
   limitation: string | null
 }
@@ -22,6 +26,34 @@ export type WebsiteExtendedSignals = {
 const CTA_PATTERN =
   /\b(book|schedule|call|contact|get started|sign up|free consult|apply now)\b/i
 
+/** Count form / field signals from raw HTML already in memory (no extra fetch). */
+export function parseFormSignals(html: string): {
+  hasContactForm: boolean
+  formFieldCount: number
+} {
+  const hasContactForm = /<form[\s>]/i.test(html)
+  const inputMatches = html.match(/<input\b/gi) ?? []
+  const textareaMatches = html.match(/<textarea\b/gi) ?? []
+  return {
+    hasContactForm,
+    formFieldCount: inputMatches.length + textareaMatches.length,
+  }
+}
+
+/** Markdown fallback when Firecrawl returns no HTML (forms rarely survive as tags). */
+function parseFormSignalsFromMarkdown(markdown: string): {
+  hasContactForm: boolean
+  formFieldCount: number
+} {
+  const hasContactForm =
+    /\b(contact\s+form|submit|send\s+message|get\s+in\s+touch)\b/i.test(markdown) ||
+    /\[(?:submit|send|contact|book|schedule)[^\]]*\]\(/i.test(markdown)
+  return {
+    hasContactForm,
+    formFieldCount: hasContactForm ? 1 : 0,
+  }
+}
+
 export async function fetchWebsiteSignals(url: string): Promise<WebsiteSignals> {
   const base: WebsiteSignals = {
     url,
@@ -30,6 +62,8 @@ export async function fetchWebsiteSignals(url: string): Promise<WebsiteSignals> 
     h1: null,
     usesHttps: url.startsWith("https://"),
     hasCtaLanguage: false,
+    hasContactForm: false,
+    formFieldCount: 0,
     wordCountApprox: 0,
     limitation: null,
   }
@@ -123,6 +157,7 @@ function parseHtmlSignals(url: string, html: string): WebsiteSignals {
   const h1 = html.match(/<h1[^>]*>([^<]+)<\/h1>/i)?.[1]?.trim() ?? null
   const text = html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, " ")
   const words = text.split(/\s+/).filter((w) => w.length > 2)
+  const form = parseFormSignals(html)
 
   return {
     url,
@@ -131,6 +166,8 @@ function parseHtmlSignals(url: string, html: string): WebsiteSignals {
     h1,
     usesHttps: url.startsWith("https://"),
     hasCtaLanguage: CTA_PATTERN.test(html),
+    hasContactForm: form.hasContactForm,
+    formFieldCount: form.formFieldCount,
     wordCountApprox: words.length,
     limitation: null,
   }
@@ -161,12 +198,15 @@ async function scrapeWithFirecrawl(
     const metaDescription = data.data?.metadata?.description ?? null
     const h1 = markdown.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? null
     const words = markdown.split(/\s+/).filter((w) => w.length > 2)
+    const form = parseFormSignalsFromMarkdown(markdown)
 
     return {
       title,
       metaDescription,
       h1,
       hasCtaLanguage: CTA_PATTERN.test(markdown),
+      hasContactForm: form.hasContactForm,
+      formFieldCount: form.formFieldCount,
       wordCountApprox: words.length,
       limitation: null,
     }
