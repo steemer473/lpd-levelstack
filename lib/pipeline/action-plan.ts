@@ -1,5 +1,6 @@
 import type { LevelstackIntakeFormValues } from "@/lib/intake/schema"
 import { TERMS } from "@/lib/report/customer-terms"
+import { buildIncognitoSearchNextStep } from "@/lib/report/incognito-search-copy"
 import type {
   LevelstackReportJson,
   ReportSection,
@@ -117,7 +118,11 @@ export function buildActionPlanFromSections(
 
   thisWeek.push({
     task: `Decide: Confirm what strangers see for "${intake?.primaryBusinessName ?? "your business"}"`,
-    sub: `Next step: Search in a private/incognito browser for "${intake?.ownerName ?? "your name"}" and "${intake?.primaryBusinessName ?? "business"}" — no personal history.`,
+    sub: buildIncognitoSearchNextStep({
+      businessName: intake?.primaryBusinessName,
+      primaryService: intake?.primaryService,
+      ownerName: intake?.ownerName,
+    }),
     who: "You",
     time: "20 min",
   })
@@ -178,7 +183,7 @@ export function buildActionPlanFromSections(
         : "Next step: Support AI/search snippets and comparison shoppers with clear entity pages.",
       who: runsAds ? "You" : "Freelancer",
       time: runsAds ? "2 hrs" : "3–4 hrs",
-      findingRef: runsAds ? "Paid traffic readiness" : "Google visibility",
+      findingRef: runsAds ? "Paid traffic readiness" : "Search Visibility",
     },
   ]
 

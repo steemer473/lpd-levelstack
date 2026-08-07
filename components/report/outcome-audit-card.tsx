@@ -45,6 +45,8 @@ const OUTCOME_STYLES: Record<
 
 type OutcomeAuditCardProps = {
   headline: string
+  /** Contextual lede rendered as a paragraph (not a bullet). */
+  lede?: string
   bullets?: string[]
   outcome: OutcomeLabelKey
   className?: string
@@ -52,6 +54,7 @@ type OutcomeAuditCardProps = {
 
 export function OutcomeAuditCard({
   headline,
+  lede,
   bullets = [],
   outcome,
   className,
@@ -71,6 +74,7 @@ export function OutcomeAuditCard({
       <p className="text-sm font-semibold leading-snug text-[var(--rpt-heading)] break-words [overflow-wrap:anywhere]">
         {linkifyText(headline)}
       </p>
+      {lede ? <p className="rpt-finding-context mt-1.5">{linkifyText(lede)}</p> : null}
       {visibleBullets.length > 0 ? (
         <ul className="mt-2 min-w-0 space-y-1.5 list-none pl-0">
           {visibleBullets.map((bullet, index) => (

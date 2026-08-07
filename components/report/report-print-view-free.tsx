@@ -21,12 +21,12 @@ import {
   FREE_SCORE_LABEL,
   REPORT_SCORE_FOOTER,
   freeExecutiveHeadline,
+  freeExecutiveNextDecisions,
   freeScanIssueCounts,
   freeScoreBasisLine,
   verifiedChecksList,
 } from "@/lib/report/free-executive-copy"
 import { shouldUseAlarmSeverity } from "@/lib/report/severity-presentation"
-import { teaserRecommendations } from "@/lib/report/roadmap-from-recommendations"
 import { getHubUpgradeUrl } from "@/lib/urls"
 import { cn } from "@/lib/utils"
 
@@ -193,7 +193,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
     ? effectiveFindingSeverity("search_footprint", searchFinding)
     : null
   const previewCompetitor = competitive?.rows[0]
-  const teaser = teaserRecommendations(report, 3)
+  const nextDecisions = freeExecutiveNextDecisions(report)
 
   const insightRows = [
     {
@@ -361,7 +361,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
           ) : null}
 
           <div className="rounded border border-gray-200 p-4">
-            <h3 className="font-medium mb-2">Google visibility highlight</h3>
+            <h3 className="font-medium mb-2">Search Visibility highlight</h3>
             {searchFinding && searchFindingSeverity ? (
               <>
                 <FormattedReportText
@@ -382,7 +382,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
                 />
               </>
             ) : (
-              <p className="text-xs text-gray-600">See Google visibility section below.</p>
+              <p className="text-xs text-gray-600">See Search Visibility section below.</p>
             )}
           </div>
         </div>
@@ -390,24 +390,25 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
         <div className="grid sm:grid-cols-2 gap-6 mb-6 break-inside-avoid">
           <div>
             <h3 className="font-medium mb-2">Your next decisions</h3>
-            {teaser.titles.length > 0 ? (
-              <ul className="list-none pl-0 space-y-2">
-                {teaser.titles.map((title, i) => (
-                  <li key={i} className="border-b border-gray-100 pb-2 last:border-0">
-                    <p className="font-medium text-gray-900">{title}</p>
-                    {teaser.summaries[i] ? (
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {teaser.summaries[i]}
-                      </p>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-xs text-gray-600">
-                Prioritized actions appear in the Action Roadmap after funnel and competitive analysis.
-              </p>
-            )}
+            <ul className="list-none pl-0 space-y-2">
+              {nextDecisions.map((item, i) => (
+                <li
+                  key={i}
+                  className="flex gap-2 items-start border-b border-gray-100 pb-2 last:border-0"
+                >
+                  <span
+                    className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-orange-400 text-[11px] font-bold text-white"
+                    aria-hidden
+                  >
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900">{item.title}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{item.summary}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
             <p className="text-xs text-gray-500 italic mt-2">
               Full 90-day action plan included in Action Roadmap ($97).
             </p>
@@ -466,18 +467,21 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
             </h2>
             {section.aiPreview && section.aiPreview.length > 0 ? (
               <div className="mb-4">
-                <h3 className="text-xs font-semibold uppercase text-gray-500 mb-2">
-                  AI search visibility preview
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--rpt-muted,#6b7280)] mb-1">
+                  AI search visibility
                 </h3>
+                <p className="text-xs text-gray-600 mb-2">
+                  Checked {report.meta.reportDate}. Summary shown when prospects ask AI about you.
+                </p>
                 {section.aiPreview.map((ai, i) => (
                   <div
                     key={i}
-                    className="mb-2 rounded border border-gray-200 p-3"
+                    className="mb-2 rounded-lg border border-[var(--rpt-card-border,#e2e8f0)] bg-white p-3 shadow-sm"
                   >
                     <p className="text-xs font-semibold text-gray-600">
                       {ai.platform}
                     </p>
-                    <p className="text-sm text-gray-800 mt-1">{ai.result}</p>
+                    <p className="text-sm text-gray-800 mt-1 leading-relaxed">{ai.result}</p>
                     <PrintSeverityPill
                       severity={ai.severity}
                       className="mt-2"
@@ -496,7 +500,7 @@ export function ReportPrintViewFree({ report, reportId }: ReportPrintViewFreePro
       <section className="mb-6 rounded border border-orange-200 bg-orange-50 p-4 break-inside-avoid">
         <h3 className="font-semibold text-orange-900 mb-1">Upgrade to Action Roadmap — $97</h3>
         <p className="text-xs text-orange-950 leading-relaxed">
-          This free snapshot covers Google visibility and social &amp; off-site presence. The Full
+          This free snapshot covers Search Visibility and social &amp; off-site presence. The Full
           Report adds reputation, digital presence, revenue funnel diagnosis, competitive
           context, a complete prioritized 90-day action plan, and a downloadable PDF for your team.
         </p>

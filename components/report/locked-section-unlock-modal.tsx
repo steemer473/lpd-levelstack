@@ -14,7 +14,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { LOCKED_SECTION_MODAL } from "@/lib/report/outcome-copy"
+import {
+  LOCKED_SECTION_MODAL,
+  SAMPLE_ACTION_ROADMAP_PATH,
+} from "@/lib/report/outcome-copy"
 import { getHubCartUrl } from "@/lib/urls"
 
 type LockedSectionUnlockModalProps = {
@@ -22,6 +25,8 @@ type LockedSectionUnlockModalProps = {
   onOpenChange: (open: boolean) => void
   reportId?: string
   price?: string
+  /** Deep-link tab on the sample Action Roadmap (e.g. competitive_context). */
+  sampleTab?: string
 }
 
 export function LockedSectionUnlockModal({
@@ -29,6 +34,7 @@ export function LockedSectionUnlockModal({
   onOpenChange,
   reportId,
   price,
+  sampleTab,
 }: LockedSectionUnlockModalProps) {
   const { suppressLevelstackPurchaseCtas, actionRoadmapReportId } =
     usePaidOwnerReportChrome()
@@ -38,6 +44,10 @@ export function LockedSectionUnlockModal({
   const primaryHref = paidOwner
     ? `/reports/${actionRoadmapReportId}`
     : getHubCartUrl({ reportId, source: "levelstack_report" })
+
+  const sampleHref = sampleTab
+    ? `${SAMPLE_ACTION_ROADMAP_PATH}?tab=${encodeURIComponent(sampleTab)}`
+    : SAMPLE_ACTION_ROADMAP_PATH
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -71,13 +81,23 @@ export function LockedSectionUnlockModal({
           </ul>
         ) : null}
         <DialogFooter className="flex-col gap-3 sm:flex-row sm:items-end sm:justify-end">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            className="h-auto min-h-10 w-full whitespace-normal py-2 text-center sm:w-auto sm:text-left"
-          >
-            {LOCKED_SECTION_MODAL.secondaryCta}
-          </Button>
+          {paidOwner ? (
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="h-auto min-h-10 w-full whitespace-normal py-2 text-center sm:w-auto sm:text-left"
+            >
+              Close
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              asChild
+              className="h-auto min-h-10 w-full whitespace-normal py-2 text-center sm:w-auto sm:text-left"
+            >
+              <Link href={sampleHref}>{LOCKED_SECTION_MODAL.secondaryCta}</Link>
+            </Button>
+          )}
           <div className="flex w-full flex-col items-stretch gap-1.5 sm:w-auto sm:items-end">
             <Button
               variant="brand"

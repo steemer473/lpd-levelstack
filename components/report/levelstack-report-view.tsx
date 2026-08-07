@@ -25,6 +25,8 @@ type LevelstackReportViewProps = {
   report: LevelstackReportJson
   reportId?: string
   defaultUnlockModalOpen?: boolean
+  /** Open a specific tab on mount (e.g. deep-link into sample Action Plan). */
+  defaultTab?: string
   /** Paid customer viewing a free snapshot — suppress LevelStack buy CTAs. */
   suppressLevelstackPurchaseCtas?: boolean
   actionRoadmapReportId?: string
@@ -34,10 +36,11 @@ export function LevelstackReportView({
   report,
   reportId,
   defaultUnlockModalOpen = false,
+  defaultTab,
   suppressLevelstackPurchaseCtas = false,
   actionRoadmapReportId,
 }: LevelstackReportViewProps) {
-  const [nav, reportRef] = useReportTabs(report)
+  const [nav, reportRef] = useReportTabs(report, { defaultTab })
   const { meta } = nav
   const isExecutive = nav.activeTab === "executive_summary"
   const [unlockModalOpen, setUnlockModalOpen] = useState(defaultUnlockModalOpen)

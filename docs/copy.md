@@ -73,7 +73,7 @@ Paid Action Roadmap uses the same builders with `includeUpgradeTeasers: false` (
 - Bullets: 90-day plan, unlocked modules, dashboard + PDF
 - Primary CTA: "Unlock Action Roadmap — $97"
 - Credit note (below button): "The $97 assessment fee credits toward your first founding-rate month when an eligible SEO Automator Pro slot opens."
-- Secondary: "Return to Visibility Snapshot"
+- Secondary: "See a sample Action Roadmap" → `/sample-report/action-roadmap`
 
 ### SAP waitlist modal
 

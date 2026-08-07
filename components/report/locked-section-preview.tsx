@@ -13,6 +13,10 @@ import {
   resolveCompetitiveSnapshot,
   resolveExecutiveContent,
 } from "@/lib/report/executive-summary-resolve"
+import {
+  SAMPLE_ACTION_ROADMAP_LINKS,
+  SAMPLE_ACTION_ROADMAP_PATH,
+} from "@/lib/report/outcome-copy"
 import { teaserRecommendations } from "@/lib/report/roadmap-from-recommendations"
 import { LEVELSTACK_UNLOCK_97_CTA } from "@/lib/reports/paid-owner-report-chrome"
 import { cn } from "@/lib/utils"
@@ -203,9 +207,19 @@ export function LockedSectionPreview({
           </a>
         </Button>
       ) : (
-        <Button variant="brand" className="mt-6" onClick={() => setUnlockModalOpen(true)}>
-          {LEVELSTACK_UNLOCK_97_CTA}
-        </Button>
+        <>
+          <Button variant="brand" className="mt-6" onClick={() => setUnlockModalOpen(true)}>
+            {LEVELSTACK_UNLOCK_97_CTA}
+          </Button>
+          <p className="mt-3">
+            <a
+              href={`${SAMPLE_ACTION_ROADMAP_PATH}?tab=${encodeURIComponent(sectionId)}`}
+              className="text-sm text-brand-orange underline-offset-4 hover:underline"
+            >
+              {SAMPLE_ACTION_ROADMAP_LINKS.lockedPreview(label)}
+            </a>
+          </p>
+        </>
       )}
 
       <SapBridgeBlock placement="freeLocked" reportId={reportId} />
@@ -214,6 +228,7 @@ export function LockedSectionPreview({
           open={unlockModalOpen}
           onOpenChange={setUnlockModalOpen}
           reportId={reportId}
+          sampleTab={sectionId}
         />
       ) : null}
     </div>

@@ -39,6 +39,16 @@ describe("findingContextLine", () => {
     expect(findingContextLine("search_footprint", finding)).toContain("owner")
   })
 
+  it("explains personal-name label findings without owner phrase in value", () => {
+    const finding: ReportFinding = {
+      label: 'Google page 1 — "Marcus Carter" (personal name)',
+      value: "3rd result: complaint post on ConsumerAffairs.com",
+      detail: "A complaint filed in 2022",
+      severity: "critical",
+    }
+    expect(findingContextLine("search_footprint", finding)).toContain("owner")
+  })
+
   it("explains reputation review searches", () => {
     const finding: ReportFinding = {
       label: "Review search: Acme Plumbing",

@@ -8,6 +8,7 @@ import {
   diagnosticAreaCounts,
   diagnosticAreaGrid,
   freeExecutiveHeadline,
+  freeExecutiveNextDecisions,
   freeScanIssueCounts,
   freeScoreBasisLine,
   resolvePriorityFinding,
@@ -445,5 +446,48 @@ describe("outcome-copy drift", () => {
     expect(UPGRADE_BANNER.body).not.toMatch(/spots remaining/i)
     expect(UPGRADE_BANNER.secondaryCta).toMatch(/\$297/)
     expect(LOCKED_SECTION_MODAL.creditNote).toMatch(/founding-rate month/i)
+  })
+})
+
+describe("freeExecutiveNextDecisions", () => {
+  it("returns three fixed DIY steps with distinct incognito copy", () => {
+    const decisions = freeExecutiveNextDecisions({
+      meta: baseMeta({
+        businessName: "LT Printing & Promotion",
+        ownerName: "LT Printing & Promotion",
+      }),
+    })
+    expect(decisions).toHaveLength(3)
+    expect(decisions[0]?.title).toBe(
+      'Confirm what strangers see for "LT Printing & Promotion"',
+    )
+    expect(decisions[0]?.summary).toBe(
+      'Next step: Search in a private/incognito browser for "LT Printing & Promotion" — no personal history.',
+    )
+    expect(decisions[0]?.summary).not.toMatch(
+      /"LT Printing & Promotion" and "LT Printing/,
+    )
+    expect(decisions[1]?.title).toBe(
+      "Check whether prospects can verify you on social",
+    )
+    expect(decisions[1]?.summary).toBe(
+      "Next step: Search your business name on LinkedIn and Facebook. If no credible, active profile appears, that's a trust gap you can't see from inside the business.",
+    )
+    expect(decisions[2]?.title).toBe(
+      "Read your own Google result the way a stranger would",
+    )
+    expect(decisions[2]?.summary).toBe(
+      "Next step: Look at the title and description Google shows under your link. If it doesn't clearly say what you sell and why you're the right call, that's the pitch losing prospects before they click.",
+    )
+  })
+
+  it("uses distinct owner as second incognito query when available", () => {
+    const decisions = freeExecutiveNextDecisions({
+      meta: baseMeta({
+        businessName: "Test Co",
+        ownerName: "Alex",
+      }),
+    })
+    expect(decisions[0]?.summary).toContain('"Test Co" and "Alex"')
   })
 })

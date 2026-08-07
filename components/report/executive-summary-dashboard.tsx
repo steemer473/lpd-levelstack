@@ -18,40 +18,14 @@ import {
 } from "@/lib/report/display-helpers"
 import { resolveExecutiveContent } from "@/lib/report/executive-summary-resolve"
 import { REPORT_DIAGNOSTIC_DISCLAIMER } from "@/lib/report/outcome-copy"
+import { badgesForPriorityAction } from "@/lib/report/action-priority-badges"
 import { priorityActionsFromReport } from "@/lib/report/roadmap-from-recommendations"
+import { PriorityBadge, PriorityCodeBadge } from "@/components/report/priority-badge"
 import { cn } from "@/lib/utils"
 
 type ExecutiveSummaryDashboardProps = {
   report: LevelstackReportJson
   onSelectTab: (tabId: string) => void
-}
-
-type BadgeLevel = "high" | "medium" | "low"
-
-function PriorityBadge({ level }: { level: BadgeLevel }) {
-  return (
-    <span
-      className={cn(
-        "rpt-badge",
-        level === "high" && "rpt-badge-high",
-        level === "medium" && "rpt-badge-medium",
-        level === "low" && "rpt-badge-low",
-      )}
-    >
-      {level}
-    </span>
-  )
-}
-
-function deriveActionBadges(index: number): {
-  impact: BadgeLevel
-  effort: BadgeLevel
-  priority: BadgeLevel
-} {
-  if (index === 0) return { impact: "high", effort: "medium", priority: "high" }
-  if (index === 1) return { impact: "high", effort: "medium", priority: "high" }
-  if (index === 2) return { impact: "medium", effort: "low", priority: "medium" }
-  return { impact: "medium", effort: "low", priority: "medium" }
 }
 
 function OverallScoreCard({ meta }: { meta: LevelstackReportJson["meta"] }) {
@@ -284,7 +258,7 @@ export function ExecutiveSummaryDashboard({
             onClick={() => onSelectTab("search_footprint")}
             className="rpt-link-sm"
           >
-            View Action Roadmap
+            View Search Visibility
             <ArrowRight className="h-3.5 w-3.5" aria-hidden />
           </button>
         </div>
@@ -341,18 +315,25 @@ export function ExecutiveSummaryDashboard({
               </thead>
               <tbody>
                 {priorityActions.map((item, i) => {
-                  const badges = deriveActionBadges(i)
+                  const badges = badgesForPriorityAction(item)
                   return (
                     <tr key={i}>
                       <td>
-                        <p className="font-medium text-[var(--rpt-heading)] leading-snug">
-                          {item.title}
-                        </p>
-                        {item.summary ? (
-                          <p className="text-xs text-[var(--rpt-muted)] mt-0.5 line-clamp-2">
-                            {item.summary}
-                          </p>
-                        ) : null}
+                        <div className="flex items-start gap-2.5">
+                          <span className="rpt-roadmap-item-num" aria-hidden>
+                            {i + 1}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="font-medium text-[var(--rpt-heading)] leading-snug">
+                              {item.title}
+                            </p>
+                            {item.summary ? (
+                              <p className="text-xs text-[var(--rpt-muted)] mt-0.5 line-clamp-2">
+                                {item.summary}
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
                       </td>
                       <td>
                         <PriorityBadge level={badges.impact} />
@@ -361,9 +342,7 @@ export function ExecutiveSummaryDashboard({
                         <PriorityBadge level={badges.effort} />
                       </td>
                       <td>
-                        <span className="rpt-badge rpt-badge-high">
-                          {item.priority}
-                        </span>
+                        <PriorityCodeBadge code={badges.priorityCode} />
                       </td>
                     </tr>
                   )

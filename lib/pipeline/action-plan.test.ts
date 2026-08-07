@@ -78,4 +78,45 @@ describe("buildActionPlanFromSections", () => {
     expect(plan.thisWeek[0]?.sub).toMatch(/entity details|Business Profile/i)
     expect(plan.thisWeek[0]?.sub).not.toMatch(/meta description/i)
   })
+
+  it("incognito step uses a single query when owner matches business (free-style)", () => {
+    const plan = buildActionPlanFromSections([], {
+      ...levelstackIntakeTestDefaults,
+      primaryBusinessName: "LT Printing & Promotion",
+      ownerName: "LT Printing & Promotion",
+      primaryService: "General business services",
+    })
+    const incognito = plan.thisWeek.find((a) =>
+      a.task.includes("Confirm what strangers see"),
+    )
+    expect(incognito?.sub).toBe(
+      'Next step: Search in a private/incognito browser for "LT Printing & Promotion" — no personal history.',
+    )
+  })
+
+  it("incognito step uses name + service when service is distinct", () => {
+    const plan = buildActionPlanFromSections([], {
+      ...levelstackIntakeTestDefaults,
+      primaryBusinessName: "Test Co",
+      ownerName: "Alex",
+      primaryService: "Plumbing repair",
+    })
+    const incognito = plan.thisWeek.find((a) =>
+      a.task.includes("Confirm what strangers see"),
+    )
+    expect(incognito?.sub).toContain('"Test Co" and "Test Co Plumbing repair"')
+  })
+
+  it("incognito step uses distinct ownerName when service is placeholder", () => {
+    const plan = buildActionPlanFromSections([], {
+      ...levelstackIntakeTestDefaults,
+      primaryBusinessName: "Test Co",
+      ownerName: "Alex",
+      primaryService: "General business services",
+    })
+    const incognito = plan.thisWeek.find((a) =>
+      a.task.includes("Confirm what strangers see"),
+    )
+    expect(incognito?.sub).toContain('"Test Co" and "Alex"')
+  })
 })

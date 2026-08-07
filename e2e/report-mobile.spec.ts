@@ -64,7 +64,7 @@ test.describe("Report mobile — dev preview", () => {
       dialog.getByRole("link", { name: /Unlock — \$97|Unlock Action Roadmap — \$97/i }),
     ).toBeVisible()
     await expect(
-      dialog.getByRole("button", { name: /Return to Visibility Snapshot/i }),
+      dialog.getByRole("link", { name: /See a sample Action Roadmap/i }),
     ).toBeVisible()
     const dialogBox = await dialog.boundingBox()
     const viewport = page.viewportSize()
@@ -186,7 +186,7 @@ test.describe("Report mobile — dev preview", () => {
     ]
     const tabs = [
       /Executive Summary/i,
-      /Google visibility/i,
+      /Search Visibility/i,
       /Reputation/i,
       /Digital presence/i,
       /Revenue funnel/i,
@@ -202,9 +202,7 @@ test.describe("Report mobile — dev preview", () => {
           name: /Unlock Your|Included in your Action Roadmap/i,
         })
         await expect(unlockDialog).toBeVisible()
-        await unlockDialog
-          .getByRole("button", { name: /Return to Visibility Snapshot/i })
-          .click()
+        await page.keyboard.press("Escape")
         await expect(unlockDialog).toHaveCount(0)
       }
       await assertNoHorizontalPageOverflow(page)

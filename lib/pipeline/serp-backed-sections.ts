@@ -754,7 +754,7 @@ export function buildSectionsFromResearch(
   return [
     {
       id: "search_footprint",
-      label: "Google visibility",
+      label: "Search Visibility",
       ...scoreSectionFromChecks(searchChecks),
       findings: searchFindings,
       aiPreview: aiOverviewCheck.aiPreview,

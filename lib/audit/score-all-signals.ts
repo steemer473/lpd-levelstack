@@ -191,6 +191,21 @@ function scoreSubdomains(bundle: ResearchBundle): AuditSignalResult {
 
 function scoreDirectories(bundle: ResearchBundle): AuditSignalResult {
   const searches = bundle.reputation.searches
+
+  // Empty searches means the directory op never ran (e.g. free tier skips
+  // directory_review_search). Do not treat that as a verified 0/6 miss.
+  if (searches.length === 0) {
+    return {
+      id: "directory_presence",
+      label: "Directory Presence",
+      status: "unavailable",
+      finding:
+        "Directory presence could not be verified — live search checks failed or were skipped.",
+      evidence: [],
+      tier: "free",
+    }
+  }
+
   const hits = DIRECTORY_SITES.filter((site) =>
     searches.some((s) =>
       s.results.some((r) => r.link.includes(site.replace("google.com/maps", "google.com"))),
@@ -198,7 +213,7 @@ function scoreDirectories(bundle: ResearchBundle): AuditSignalResult {
   )
   const count = hits.length
 
-  if (count === 0 && searches.length > 0) {
+  if (count === 0) {
     const unavailableCount = searches.filter((s) => {
       if (s.results.length > 0) return false
       const lim = s.limitation?.trim()

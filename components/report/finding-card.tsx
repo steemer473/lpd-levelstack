@@ -19,6 +19,7 @@ import {
   findingContextLine,
   findingSeverityExplanation,
 } from "@/lib/report/finding-context"
+import { composeFindingSentence } from "@/lib/report/finding-sentence"
 import { flagLabel, severityPillClass, severityToFlag } from "@/lib/report/display-helpers"
 import { parseFindingDetail } from "@/lib/report/parse-finding-detail"
 import { type OutcomeLabelKey } from "@/lib/report/outcome-copy"
@@ -114,7 +115,8 @@ export function FindingCard({
   const label = formatFindingLabel(sectionId, finding.label)
   const severity = effectiveFindingSeverity(sectionId, finding)
   const detailBullets = extractDetailBullets(polishedDetail)
-  const bullets = [context, ...detailBullets].filter(Boolean).slice(0, 3)
+  const bullets = detailBullets.filter(Boolean).slice(0, 3)
+  const headline = composeFindingSentence(sectionId, label, polishedValue)
 
   return (
     <OutcomeAuditCard
@@ -122,14 +124,15 @@ export function FindingCard({
         showSeverityBorder && "border-l-4",
         showSeverityBorder && severityBorderClass(finding.severity),
       )}
-      headline={`${label}: ${polishedValue}`}
+      headline={headline}
+      lede={context}
       bullets={bullets}
       outcome={outcomeForFinding(sectionId, severity)}
     />
   )
 }
 
-function outcomeForFinding(
+export function outcomeForFinding(
   sectionId: string,
   severity: ReportFinding["severity"],
 ): OutcomeLabelKey {
@@ -172,6 +175,7 @@ export function FindingPrintBlock({
   const context = findingContextLine(sectionId, finding)
   const explanation = findingSeverityExplanation(sectionId, finding)
   const severity = effectiveFindingSeverity(sectionId, finding)
+  const headline = composeFindingSentence(sectionId, label, polishedValue)
 
   return (
     <div className="mb-3 rounded border border-gray-200 bg-white p-3 break-inside-avoid">
@@ -179,7 +183,7 @@ export function FindingPrintBlock({
         {label}
       </p>
       <p className="text-xs text-gray-600 mt-0.5">{context}</p>
-      <p className="font-medium text-sm text-gray-900 mt-2">{polishedValue}</p>
+      <p className="font-medium text-sm text-gray-900 mt-2">{headline}</p>
       {polishedDetail ? (
         <p className="text-gray-700 text-xs mt-1 leading-relaxed">{polishedDetail}</p>
       ) : null}

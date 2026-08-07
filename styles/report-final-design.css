@@ -289,6 +289,92 @@
   width: 100%;
 }
 
+/* Compact inline chips for roadmap owner / time */
+.levelstack-report .rpt-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.2rem 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.levelstack-report .rpt-chip-blue {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.levelstack-report .rpt-chip-orange {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.levelstack-report .rpt-chip-green {
+  background: #f0fdf4;
+  color: #047857;
+}
+
+/* Action roadmap item card */
+.levelstack-report .rpt-roadmap-item {
+  background: #fff;
+  border: 1px solid var(--rpt-card-border);
+  border-radius: var(--rpt-radius);
+  box-shadow: var(--rpt-shadow);
+  padding: 1rem 1.125rem;
+}
+
+.levelstack-report .rpt-roadmap-item-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--rpt-orange) 14%, white);
+  color: var(--rpt-orange);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.levelstack-report .rpt-roadmap-phase {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.625rem;
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.levelstack-report .rpt-roadmap-phase.is-week {
+  background: color-mix(in srgb, var(--rpt-red) 14%, white);
+  color: #b91c1c;
+}
+
+.levelstack-report .rpt-roadmap-phase.is-month {
+  background: color-mix(in srgb, var(--rpt-orange) 16%, white);
+  color: #c8850a;
+}
+
+.levelstack-report .rpt-roadmap-phase.is-quarter {
+  background: color-mix(in srgb, var(--rpt-green) 16%, white);
+  color: #15803d;
+}
+
+.levelstack-report .rpt-roadmap-phase-count {
+  font-weight: 500;
+  opacity: 0.85;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 .levelstack-report .rpt-timeline-rail {
   position: relative;
   height: 3px;
@@ -590,7 +676,7 @@
   margin-top: 0.5rem;
 }
 
-/* Row 2: six section metric cards — stack on mobile, expand at sm/md */
+/* Row 2: six scored section metric cards — stack on mobile, 2-col at sm, 3x2 at md */
 .levelstack-report .rpt-section-score-strip {
   display: grid;
   grid-template-columns: 1fr;
@@ -1251,6 +1337,9 @@
 }
 
 .levelstack-report .rpt-conv-action-list li {
+  display: flex;
+  gap: 0.625rem;
+  align-items: flex-start;
   padding: 0.625rem 0;
   border-bottom: 1px solid var(--rpt-card-border);
   font-size: 0.8125rem;
@@ -1260,6 +1349,27 @@
   border-bottom: none;
 }
 
+.levelstack-report .rpt-conv-step-balloon {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  background: var(--rpt-orange, #f0ad4e);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.levelstack-report .rpt-conv-action-body {
+  min-width: 0;
+  flex: 1;
+}
+
 .levelstack-report .rpt-conv-action-list strong {
   display: block;
   color: var(--rpt-heading);
@@ -1267,7 +1377,7 @@
   margin-bottom: 0.125rem;
 }
 
-.levelstack-report .rpt-conv-action-list span {
+.levelstack-report .rpt-conv-action-list .rpt-conv-action-body > span {
   color: var(--rpt-muted);
   font-size: 0.75rem;
 }

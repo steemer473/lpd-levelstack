@@ -38,7 +38,7 @@ test.describe("Sample report — public marketing preview", () => {
     await openMobileMenu(page)
     const nav = reportSectionsNav(page)
     await expect(nav.getByRole("button", { name: /Executive Summary/i })).toBeVisible()
-    await expect(nav.getByRole("button", { name: /Google visibility/i })).toBeVisible()
+    await expect(nav.getByRole("button", { name: /Search Visibility/i })).toBeVisible()
     await expect(nav.getByRole("button", { name: /Social & off-site presence/i })).toBeVisible()
     await expect(nav.getByRole("button", { name: /Reputation/i })).toBeVisible()
     await expect(nav.getByRole("button", { name: /Digital presence/i })).toBeVisible()
@@ -47,10 +47,10 @@ test.describe("Sample report — public marketing preview", () => {
     await expect(nav.getByRole("button", { name: /Action plan/i })).toBeVisible()
   })
 
-  test("Google visibility tab shows Google AI Overview preview", async ({ page }) => {
+  test("Search Visibility tab shows Google AI Overview preview", async ({ page }) => {
     await openMobileMenu(page)
     await reportSectionsNav(page)
-      .getByRole("button", { name: /Google visibility/i })
+      .getByRole("button", { name: /Search Visibility/i })
       .click()
     await expect(page.getByText(/Google AI Overview/i)).toBeVisible()
   })
@@ -65,14 +65,16 @@ test.describe("Sample report — public marketing preview", () => {
     ).toBeVisible()
   })
 
-  test("OD-5 B: free exec shows capped teaser titles without Who/Time matrix", async ({
+  test("OD-5 B: free exec shows DIY next decisions without Who/Time matrix", async ({
     page,
   }) => {
     const card = page.locator(".rpt-card").filter({
       has: page.getByRole("heading", { name: /Your next decisions/i }),
     })
     await expect(card).toBeVisible()
-    await expect(card.getByText("Respond to both negative Google reviews")).toBeVisible()
+    await expect(
+      card.getByText(/Confirm what strangers see for/i),
+    ).toBeVisible()
     await expect(
       card.getByText(/Full prioritized action plan stays locked/i),
     ).toBeVisible()
@@ -129,7 +131,10 @@ test.describe("Sample report — public marketing preview", () => {
     await expect(upgrade.locator('[data-area-unlocked="true"]')).toHaveCount(2)
     await expect(upgrade.locator('[data-area-unlocked="false"]')).toHaveCount(4)
     await expect(
-      upgrade.getByRole("link", { name: /Unlock Action Roadmap — \$97/i }),
+      upgrade.getByRole("link", { name: /Unlock — \$97|Unlock Action Roadmap — \$97/i }),
+    ).toBeVisible()
+    await expect(
+      upgrade.getByRole("link", { name: /See a sample Action Roadmap/i }),
     ).toBeVisible()
     await expect(
       upgrade.getByText(/applies in full as a credit|assessment fee credits/i),

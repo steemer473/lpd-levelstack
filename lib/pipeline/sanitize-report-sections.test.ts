@@ -12,7 +12,7 @@ describe("sanitizeReportSections", () => {
         score: 50,
         findings: [
           {
-            label: "Google visibility",
+            label: "Search Visibility",
             value: "Not fetched yet.",
             detail: "SerpAPI is not configured (SERPAPI_KEY missing).",
             severity: "medium",

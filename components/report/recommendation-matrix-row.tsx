@@ -4,12 +4,19 @@ import { CheckSquare } from "lucide-react"
 import { useState } from "react"
 
 import { ReportFieldHint } from "@/components/report/report-field-hint"
+import { PriorityBadge } from "@/components/report/priority-badge"
 import { SapWaitlistModal } from "@/components/report/sap-waitlist-modal"
 import type { RecommendationObject } from "@/lib/pipeline/recommendation-types"
+import { badgesForRecommendation } from "@/lib/report/action-priority-badges"
 import { expandAcronymsInCustomerCopy } from "@/lib/report/customer-terms"
-import { ACTION_ITEM_SAP_MICRO_CTA } from "@/lib/report/outcome-copy"
+import {
+  ACTION_ITEM_SAP_MICRO_CTA,
+  shouldShowActionItemSapMicroCta,
+} from "@/lib/report/outcome-copy"
 import {
   CONFIDENCE_HINT,
+  EFFORT_HINT,
+  IMPACT_HINT,
   ROI_HINT,
   priorityHint,
 } from "@/lib/report/roadmap-field-hints"
@@ -96,6 +103,7 @@ export function RecommendationMatrixRow({
   )
   const effort = recommendation.effortHint ?? "—"
   const priority = priorityHint(recommendation.priority)
+  const levelBadges = badgesForRecommendation(recommendation)
   const evidenceWithUrl = recommendation.evidence.filter((e) => e.url)
   const summary = recommendation.summary
     ? expandAcronymsInCustomerCopy(recommendation.summary)
@@ -106,6 +114,10 @@ export function RecommendationMatrixRow({
   const roiLabel = recommendation.roi.rangeLabel
     ? expandAcronymsInCustomerCopy(recommendation.roi.rangeLabel)
     : null
+  const ownerLabel = ownerRoleLabel(recommendation.owner.role)
+  const showSapCta = shouldShowActionItemSapMicroCta(ownerLabel, {
+    automatable: recommendation.automatability.automatable,
+  })
 
   return (
     <>
@@ -114,6 +126,16 @@ export function RecommendationMatrixRow({
           <span className="inline-flex items-center gap-0.5 rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-muted-foreground">
             {priority.label}
             <ReportFieldHint label={priority.label} detail={priority.detail} />
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Impact
+            <PriorityBadge level={levelBadges.impact} />
+            <ReportFieldHint label="Impact" detail={IMPACT_HINT} />
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Effort
+            <PriorityBadge level={levelBadges.effort} />
+            <ReportFieldHint label="Effort" detail={EFFORT_HINT} />
           </span>
           <span className="inline-flex items-center gap-0.5 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
             Confidence: {recommendation.confidence.band}
@@ -164,7 +186,7 @@ export function RecommendationMatrixRow({
             Owner
           </p>
           <p className="text-[13px] leading-relaxed text-[var(--rpt-body)]">
-            {ownerRoleLabel(recommendation.owner.role)}
+            {ownerLabel}
           </p>
 
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -210,23 +232,27 @@ export function RecommendationMatrixRow({
           </div>
         ) : null}
 
-        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-          {ACTION_ITEM_SAP_MICRO_CTA.prefix}{" "}
-          <button
-            type="button"
-            onClick={() => setSapModalOpen(true)}
-            className="font-medium text-brand-orange underline underline-offset-2 hover:opacity-90"
-          >
-            {ACTION_ITEM_SAP_MICRO_CTA.link}
-          </button>{" "}
-          {ACTION_ITEM_SAP_MICRO_CTA.suffix}
-        </p>
+        {showSapCta ? (
+          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+            {ACTION_ITEM_SAP_MICRO_CTA.prefix}{" "}
+            <button
+              type="button"
+              onClick={() => setSapModalOpen(true)}
+              className="font-medium text-brand-orange underline underline-offset-2 hover:opacity-90"
+            >
+              {ACTION_ITEM_SAP_MICRO_CTA.link}
+            </button>{" "}
+            {ACTION_ITEM_SAP_MICRO_CTA.suffix}
+          </p>
+        ) : null}
       </div>
-      <SapWaitlistModal
-        open={sapModalOpen}
-        onOpenChange={setSapModalOpen}
-        reportId={reportId}
-      />
+      {showSapCta ? (
+        <SapWaitlistModal
+          open={sapModalOpen}
+          onOpenChange={setSapModalOpen}
+          reportId={reportId}
+        />
+      ) : null}
     </>
   )
 }

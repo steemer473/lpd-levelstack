@@ -304,7 +304,7 @@ export function buildDeterministicSearchFootprintSection(
 
   return {
     id: "search_footprint",
-    label: "Google visibility",
+    label: "Search Visibility",
     status: sectionStatusFromSignals(searchSignals),
     score: scoreFromSignals(searchSignals),
     findings,

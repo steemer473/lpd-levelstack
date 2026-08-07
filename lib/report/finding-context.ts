@@ -90,7 +90,11 @@ export function findingContextLine(
   const text = `${finding.label} ${finding.value} ${finding.detail}`.toLowerCase()
 
   if (sectionId === "search_footprint") {
-    if (/when someone searches your name/i.test(finding.value)) {
+    if (
+      /when someone searches your name/i.test(finding.value) ||
+      /personal name|owner name|founder name/i.test(finding.label) ||
+      (/\(personal name\)/i.test(finding.label) && /complaint|consumeraffairs/i.test(`${finding.label} ${finding.value} ${finding.detail}`))
+    ) {
       return "What appears when someone searches your owner or founder name on Google."
     }
     if (/ai overview|chatgpt|perplexity/i.test(finding.label)) {
