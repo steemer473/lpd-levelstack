@@ -47,7 +47,7 @@ function ReportSectionNavList({
         return (
           <div
             key={tab.id}
-            className="rpt-sidebar-nav-item flex w-full shrink-0 items-center"
+            className="rpt-sidebar-nav-item flex w-full min-w-0 shrink-0 items-center"
           >
             <button
               type="button"
@@ -64,7 +64,7 @@ function ReportSectionNavList({
               {Icon ? (
                 <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
               ) : null}
-              <span className="whitespace-nowrap">{tab.label}</span>
+              <span className="min-w-0 truncate">{tab.label}</span>
               {tab.locked ? (
                 <Lock
                   className="ml-auto h-3 w-3 shrink-0 opacity-50"
@@ -73,8 +73,8 @@ function ReportSectionNavList({
               ) : null}
             </button>
             {showGuides ? (
-              <span className="pr-1">
-                <SectionGuideInfo tabId={tab.id} tone="on-dark" />
+              <span className="shrink-0 pr-1.5">
+                <SectionGuideInfo tabId={tab.id} tone="on-dark" side="right" align="start" />
               </span>
             ) : null}
           </div>

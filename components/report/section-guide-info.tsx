@@ -1,6 +1,7 @@
 "use client"
 
 import { Info } from "lucide-react"
+import type { ComponentProps } from "react"
 
 import { SectionGuideBody } from "@/components/report/section-guide-content"
 import { Button } from "@/components/ui/button"
@@ -16,10 +17,14 @@ export function SectionGuideInfo({
   tabId,
   tone = "default",
   iconClassName = "size-3.5",
+  side = "bottom",
+  align = "start",
 }: {
   tabId: string
   tone?: "default" | "on-dark"
   iconClassName?: string
+  side?: ComponentProps<typeof PopoverContent>["side"]
+  align?: ComponentProps<typeof PopoverContent>["align"]
 }) {
   const guide = getSectionGuide(tabId)
   if (!guide) return null
@@ -46,8 +51,8 @@ export function SectionGuideInfo({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        side="bottom"
-        align="start"
+        side={side}
+        align={align}
         collisionPadding={16}
         className={cn(
           "w-[min(24rem,calc(100vw-2rem))] gap-0 p-3 sm:p-4",

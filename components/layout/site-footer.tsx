@@ -13,10 +13,10 @@ export function SiteFooter() {
             © {new Date().getFullYear()} Level Play Digital ·{" "}
             <span className="font-medium text-brand-orange">LevelStack</span>
           </p>
-          <div className="flex gap-6">
+          <div className="flex flex-col items-center gap-3 md:flex-row md:gap-6">
             <Link
               href={getHubPricingUrl()}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors hover:underline"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors hover:underline text-center"
             >
               levelplaydigital.com
             </Link>
@@ -24,7 +24,7 @@ export function SiteFooter() {
               href="https://levelplaydigital.com/privacy-policy"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors hover:underline"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors hover:underline text-center"
             >
               Privacy Policy
             </a>
@@ -32,7 +32,7 @@ export function SiteFooter() {
               href="https://levelplaydigital.com/terms-of-service"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors hover:underline"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors hover:underline text-center"
             >
               Terms of Service
             </a>

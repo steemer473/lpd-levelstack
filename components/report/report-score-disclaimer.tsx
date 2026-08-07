@@ -17,13 +17,10 @@ export function ReportScoreDisclaimer({
 
   return (
     <details
-      className={cn(
-        "rounded-lg border border-border/80 bg-muted/40 px-3 py-2 text-sm text-muted-foreground",
-        className,
-      )}
+      className={cn("rpt-score-disclaimer", className)}
       open={defaultOpen || undefined}
     >
-      <summary className="cursor-pointer font-medium text-foreground list-inside">
+      <summary className="cursor-pointer font-medium list-outside pl-1 ml-4">
         {SCORE_DISCLAIMER.title}
       </summary>
       <div className="mt-2 space-y-2 pl-1">

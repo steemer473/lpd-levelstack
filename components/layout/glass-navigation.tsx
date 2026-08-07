@@ -69,6 +69,7 @@ export function GlassNavigation({
   const [mobileOpen, setMobileOpen] = useState(false)
   const menuId = useId()
   const { registration } = useReportMobileMenu()
+  const hasReportSections = Boolean(registration?.tabs.length)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -79,9 +80,14 @@ export function GlassNavigation({
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  const bgOpacity = 0.05 + scrollProgress * 0.9
+  const bgOpacity = Math.max(
+    0.05 + scrollProgress * 0.9,
+    hasReportSections ? 0.15 : 0,
+  )
   const borderOpacity = 0.2 + scrollProgress * 0.2
   const isScrolled = scrollProgress > 0.1
+  /** Over navy sidebar strip at scroll top — dark icon would be invisible. */
+  const hamburgerOnNavy = hasReportSections && scrollProgress < 0.2
 
   const isIntakeActive = pathname.startsWith("/intake")
   const unlockUrl = getHubCartUrl({
@@ -277,8 +283,6 @@ export function GlassNavigation({
     ]
   })()
 
-  const hasReportSections = Boolean(registration?.tabs.length)
-
   const sectionItems =
     registration?.tabs.map((tab) => {
       const Icon = TAB_ICONS[tab.id]
@@ -351,7 +355,10 @@ export function GlassNavigation({
           type="button"
           variant="ghost"
           size="icon"
-          className="min-[769px]:hidden shrink-0"
+          className={cn(
+            "min-[769px]:hidden shrink-0",
+            hamburgerOnNavy && "text-white hover:bg-white/10 hover:text-white",
+          )}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileOpen}
           aria-controls={menuId}
