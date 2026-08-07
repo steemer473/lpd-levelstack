@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { ChevronDown } from "lucide-react"
 
 import { ACTION_ROADMAP_FAQS, type ActionRoadmapFaq } from "@/data/action-roadmap-faqs"
@@ -37,6 +38,16 @@ export function ReportFaqSection({
               />
             </summary>
             <p className="mt-2 text-sm leading-relaxed text-[var(--rpt-body)]">{faq.answer}</p>
+            {faq.linkHref && faq.linkLabel ? (
+              <p className="mt-2 text-sm">
+                <Link
+                  href={faq.linkHref}
+                  className="font-medium text-brand-orange underline-offset-4 hover:underline"
+                >
+                  {faq.linkLabel}
+                </Link>
+              </p>
+            ) : null}
           </details>
         ))}
       </div>

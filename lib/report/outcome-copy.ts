@@ -22,6 +22,13 @@ export const REPORT_DIAGNOSTIC_DISCLAIMER =
 export const REPORT_ACTION_PLAN_CALLOUT =
   "LevelStack lists what to fix. SEO Automator Pro fixes the technical layer." as const
 
+/** Empty timeframe buckets on the Action Plan / roadmap tab. */
+export const ROADMAP_BUCKET_EMPTY_COPY = {
+  week: "Nothing urgent this week. Move to the next timeframe when you're ready.",
+  month: "No items scheduled this month.",
+  quarter: "No larger projects queued this quarter.",
+} as const
+
 /** COPY_BANK §7.4 DISC-03 — pipeline-generated executive summary fallback */
 export const REPORT_PIPELINE_DISCLAIMER =
   "This report is diagnostic only — LevelStack identifies gaps. SEO Automator Pro fixes the technical layer. No ranking or revenue outcomes are guaranteed." as const
@@ -57,6 +64,7 @@ export const UPGRADE_BANNER = {
   button: `Unlock ${PRODUCT_NAMES.paid} — $97`,
   ctaSuffix: "one-time, no subscription",
   secondaryCta: `Prefer a walkthrough? ${PRODUCT_NAMES.premium} — $297`,
+  sampleLink: `See a sample ${PRODUCT_NAMES.paid}`,
   monitoringBridge:
     "Already planning to act on what you found? The technical foundation your rankings depend on needs ongoing attention — not just a one-time fix. SEO Automator Pro monitors your site continuously so you can see what changed and address it before visibility slips between audits.",
   monitoringCta: "Learn about SEO Automator Pro",
@@ -74,7 +82,18 @@ export const LOCKED_SECTION_MODAL = {
   primaryCta: (price = "$97") => `Unlock ${PRODUCT_NAMES.paid} — ${price}`,
   creditNote:
     "The $97 assessment fee credits toward your first founding-rate month when an eligible SEO Automator Pro slot opens.",
-  secondaryCta: `Return to ${PRODUCT_NAMES.free}`,
+  /** Secondary action — opens the public paid sample instead of dismissing. */
+  secondaryCta: `See a sample ${PRODUCT_NAMES.paid}`,
+} as const
+
+/** Public illustrative Action Roadmap (paid sample). */
+export const SAMPLE_ACTION_ROADMAP_PATH = "/sample-report/action-roadmap" as const
+
+export const SAMPLE_ACTION_ROADMAP_LINKS = {
+  lockedPreview: (sectionLabel: string) =>
+    `See how ${sectionLabel} looks in a sample ${PRODUCT_NAMES.paid}`,
+  samplePageCtaLead:
+    "This is a sample Action Roadmap for a sample business — not your data.",
 } as const
 
 export const SAP_WAITLIST_MODAL = {
@@ -103,6 +122,30 @@ export const ACTION_ITEM_SAP_MICRO_CTA = {
   suffix: "to have SEO Automator Pro deploy this fix automatically.",
 } as const
 
+/**
+ * Owner-only, non-technical tasks (claim listings, reply to reviews, post once)
+ * should not show the "handle this code yourself" Automator waitlist micro-CTA.
+ * Keep the CTA when Freelancer / Developer / Agency (or similar) is involved,
+ * or when the item is marked automatable.
+ */
+export function shouldShowActionItemSapMicroCta(
+  who: string,
+  options?: { automatable?: boolean },
+): boolean {
+  if (options?.automatable) return true
+  const normalized = who.trim().toLowerCase()
+  if (!normalized) return false
+  if (
+    /freelancer|developer|\bdevs?\b|agency|engineer|contractor|designer|\bops\b|marketing/i.test(
+      normalized,
+    )
+  ) {
+    return true
+  }
+  // Solely business owner (You / Owner / Founder)
+  return !/\b(you|owner|founder)\b/i.test(normalized)
+}
+
 /** Tier midpoints for ROI copy (annual, one missed lead/month). */
 export const CONTRACT_VALUE_TIER_MIDPOINTS: Record<string, number> = {
   under_500: 250,
@@ -125,7 +168,7 @@ export function formatRoiLine(tier: string): string | null {
 export const SCORE_DISCLAIMER = {
   title: "About these scores",
   product:
-    `${PRODUCT_NAMES.free} is a limited free view (Google visibility and Social & off-site). ${PRODUCT_NAMES.paid} is the full paid diagnostic with every unlocked section.`,
+    `${PRODUCT_NAMES.free} is a limited free view (Search Visibility and Social & off-site). ${PRODUCT_NAMES.paid} is the full paid diagnostic with every unlocked section.`,
   scoreBasis:
     "Free and paid Overall scores often differ because they average different section sets — not because one run is “wrong.”",
   methodology:

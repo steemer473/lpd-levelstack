@@ -27,15 +27,18 @@ import { Unlock97CtaLabel } from "@/components/report/unlock-97-cta-label"
 import { ActionItemMatrixRow } from "@/components/report/action-item-matrix-row"
 import { LockedSectionPreview } from "@/components/report/locked-section-preview"
 import { RecommendationMatrixRow } from "@/components/report/recommendation-matrix-row"
+import { RoadmapBucketEmptyState } from "@/components/report/roadmap-bucket-empty-state"
+import { RoadmapHowToRead } from "@/components/report/roadmap-how-to-read"
 import { SapBridgeBlock } from "@/components/report/sap-bridge-block"
 import { usePaidOwnerReportChrome } from "@/components/report/paid-owner-report-context"
-import { FindingCard, FindingSeverityBlock } from "@/components/report/finding-card"
+import { FindingCard, outcomeForFinding } from "@/components/report/finding-card"
 import {
   DataPanel,
   DataPanelLabel,
-  FindingDetailContent,
 } from "@/components/report/finding-detail"
+import { OutcomeAuditCard } from "@/components/report/outcome-audit-card"
 import { scoreRowHint } from "@/lib/report/finding-context"
+import { composeFindingSentence } from "@/lib/report/finding-sentence"
 import { SectionGuideInfo } from "@/components/report/section-guide-info"
 import { Button } from "@/components/ui/button"
 import type { LevelstackReportJson, ReportSection } from "@/lib/pipeline/report-types"
@@ -52,6 +55,7 @@ import {
 import { REPORT_INTRO } from "@/lib/report/section-guides"
 import {
   REPORT_DIAGNOSTIC_DISCLAIMER,
+  SAMPLE_ACTION_ROADMAP_PATH,
   UPGRADE_BANNER,
 } from "@/lib/report/outcome-copy"
 import {
@@ -76,7 +80,10 @@ export type ReportViewProps = {
   report: LevelstackReportJson
 }
 
-export function useReportTabs(report: LevelstackReportJson) {
+export function useReportTabs(
+  report: LevelstackReportJson,
+  options?: { defaultTab?: string },
+) {
   const { meta, executiveSummary, sections, actionPlan } = report
   const isFree = meta.reportTier === "free_snapshot"
   const tabs = useMemo(() => {
@@ -88,7 +95,8 @@ export function useReportTabs(report: LevelstackReportJson) {
     }))
   }, [sections, isFree])
 
-  const [activeTab, setActiveTab] = useState("executive_summary")
+  const initialTab = options?.defaultTab ?? "executive_summary"
+  const [activeTab, setActiveTab] = useState(initialTab)
   const [howToReadOpen, setHowToReadOpen] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const reportRef = useRef<HTMLDivElement>(null)
@@ -346,6 +354,12 @@ export function UpgradeBanner({
           {UPGRADE_BANNER.body}
         </p>
         <Link
+          href={SAMPLE_ACTION_ROADMAP_PATH}
+          className="text-sm text-[var(--rpt-blue-link)] underline-offset-4 hover:underline self-start"
+        >
+          {UPGRADE_BANNER.sampleLink}
+        </Link>
+        <Link
           href={premiumUrl}
           className="text-sm text-[var(--rpt-blue-link)] underline-offset-4 hover:underline self-start"
         >
@@ -497,20 +511,17 @@ const ACTION_PLAN_GROUPS = [
   {
     key: "week" as const,
     label: "This week",
-    className:
-      "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-200",
+    phaseClass: "is-week",
   },
   {
     key: "month" as const,
     label: "This month",
-    className:
-      "bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200",
+    phaseClass: "is-month",
   },
   {
     key: "quarter" as const,
     label: "This quarter",
-    className:
-      "bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-200",
+    phaseClass: "is-quarter",
   },
 ] as const
 
@@ -534,58 +545,46 @@ export function ActionPlanPanel({
 
     return (
       <div className="space-y-5">
-        <div className="rounded-md border border-border/60 bg-muted/30 px-3 py-2.5 text-[12px] leading-relaxed text-muted-foreground">
-          <p className="font-medium text-foreground">How to read this roadmap</p>
-          <ul className="mt-1.5 list-disc space-y-1 pl-4">
-            <li>
-              <span className="font-medium text-foreground">P0–P3</span> is urgency
-              (P0 = this week, P1 = this month, P2 = this quarter, P3 = backlog). Tap the
-              info icon on each badge for detail.
-            </li>
-            <li>
-              <span className="font-medium text-foreground">Confidence</span> is how
-              strong the public evidence is — not a grade on your business.
-            </li>
-            <li>
-              <span className="font-medium text-foreground">ROI</span> is directional
-              (risk reduction or upside), not a guaranteed dollar amount.
-            </li>
-          </ul>
-        </div>
-        {ACTION_PLAN_GROUPS.map((g) => (
-          <div key={g.key}>
-            <span
-              className={cn(
-                "mb-2 inline-block rounded px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider",
-                g.className,
-              )}
-            >
-              {g.label}
-            </span>
-            <div className="space-y-2">
-              {recBuckets[g.key].map((rec) => (
-                <div key={rec.id}>
-                  <RecommendationMatrixRow
-                    recommendation={rec}
-                    itemNumber={numberById.get(rec.id) ?? 1}
-                    reportId={reportId}
-                  />
-                  {rec.sourceSectionId ? (
-                    <p className="mt-1 text-[10px] text-muted-foreground/80">
-                      From: {rec.sourceSectionId.replaceAll("_", " ")}
-                    </p>
-                  ) : null}
-                  {rec.automatability.automatable ? (
-                    <AutomatorFlagCallout
-                      product={rec.automatability.lpdProduct ?? "seo"}
-                      reportId={reportId}
-                    />
-                  ) : null}
+        <RoadmapHowToRead variant="recommendations" />
+        {ACTION_PLAN_GROUPS.map((g) => {
+          const count = recBuckets[g.key].length
+          return (
+            <div key={g.key}>
+              <span className={cn("rpt-roadmap-phase", g.phaseClass)}>
+                {g.label}
+                <span className="rpt-roadmap-phase-count">
+                  {count} {count === 1 ? "item" : "items"}
+                </span>
+              </span>
+              {count === 0 ? (
+                <RoadmapBucketEmptyState bucket={g.key} />
+              ) : (
+                <div className="space-y-2">
+                  {recBuckets[g.key].map((rec) => (
+                    <div key={rec.id}>
+                      <RecommendationMatrixRow
+                        recommendation={rec}
+                        itemNumber={numberById.get(rec.id) ?? 1}
+                        reportId={reportId}
+                      />
+                      {rec.sourceSectionId ? (
+                        <p className="mt-1 text-[10px] text-muted-foreground/80">
+                          From: {rec.sourceSectionId.replaceAll("_", " ")}
+                        </p>
+                      ) : null}
+                      {rec.automatability.automatable ? (
+                        <AutomatorFlagCallout
+                          product={rec.automatability.lpdProduct ?? "seo"}
+                          reportId={reportId}
+                        />
+                      ) : null}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
-          </div>
-        ))}
+          )
+        })}
         {!isFree ? (
           <SapBridgeBlock placement="fullActionPlan" reportId={reportId} />
         ) : null}
@@ -614,42 +613,47 @@ export function ActionPlanPanel({
 
   return (
     <div className="space-y-5">
-      {ACTION_PLAN_GROUPS.map((g) => (
-        <div key={g.key}>
-          <span
-            className={cn(
-              "mb-2 inline-block rounded px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider",
-              g.className,
-            )}
-          >
-            {g.label}
-          </span>
-          <div className="space-y-2">
-            {legacyFlat
-              .filter((row) => row.key === g.key)
-              .map((row) => (
-                <div key={`${g.key}-${row.n}`}>
-                  <ActionItemMatrixRow
-                    item={row.item}
-                    itemNumber={row.n + 1}
-                    reportId={reportId}
-                  />
-                  {row.item.findingRef ? (
-                    <p className="mt-1 text-[10px] text-muted-foreground/80">
-                      From: {row.item.findingRef}
-                    </p>
-                  ) : null}
-                  {row.item.automatorFlag ? (
-                    <AutomatorFlagCallout
-                      product={row.item.automatorProduct ?? "seo"}
+      <RoadmapHowToRead variant="legacy" />
+      {ACTION_PLAN_GROUPS.map((g) => {
+        const rows = legacyFlat.filter((row) => row.key === g.key)
+        return (
+          <div key={g.key}>
+            <span className={cn("rpt-roadmap-phase", g.phaseClass)}>
+              {g.label}
+              <span className="rpt-roadmap-phase-count">
+                {rows.length} {rows.length === 1 ? "item" : "items"}
+              </span>
+            </span>
+            {rows.length === 0 ? (
+              <RoadmapBucketEmptyState bucket={g.key} />
+            ) : (
+              <div className="space-y-2">
+                {rows.map((row) => (
+                  <div key={`${g.key}-${row.n}`}>
+                    <ActionItemMatrixRow
+                      item={row.item}
+                      itemNumber={row.n + 1}
+                      bucket={g.key}
                       reportId={reportId}
                     />
-                  ) : null}
-                </div>
-              ))}
+                    {row.item.findingRef ? (
+                      <p className="mt-1 text-[10px] text-muted-foreground/80">
+                        From: {row.item.findingRef}
+                      </p>
+                    ) : null}
+                    {row.item.automatorFlag ? (
+                      <AutomatorFlagCallout
+                        product={row.item.automatorProduct ?? "seo"}
+                        reportId={reportId}
+                      />
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
-      ))}
+        )
+      })}
       {!isFree ? (
         <SapBridgeBlock placement="fullActionPlan" reportId={reportId} />
       ) : null}
@@ -685,75 +689,92 @@ export function ActionPlanKanban({
 
   return (
     <div className="grid gap-4 lg:grid-cols-3">
-      {columns.map((col) => (
-        <div
-          key={col.key}
-          className={cn(
-            "rounded-lg border border-border border-t-4 p-3",
-            col.accent,
-          )}
-        >
-          <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {col.label}
-          </p>
-          <ul className="space-y-3">
-            {recBuckets
-              ? recBuckets[col.key].map((rec) => (
-                  <li
-                    key={rec.id}
-                    className="rounded-md border border-border/80 bg-card p-3 text-sm shadow-sm"
-                  >
-                    <div className="mb-1 flex flex-wrap gap-1.5">
-                      <span className="text-[10px] font-semibold text-muted-foreground">
-                        {rec.priority === "P0"
-                          ? "P0 — this week"
-                          : rec.priority === "P1"
-                            ? "P1 — this month"
-                            : rec.priority === "P2"
-                              ? "P2 — this quarter"
-                              : "P3 — backlog"}
-                      </span>
-                    </div>
-                    <p className="font-medium leading-snug">{rec.title}</p>
-                    {rec.summary ? (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {rec.summary}
-                      </p>
-                    ) : null}
-                    <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
-                      <span>{ownerRoleLabel(rec.owner.role)}</span>
-                      <span>·</span>
-                      <span>{rec.effortHint ?? "—"}</span>
-                    </div>
-                  </li>
-                ))
-              : report.actionPlan[
-                  col.key === "week"
-                    ? "thisWeek"
-                    : col.key === "month"
-                      ? "thisMonth"
-                      : "thisQuarter"
-                ].map((item, i) => (
-                  <li
-                    key={i}
-                    className="rounded-md border border-border/80 bg-card p-3 text-sm shadow-sm"
-                  >
-                    <p className="font-medium leading-snug">{item.task}</p>
-                    {item.sub ? (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {item.sub}
-                      </p>
-                    ) : null}
-                    <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
-                      <span>{item.who}</span>
-                      <span>·</span>
-                      <span>{item.time}</span>
-                    </div>
-                  </li>
-                ))}
-          </ul>
-        </div>
-      ))}
+      {columns.map((col) => {
+        const bucketItems = recBuckets
+          ? recBuckets[col.key]
+          : report.actionPlan[
+              col.key === "week"
+                ? "thisWeek"
+                : col.key === "month"
+                  ? "thisMonth"
+                  : "thisQuarter"
+            ]
+        const isEmpty = bucketItems.length === 0
+
+        return (
+          <div
+            key={col.key}
+            className={cn(
+              "rounded-lg border border-border border-t-4 p-3",
+              col.accent,
+            )}
+          >
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {col.label}
+            </p>
+            {isEmpty ? (
+              <RoadmapBucketEmptyState bucket={col.key} variant="kanban" />
+            ) : (
+              <ul className="space-y-3">
+                {recBuckets
+                  ? recBuckets[col.key].map((rec) => (
+                      <li
+                        key={rec.id}
+                        className="rounded-md border border-border/80 bg-card p-3 text-sm shadow-sm"
+                      >
+                        <div className="mb-1 flex flex-wrap gap-1.5">
+                          <span className="text-[10px] font-semibold text-muted-foreground">
+                            {rec.priority === "P0"
+                              ? "P0 — this week"
+                              : rec.priority === "P1"
+                                ? "P1 — this month"
+                                : rec.priority === "P2"
+                                  ? "P2 — this quarter"
+                                  : "P3 — backlog"}
+                          </span>
+                        </div>
+                        <p className="font-medium leading-snug">{rec.title}</p>
+                        {rec.summary ? (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {rec.summary}
+                          </p>
+                        ) : null}
+                        <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+                          <span>{ownerRoleLabel(rec.owner.role)}</span>
+                          <span>·</span>
+                          <span>{rec.effortHint ?? "—"}</span>
+                        </div>
+                      </li>
+                    ))
+                  : report.actionPlan[
+                      col.key === "week"
+                        ? "thisWeek"
+                        : col.key === "month"
+                          ? "thisMonth"
+                          : "thisQuarter"
+                    ].map((item, i) => (
+                      <li
+                        key={i}
+                        className="rounded-md border border-border/80 bg-card p-3 text-sm shadow-sm"
+                      >
+                        <p className="font-medium leading-snug">{item.task}</p>
+                        {item.sub ? (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {item.sub}
+                          </p>
+                        ) : null}
+                        <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+                          <span>{item.who}</span>
+                          <span>·</span>
+                          <span>{item.time}</span>
+                        </div>
+                      </li>
+                    ))}
+              </ul>
+            )}
+          </div>
+        )
+      })}
       {report.meta.reportTier !== "free_snapshot" ? (
         <div className="lg:col-span-3">
           <SapBridgeBlock placement="fullActionPlan" reportId={reportId} />
@@ -832,36 +853,42 @@ export function SectionPanel({
       )}
 
       {section.aiPreview && section.aiPreview.length > 0 && (
-        <>
-          <p className="rpt-caption my-3 mb-2">
-            AI search visibility preview (as of {reportDate})
-          </p>
+        <div className="mt-4 mb-2">
+          <div className="mb-3">
+            <p className="rpt-caption">AI search visibility</p>
+            <p className="rpt-finding-context mt-1">Checked {reportDate}.</p>
+          </div>
           <div
             className={cn(
-              "grid grid-cols-1 gap-3 mb-2",
+              "grid grid-cols-1 gap-3",
               section.aiPreview.length === 2 && "lg:grid-cols-2",
               section.aiPreview.length >= 3 && "lg:grid-cols-3",
             )}
           >
-            {section.aiPreview.map((ai, i) => (
-              <DataPanel key={i} className="mb-0">
-                <DataPanelLabel subtitle="Summary shown when prospects ask AI about you.">
-                  {ai.platform}
-                </DataPanelLabel>
-                <FindingDetailContent detail={ai.result} />
-                <FindingSeverityBlock
-                  sectionId="search_footprint"
-                  finding={{
-                    label: ai.platform,
-                    value: ai.result.slice(0, 160),
-                    detail: ai.result,
-                    severity: ai.severity,
-                  }}
+            {section.aiPreview.map((ai, i) => {
+              const sentences = ai.result
+                .split(/(?<=[.!?])\s+/)
+                .map((s) => s.trim())
+                .filter(Boolean)
+              const lead = sentences[0] ?? ai.result
+              const evidence = sentences.slice(1).slice(0, 2)
+              return (
+                <OutcomeAuditCard
+                  key={i}
+                  className="mb-0"
+                  headline={composeFindingSentence(
+                    "search_footprint",
+                    ai.platform,
+                    lead,
+                  )}
+                  lede="Summary shown when prospects ask AI about you."
+                  bullets={evidence}
+                  outcome={outcomeForFinding("search_footprint", ai.severity)}
                 />
-              </DataPanel>
-            ))}
+              )
+            })}
           </div>
-        </>
+        </div>
       )}
 
       {section.competitiveGrid && <CompetitiveGrid section={section} />}
@@ -1149,13 +1176,13 @@ export function ReportTabContent({
       )
     }
     return (
-      <div className="px-6 py-5">
+      <div className="rpt-dash-panel">
         <SectionPanelHeader
           title="Prioritized action plan"
           tabId="action_plan"
           trailing={
-            <span className="text-[11px] font-medium px-2.5 py-1 rounded bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-200">
-              {roadmapItemCount} items
+            <span className="rpt-roadmap-phase is-week mb-0">
+              {roadmapItemCount} {roadmapItemCount === 1 ? "item" : "items"}
             </span>
           }
         />

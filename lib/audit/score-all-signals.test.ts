@@ -80,3 +80,48 @@ describe("scoreSnippetAccuracy", () => {
     expect(snippet?.status).toBe("pass")
   })
 })
+
+describe("scoreDirectories", () => {
+  const intake = {
+    ...levelstackIntakeTestDefaults,
+    primaryBusinessName: "MC Fitness & Wellness",
+    ownerName: "Marcus Carter",
+    priorBusinessNames: ["None"],
+    primaryService: "online fitness coaching",
+    pricePoint: "$197",
+    websiteUrl: "https://mcfitness.example",
+    socialProfiles: "Instagram",
+    emailListSize: "340",
+    marketCity: "Atlanta",
+    marketState: "GA",
+    geoMarket: "local" as const,
+    complaintsAwareness: "none",
+    reputationSelfAssessment: "medium",
+    reputationScale: 5,
+    purchaseMotivation: "audit",
+  }
+
+  it("returns unavailable when directory searches never ran", () => {
+    const bundle = emptyResearchBundle()
+    // Free tier skips directory_review_search — reputation.searches stays [].
+    expect(bundle.reputation.searches).toHaveLength(0)
+
+    const audit = scoreAllSignals(intake, bundle, "free_snapshot")
+    const directory = audit.signals.find((s) => s.id === "directory_presence")
+
+    expect(directory?.status).toBe("unavailable")
+    expect(directory?.finding).toMatch(/could not be verified/i)
+    expect(directory?.finding).not.toMatch(/Present on 0\/6/)
+  })
+
+  it("does not count an unrun directory check as a failed signal in the score pool", () => {
+    const bundle = emptyResearchBundle()
+    const audit = scoreAllSignals(intake, bundle, "free_snapshot")
+    const directory = audit.signals.find((s) => s.id === "directory_presence")
+
+    expect(directory?.status).toBe("unavailable")
+    // Unavailable signals are skipped in the weighted average — overall should
+    // not be dragged to 0 by a check that never ran.
+    expect(audit.overallScore).toBeGreaterThan(0)
+  })
+})

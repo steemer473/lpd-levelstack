@@ -7,7 +7,7 @@ import {
 export const REPORT_INTRO = {
   title: "How to read your dashboard",
   body: [
-    "This is your LevelStack Visibility Snapshot — Google visibility and Social & off-site presence. Unlock the Action Roadmap for reputation, digital presence, funnel, competitors, and your prioritized plan.",
+    "This is your LevelStack Visibility Snapshot — Search Visibility and Social & off-site presence. Unlock the Action Roadmap for reputation, digital presence, funnel, competitors, and your prioritized plan.",
     "Findings use outcome labels like Revenue Risk and Visibility Leak so you see business impact, not jargon. Start with Executive summary, then use the tabs for detail.",
   ],
   note: REPORT_DIAGNOSTIC_DISCLAIMER,
@@ -421,19 +421,46 @@ export const SECTION_GUIDES: Record<string, SectionGuide> = {
       {
         type: "ol",
         items: [
-          [seg.b("This week"), seg.t(" — quick wins and urgent fixes")],
-          [seg.b("This month"), seg.t(" — meaningful improvements")],
-          [seg.b("This quarter"), seg.t(" — larger projects")],
+          [seg.b("This week"), seg.t(" — quick wins and urgent fixes (P0)")],
+          [seg.b("This month"), seg.t(" — meaningful improvements (P1)")],
+          [seg.b("This quarter"), seg.t(" — larger projects (P2+)")],
         ],
       },
       {
         type: "p",
-        segments: [
-          seg.t("Each item ties back to findings elsewhere and includes "),
-          seg.b("who should own it"),
-          seg.t(" and a "),
-          seg.b("rough time estimate"),
-          seg.t("."),
+        segments: [seg.b("On each card you will see:")],
+      },
+      {
+        type: "ul",
+        items: [
+          [
+            seg.b("Action number"),
+            seg.t(" — order in the full list (start at the top of This week)"),
+          ],
+          [
+            seg.b("Priority (P0–P3)"),
+            seg.t(" — urgency: P0 this week, P1 this month, P2 this quarter, P3 backlog"),
+          ],
+          [
+            seg.b("Impact"),
+            seg.t(" — relative business effect of fixing the gap (high / medium / low)"),
+          ],
+          [
+            seg.b("Effort"),
+            seg.t(" — rough time band from the estimate (not a deadline)"),
+          ],
+          [
+            seg.b("Owner / Who"),
+            seg.t(" — who should run the task"),
+          ],
+          [
+            seg.b("Time"),
+            seg.t(" — rough duration estimate"),
+          ],
+          [
+            seg.b("Confidence / ROI"),
+            seg.t(" — on recommendation cards: evidence strength and directional value (not a $ guarantee)"),
+          ],
         ],
       },
       {
@@ -441,7 +468,7 @@ export const SECTION_GUIDES: Record<string, SectionGuide> = {
         tone: "tip",
         segments: [
           seg.b("Start at the top of “This week”"),
-          seg.t(" — don’t try to do everything at once."),
+          seg.t(" — don’t try to do everything at once. Tap info icons on badges for more detail."),
         ],
       },
     ],

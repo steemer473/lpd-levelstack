@@ -51,7 +51,7 @@ export async function buildReportSections(
 
   const searchFindings = [
     {
-      label: `Google visibility — "${intake.primaryBusinessName}"`,
+      label: `Search Visibility — "${intake.primaryBusinessName}"`,
       value: "Prospects searching your business name may see mixed signals.",
       detail: `Your intake lists ${priorNames.length} prior name(s) or brand(s). Search engines often keep indexing older entities for 12–24 months, which can surface reviews, listings, or press tied to a prior DBA unless actively managed.`,
       severity: priorNames.some(
@@ -140,7 +140,7 @@ export async function buildReportSections(
   const sections: ReportSection[] = [
     {
       id: "search_footprint",
-      label: "Google visibility",
+      label: "Search Visibility",
       ...scoreFromFindings(searchFindings),
       findings: searchFindings,
     },

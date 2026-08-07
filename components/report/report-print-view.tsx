@@ -20,19 +20,6 @@ type ReportPrintViewProps = {
   reportId?: string
 }
 
-type BadgeLevel = "high" | "medium" | "low"
-
-function deriveActionBadges(index: number): {
-  impact: BadgeLevel
-  effort: BadgeLevel
-  priority: BadgeLevel
-} {
-  if (index === 0) return { impact: "high", effort: "medium", priority: "high" }
-  if (index === 1) return { impact: "high", effort: "medium", priority: "high" }
-  if (index === 2) return { impact: "medium", effort: "low", priority: "medium" }
-  return { impact: "medium", effort: "low", priority: "medium" }
-}
-
 export function ReportPrintView({ report, reportId }: ReportPrintViewProps) {
   if (report.meta.reportTier === "free_snapshot") {
     return <ReportPrintViewFree report={report} reportId={reportId} />
@@ -248,13 +235,19 @@ function ReportPrintViewFull({ report }: ReportPrintViewProps) {
           </h2>
           {section.aiPreview && section.aiPreview.length > 0 ? (
             <div className="mb-4">
-              <h3 className="text-xs font-semibold uppercase text-gray-500 mb-2">
-                AI search preview
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--rpt-muted,#6b7280)] mb-1">
+                AI search visibility
               </h3>
+              <p className="text-xs text-gray-600 mb-2">
+                Checked {report.meta.reportDate}. Summary shown when prospects ask AI about you.
+              </p>
               {section.aiPreview.map((ai, i) => (
-                <div key={i} className="mb-2 rounded border border-gray-200 p-3">
+                <div
+                  key={i}
+                  className="mb-2 rounded-lg border border-[var(--rpt-card-border,#e2e8f0)] bg-white p-3 shadow-sm"
+                >
                   <p className="text-xs font-semibold text-gray-600">{ai.platform}</p>
-                  <p className="text-sm text-gray-800 mt-1">{ai.result}</p>
+                  <p className="text-sm text-gray-800 mt-1 leading-relaxed">{ai.result}</p>
                 </div>
               ))}
             </div>

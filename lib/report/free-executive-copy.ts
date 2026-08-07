@@ -9,6 +9,7 @@ import {
   PIPELINE_STEPS,
 } from "@/lib/pipeline/constants"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
+import { buildIncognitoSearchNextStep } from "@/lib/report/incognito-search-copy"
 import { PRODUCT_NAMES } from "@/lib/report/outcome-copy"
 
 /** Diagnostic areas only — Action Plan is a deliverable, not a judgment area. */
@@ -504,6 +505,41 @@ export const FREE_UPGRADE_MODULE = {
     "Already planning to act on what you found? The technical foundation your rankings depend on needs ongoing attention — not just a one-time fix. SEO Automator Pro monitors your site continuously so you can see what changed and address it before visibility slips between audits.",
   monitoringCta: "Learn about SEO Automator Pro",
 } as const
+
+export type FreeNextDecision = {
+  title: string
+  summary: string
+}
+
+/**
+ * Fixed free-tier DIY steps for Executive Summary "Your next decisions".
+ * Does not depend on paid Action Roadmap / recommendation teasers.
+ */
+export function freeExecutiveNextDecisions(
+  report: Pick<LevelstackReportJson, "meta">,
+): FreeNextDecision[] {
+  const businessName = report.meta.businessName?.trim() || "your business"
+  return [
+    {
+      title: `Confirm what strangers see for "${businessName}"`,
+      summary: buildIncognitoSearchNextStep({
+        businessName,
+        ownerName: report.meta.ownerName,
+        categoryLabel: report.meta.businessCategory?.label,
+      }),
+    },
+    {
+      title: "Check whether prospects can verify you on social",
+      summary:
+        "Next step: Search your business name on LinkedIn and Facebook. If no credible, active profile appears, that's a trust gap you can't see from inside the business.",
+    },
+    {
+      title: "Read your own Google result the way a stranger would",
+      summary:
+        "Next step: Look at the title and description Google shows under your link. If it doesn't clearly say what you sell and why you're the right call, that's the pitch losing prospects before they click.",
+    },
+  ]
+}
 
 /** Alias of COPY_BANK §7.4 DISC-01 — keep free/paid score footers in sync. */
 export { REPORT_DIAGNOSTIC_DISCLAIMER as REPORT_SCORE_FOOTER } from "@/lib/report/outcome-copy"

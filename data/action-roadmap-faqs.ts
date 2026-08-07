@@ -2,6 +2,9 @@ export type ActionRoadmapFaq = {
   id: string
   question: string
   answer: string
+  /** Optional deep link shown after the answer (e.g. paid sample). */
+  linkHref?: string
+  linkLabel?: string
 }
 
 export const ACTION_ROADMAP_FAQS: ActionRoadmapFaq[] = [
@@ -33,7 +36,9 @@ export const ACTION_ROADMAP_FAQS: ActionRoadmapFaq[] = [
     id: "faq-04",
     question: "What's inside the Action Roadmap?",
     answer:
-      "You get task ownership, time-to-fix, impact levels, copy-paste replacements, and unlocked modules for reputation, funnel, competition, and 90-day priorities.",
+      "You get task ownership, time-to-fix, impact levels, copy-paste replacements, and unlocked modules for reputation, funnel, competition, and 90-day priorities. Prefer to see the format first? Open the sample Action Roadmap — illustrative data for a sample business.",
+    linkHref: "/sample-report/action-roadmap",
+    linkLabel: "See a sample Action Roadmap",
   },
   {
     id: "faq-05",

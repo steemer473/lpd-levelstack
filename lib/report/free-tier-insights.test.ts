@@ -125,7 +125,7 @@ describe("free-tier-insights", () => {
           score: 58,
           findings: [
             {
-              label: "Google visibility",
+              label: "Search Visibility",
               value: "Best Digital Marketing Agency near Castleberry Hill, Atlanta, GA",
               detail: "Unrelated local directory result",
               severity: "medium",
@@ -197,7 +197,7 @@ describe("free-tier-insights", () => {
   it("replaces free-tier revenue risk with analysis separate from upgrade", () => {
     const copy = buildFreeTierRevenueRisk(freeReport)
     expect(copy).toContain("From public research:")
-    expect(copy).toContain("Google visibility and Social & off-site presence")
+    expect(copy).toContain("Search Visibility and Social & off-site presence")
     expect(copy).toContain("Upgrade to Action Roadmap ($97)")
     expect(copy).not.toMatch(/From public research:.*Upgrade to the Action Roadmap/)
   })
@@ -281,7 +281,7 @@ describe("free-tier-insights", () => {
     expect(copy).not.toContain("Alex or Test Co")
     expect(copy).toContain("From public research:")
     expect(copy).toContain("top 10 organic results")
-    expect(copy).toContain("Open the Google visibility tab")
+    expect(copy).toContain("Open the Search Visibility tab")
     expect(copy).not.toContain("Not specified")
     expect(copy).not.toContain("contactplatinum.com")
   })

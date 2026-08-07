@@ -10,9 +10,12 @@ export const AUDIT_OPERATIONS = [
 
 export type AuditOperationId = (typeof AUDIT_OPERATIONS)[number]["id"]
 
+/** Customer-facing label for the search_footprint section (id unchanged). */
+export const SEARCH_FOOTPRINT_LABEL = "Search Visibility" as const
+
 /** Report UI sections — diagnostic taxonomy + action plan (P0-3 adds social_offsite). */
 export const PIPELINE_STEPS = [
-  { id: "search_footprint", label: "Google visibility", order: 0 },
+  { id: "search_footprint", label: SEARCH_FOOTPRINT_LABEL, order: 0 },
   { id: "social_offsite", label: "Social & off-site presence", order: 1 },
   { id: "online_reputation", label: "Reputation", order: 2 },
   { id: "digital_presence", label: "Digital presence", order: 3 },

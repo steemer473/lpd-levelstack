@@ -25,13 +25,13 @@ import {
   REPORT_SCORE_FOOTER,
   diagnosticAreaCounts,
   freeExecutiveHeadline,
+  freeExecutiveNextDecisions,
   freeScanIssueCounts,
   freeScoreBasisLine,
   verifiedChecksList,
 } from "@/lib/report/free-executive-copy"
 import { PRODUCT_NAMES } from "@/lib/report/outcome-copy"
 import { shouldUseAlarmSeverity } from "@/lib/report/severity-presentation"
-import { teaserRecommendations } from "@/lib/report/roadmap-from-recommendations"
 import { cn } from "@/lib/utils"
 
 type ExecutiveSummaryConversionProps = {
@@ -158,16 +158,23 @@ function FreeSectionCard({
 }
 
 function NextDecisionItem({
+  step,
   title,
   summary,
 }: {
+  step: number
   title: string
   summary?: string
 }) {
   return (
     <li>
-      <strong>{title}</strong>
-      {summary ? <span>{summary}</span> : null}
+      <span className="rpt-conv-step-balloon" aria-hidden>
+        {step}
+      </span>
+      <div className="rpt-conv-action-body">
+        <strong>{title}</strong>
+        {summary ? <span>{summary}</span> : null}
+      </div>
     </li>
   )
 }
@@ -186,7 +193,7 @@ export function ExecutiveSummaryConversion({
   const counts = diagnosticAreaCounts()
   const verified = verifiedChecksList(report.signalRows)
   const basisLine = freeScoreBasisLine()
-  const teaser = teaserRecommendations(report, 3)
+  const nextDecisions = freeExecutiveNextDecisions(report)
 
   const insightRows = [
     {
@@ -333,7 +340,7 @@ export function ExecutiveSummaryConversion({
             </ul>
           ) : (
             <p className="rpt-muted-text text-sm">
-              See Google visibility and Social &amp; off-site for verified public signals.
+              See Search Visibility and Social &amp; off-site for verified public signals.
             </p>
           )}
         </div>
@@ -363,36 +370,16 @@ export function ExecutiveSummaryConversion({
 
       <div className="rpt-card p-5 mt-4">
         <h3 className="rpt-card-title mb-4">Your next decisions</h3>
-        {teaser.titles.length > 0 ? (
-          <ul className="rpt-conv-action-list list-none pl-0">
-            {teaser.titles.map((title, i) => (
-              <NextDecisionItem
-                key={i}
-                title={title}
-                summary={
-                  teaser.summaries[i]
-                    ? teaser.summaries[i]
-                    : "Decide whether to act on this signal, then check the matching Search or Social section for evidence."
-                }
-              />
-            ))}
-          </ul>
-        ) : (
-          <ul className="rpt-conv-action-list list-none pl-0">
+        <ul className="rpt-conv-action-list list-none pl-0">
+          {nextDecisions.map((item, i) => (
             <NextDecisionItem
-              title="Confirm what Google shows for your brand name"
-              summary="Open Google visibility, compare the live snippet to your site, and note any mismatch."
+              key={i}
+              step={i + 1}
+              title={item.title}
+              summary={item.summary}
             />
-            <NextDecisionItem
-              title="Check which social profiles appear publicly"
-              summary="Open Social & off-site, decide which missing profiles matter for how prospects vet you."
-            />
-            <NextDecisionItem
-              title="Decide whether to unlock the remaining four areas"
-              summary="Reputation, digital presence, funnel, and competitive context are where revenue problems usually hide."
-            />
-          </ul>
-        )}
+          ))}
+        </ul>
         <p className="rpt-muted-text text-xs mt-4">
           Full prioritized action plan stays locked on this Visibility Snapshot.
         </p>

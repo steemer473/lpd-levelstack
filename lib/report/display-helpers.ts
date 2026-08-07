@@ -11,9 +11,14 @@ import {
   Users,
 } from "lucide-react"
 
+import { PIPELINE_STEPS, SEARCH_FOOTPRINT_LABEL } from "@/lib/pipeline/constants"
 import type { LevelstackReportJson, ReportSection } from "@/lib/pipeline/report-types"
 import { PRODUCT_NAMES } from "@/lib/report/outcome-copy"
 import { parseFindingDetail } from "@/lib/report/parse-finding-detail"
+
+const PIPELINE_LABEL_BY_ID = Object.fromEntries(
+  PIPELINE_STEPS.map((s) => [s.id, s.label]),
+) as Record<(typeof PIPELINE_STEPS)[number]["id"], string>
 
 /** Report + product brand colors — mirrors tokens/design-tokens.json (--lpd-*) */
 export const LPD = {
@@ -42,19 +47,21 @@ export function readinessHeadline(score: number): string {
 
 /** Two free-tier section cards on conversion hybrid executive summary. */
 export const FREE_EXECUTIVE_SECTION_ORDER: { id: string; label: string }[] = [
-  { id: "search_footprint", label: "Google visibility" },
-  { id: "social_offsite", label: "Social & off-site presence" },
+  { id: "search_footprint", label: SEARCH_FOOTPRINT_LABEL },
+  {
+    id: "social_offsite",
+    label: PIPELINE_LABEL_BY_ID.social_offsite,
+  },
 ]
 
-/** Metric cards on Option A executive summary (excludes executive_summary tab). */
+/** Metric cards on Option A executive summary (excludes executive_summary + action_plan — not scored diagnostics). */
 export const EXECUTIVE_METRIC_CARD_ORDER: { id: string; label: string }[] = [
-  { id: "search_footprint", label: "Google visibility" },
-  { id: "social_offsite", label: "Social & off-site presence" },
-  { id: "online_reputation", label: "Reputation" },
-  { id: "digital_presence", label: "Digital presence" },
-  { id: "revenue_funnel", label: "Revenue funnel" },
-  { id: "competitive_context", label: "Competitive context" },
-  { id: "action_plan", label: "Action plan" },
+  { id: "search_footprint", label: SEARCH_FOOTPRINT_LABEL },
+  { id: "social_offsite", label: PIPELINE_LABEL_BY_ID.social_offsite },
+  { id: "online_reputation", label: PIPELINE_LABEL_BY_ID.online_reputation },
+  { id: "digital_presence", label: PIPELINE_LABEL_BY_ID.digital_presence },
+  { id: "revenue_funnel", label: PIPELINE_LABEL_BY_ID.revenue_funnel },
+  { id: "competitive_context", label: PIPELINE_LABEL_BY_ID.competitive_context },
 ]
 
 /** Short intro paragraph for Option A dashboard (first sentence max). */
@@ -260,13 +267,13 @@ export function priorityBreakdown(meta: LevelstackReportJson["meta"]) {
 
 export const SECTION_TAB_ORDER: { id: string; label: string }[] = [
   { id: "executive_summary", label: "Executive Summary" },
-  { id: "search_footprint", label: "Google visibility" },
-  { id: "social_offsite", label: "Social & off-site presence" },
-  { id: "online_reputation", label: "Reputation" },
-  { id: "digital_presence", label: "Digital presence" },
-  { id: "revenue_funnel", label: "Revenue funnel" },
-  { id: "competitive_context", label: "Competitive context" },
-  { id: "action_plan", label: "Action plan" },
+  { id: "search_footprint", label: SEARCH_FOOTPRINT_LABEL },
+  { id: "social_offsite", label: PIPELINE_LABEL_BY_ID.social_offsite },
+  { id: "online_reputation", label: PIPELINE_LABEL_BY_ID.online_reputation },
+  { id: "digital_presence", label: PIPELINE_LABEL_BY_ID.digital_presence },
+  { id: "revenue_funnel", label: PIPELINE_LABEL_BY_ID.revenue_funnel },
+  { id: "competitive_context", label: PIPELINE_LABEL_BY_ID.competitive_context },
+  { id: "action_plan", label: PIPELINE_LABEL_BY_ID.action_plan },
 ]
 
 export const LOCKED_SECTION_LABELS: Record<string, string> = {

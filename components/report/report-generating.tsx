@@ -59,7 +59,7 @@ export function ReportGenerating({ reportId, businessLabel }: ReportGeneratingPr
       const stepNumber = resolvedIndex + 1
       return `Checking your ${step.label.toLowerCase()}… ${stepNumber} of ${TOTAL_SECTIONS}`
     }
-    return "Checking your Google visibility…"
+    return "Checking your search visibility…"
   }, [currentStep])
 
   useEffect(() => {
