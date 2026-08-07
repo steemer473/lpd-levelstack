@@ -408,6 +408,96 @@
   border-bottom: 1px solid var(--rpt-card-border);
 }
 
+.levelstack-report .rpt-score-breakdown-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.levelstack-report .rpt-score-breakdown-row .rpt-score-breakdown-label {
+  width: 9rem;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.levelstack-report .rpt-score-breakdown-row .rpt-score-breakdown-bar {
+  height: 0.5rem;
+  flex: 1;
+  max-width: 200px;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.levelstack-report .rpt-score-breakdown-row .rpt-score-breakdown-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 639px) {
+  .levelstack-report .rpt-score-breakdown-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.375rem;
+  }
+
+  .levelstack-report .rpt-score-breakdown-row .rpt-score-breakdown-label {
+    width: auto;
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+  }
+
+  .levelstack-report .rpt-score-breakdown-row .rpt-score-breakdown-bar {
+    max-width: none;
+    width: 100%;
+  }
+
+  .levelstack-report .rpt-score-breakdown-row .rpt-score-breakdown-meta {
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+.rpt-score-disclaimer {
+  background: #eef6fc;
+  border: 1px solid #b8daff;
+  color: #4b5563;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.rpt-score-disclaimer summary {
+  color: #111827;
+  font-weight: 500;
+  cursor: pointer;
+  list-style-position: outside;
+  padding-left: 0.25rem;
+  margin-left: 1rem;
+}
+
+.levelstack-report .rpt-score-disclaimer {
+  background: var(--rpt-blue-tint-bg);
+  border: 1px solid var(--rpt-blue-tint-border);
+  color: var(--rpt-body);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.levelstack-report .rpt-score-disclaimer summary {
+  color: var(--rpt-heading);
+  font-weight: 500;
+  cursor: pointer;
+  list-style-position: outside;
+  padding-left: 0.25rem;
+  margin-left: 1rem;
+}
+
 .levelstack-report .rpt-footer-nav {
   background: #fff;
   border-top: 1px solid var(--rpt-card-border);
@@ -417,6 +507,15 @@
   background: #f3f4f6;
   border-top: 1px solid var(--rpt-card-border);
   color: var(--rpt-muted);
+}
+
+@media (max-width: 639px) {
+  .levelstack-report .rpt-report-footer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.25rem;
+  }
 }
 
 .levelstack-report .rpt-section-content {
@@ -596,9 +695,11 @@
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
+  width: auto;
   min-height: 3rem;
-  padding: 0 0.75rem;
+  padding: 0 0.5rem 0 0.75rem;
   font-size: 0.8125rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.72);
@@ -607,6 +708,13 @@
   background: transparent;
   cursor: pointer;
   transition: color 0.15s;
+}
+
+.levelstack-report .rpt-sidebar-nav-btn > span:not([aria-label]) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .levelstack-report .rpt-sidebar-nav-item:hover .rpt-sidebar-nav-btn {
@@ -653,6 +761,24 @@
   align-items: flex-start;
   gap: 1.25rem;
   margin-bottom: 1.5rem;
+}
+
+@media (max-width: 639px) {
+  .levelstack-report .rpt-dash-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .levelstack-report .rpt-dash-header .rpt-overall-score-card {
+    order: -1;
+    width: 100%;
+    align-self: stretch;
+    max-width: none;
+  }
+
+  .levelstack-report .rpt-dash-intro-block {
+    width: 100%;
+  }
 }
 
 .levelstack-report .rpt-dash-title {
@@ -954,6 +1080,10 @@
   margin-bottom: 0.5rem;
 }
 
+.levelstack-report .rpt-priority-section .overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
 .levelstack-report .rpt-priority-title {
   font-family: var(--font-heading), Poppins, Inter, sans-serif;
   font-size: 0.9375rem;
@@ -964,6 +1094,7 @@
 
 .levelstack-report .rpt-priority-table {
   width: 100%;
+  min-width: 32rem;
   border-collapse: collapse;
   font-size: 0.8125rem;
   background: #fff;
@@ -994,6 +1125,13 @@
     inset 0 -1px 0 0 var(--rpt-card-border);
   color: var(--rpt-body);
   vertical-align: top;
+}
+
+@media (max-width: 639px) {
+  .levelstack-report .rpt-priority-table th,
+  .levelstack-report .rpt-priority-table tbody td {
+    padding-inline: 0.625rem;
+  }
 }
 
 .levelstack-report .rpt-badge {

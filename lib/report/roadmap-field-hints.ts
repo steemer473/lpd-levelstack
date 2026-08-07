@@ -50,51 +50,6 @@ export const ACTION_NUMBER_HINT =
 export const TIMEFRAME_HINT =
   "This week = urgent fixes (P0). This month = meaningful improvements (P1). This quarter = larger projects (P2+)."
 
-/** Shared legend bullets for the Action Plan “How to read this roadmap” callout. */
-export const ROADMAP_HOW_TO_READ = {
-  title: "How to read this roadmap",
-  shared: [
-    {
-      term: "Timeframes",
-      body: "This week, This month, and This quarter group work by urgency. Start at the top of This week.",
-    },
-    {
-      term: "Action number",
-      body: "Order in the full list — not a score. Lower numbers come first.",
-    },
-    {
-      term: "Priority (P0–P3)",
-      body: "Urgency code. P0 = this week, P1 = this month, P2 = this quarter, P3 = backlog. Tap the info icon on a badge for more detail.",
-    },
-    {
-      term: "Impact",
-      body: "Relative business effect of fixing the gap (high / medium / low) — not a guaranteed dollar return.",
-    },
-    {
-      term: "Effort",
-      body: "Rough time band from the estimate. Low ≈ ≤1 hour, medium ≈ ≤3 hours, high = larger work.",
-    },
-    {
-      term: "Owner / Who",
-      body: "Who should run the task.",
-    },
-    {
-      term: "Time",
-      body: "Rough duration estimate — not a deadline.",
-    },
-  ],
-  recommendationsOnly: [
-    {
-      term: "Confidence",
-      body: "How strong the public evidence is — not a grade on your business.",
-    },
-    {
-      term: "ROI",
-      body: "Directional only (risk reduction or upside) — not a guaranteed dollar amount.",
-    },
-  ],
-} as const
-
 export function priorityHint(priority: RecommendationObject["priority"]) {
   return PRIORITY_HINTS[priority]
 }

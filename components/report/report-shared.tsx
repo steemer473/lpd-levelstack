@@ -28,7 +28,6 @@ import { ActionItemMatrixRow } from "@/components/report/action-item-matrix-row"
 import { LockedSectionPreview } from "@/components/report/locked-section-preview"
 import { RecommendationMatrixRow } from "@/components/report/recommendation-matrix-row"
 import { RoadmapBucketEmptyState } from "@/components/report/roadmap-bucket-empty-state"
-import { RoadmapHowToRead } from "@/components/report/roadmap-how-to-read"
 import { SapBridgeBlock } from "@/components/report/sap-bridge-block"
 import { usePaidOwnerReportChrome } from "@/components/report/paid-owner-report-context"
 import { FindingCard, outcomeForFinding } from "@/components/report/finding-card"
@@ -545,7 +544,6 @@ export function ActionPlanPanel({
 
     return (
       <div className="space-y-5">
-        <RoadmapHowToRead variant="recommendations" />
         {ACTION_PLAN_GROUPS.map((g) => {
           const count = recBuckets[g.key].length
           return (
@@ -613,7 +611,6 @@ export function ActionPlanPanel({
 
   return (
     <div className="space-y-5">
-      <RoadmapHowToRead variant="legacy" />
       {ACTION_PLAN_GROUPS.map((g) => {
         const rows = legacyFlat.filter((row) => row.key === g.key)
         return (

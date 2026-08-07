@@ -7,7 +7,6 @@ import {
   IMPACT_HINT,
   OWNER_HINT,
   ROI_HINT,
-  ROADMAP_HOW_TO_READ,
   TIME_HINT,
   TIMEFRAME_HINT,
 } from "@/lib/report/roadmap-field-hints"
@@ -29,31 +28,5 @@ describe("roadmap field hints", () => {
     ]) {
       expect(hint.length).toBeGreaterThan(10)
     }
-  })
-})
-
-describe("ROADMAP_HOW_TO_READ", () => {
-  it("covers core legend terms for both variants", () => {
-    expect(ROADMAP_HOW_TO_READ.title).toMatch(/How to read/i)
-    const sharedTerms = ROADMAP_HOW_TO_READ.shared.map((i) => i.term)
-    expect(sharedTerms).toEqual(
-      expect.arrayContaining([
-        "Timeframes",
-        "Action number",
-        "Priority (P0–P3)",
-        "Impact",
-        "Effort",
-        "Owner / Who",
-        "Time",
-      ]),
-    )
-    for (const item of ROADMAP_HOW_TO_READ.shared) {
-      expect(item.body.length).toBeGreaterThan(10)
-    }
-  })
-
-  it("adds Confidence and ROI for recommendations-only bullets", () => {
-    const terms = ROADMAP_HOW_TO_READ.recommendationsOnly.map((i) => i.term)
-    expect(terms).toEqual(["Confidence", "ROI"])
   })
 })

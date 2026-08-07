@@ -53,7 +53,7 @@ export function ScoreBreakdown({ report, reportId }: ScoreBreakdownProps) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-2 px-6 py-3 text-left text-sm font-medium hover:opacity-90 transition-colors"
+        className="flex w-full items-center justify-between gap-2 px-4 sm:px-6 py-3 text-left text-sm font-medium hover:opacity-90 transition-colors"
         style={{ color: "var(--rpt-heading, #111827)" }}
         aria-expanded={open}
       >
@@ -65,7 +65,7 @@ export function ScoreBreakdown({ report, reportId }: ScoreBreakdownProps) {
         )}
       </button>
       {open && (
-        <div className="px-6 pb-5 space-y-3">
+        <div className="px-4 sm:px-6 pb-5 space-y-3">
           <p className="rpt-body-text">
             Your overall readiness score of{" "}
             <strong style={{ color: "var(--rpt-heading)" }}>{meta.overallScore}/100</strong> (
@@ -93,21 +93,23 @@ export function ScoreBreakdown({ report, reportId }: ScoreBreakdownProps) {
 
               if (locked) {
                 return (
-                  <li key={tab.id} className="flex items-center gap-3 text-sm">
-                    <span className="w-36 shrink-0 truncate rpt-muted-text">{tab.label}</span>
+                  <li key={tab.id} className="rpt-score-breakdown-row text-sm">
+                    <span className="rpt-score-breakdown-label rpt-muted-text">{tab.label}</span>
                     <span
-                      className="h-2 flex-1 max-w-[200px] rounded-full overflow-hidden blur-[3px] opacity-50"
+                      className="rpt-score-breakdown-bar blur-[3px] opacity-50"
                       style={{ background: "color-mix(in srgb, var(--rpt-muted) 20%, white)" }}
                       aria-hidden
                     >
                       <span className="block h-full w-1/2 rounded-full bg-muted" />
                     </span>
-                    <Link
-                      href={getHubUpgradeUrl({ reportId, source: "levelstack_report" })}
-                      className="text-[10px] font-medium uppercase tracking-wide text-brand-orange shrink-0"
-                    >
-                      Locked
-                    </Link>
+                    <div className="rpt-score-breakdown-meta">
+                      <Link
+                        href={getHubUpgradeUrl({ reportId, source: "levelstack_report" })}
+                        className="text-[10px] font-medium uppercase tracking-wide text-brand-orange shrink-0"
+                      >
+                        Locked
+                      </Link>
+                    </div>
                   </li>
                 )
               }
@@ -120,10 +122,10 @@ export function ScoreBreakdown({ report, reportId }: ScoreBreakdownProps) {
                 Number.isFinite(section.score)
 
               return (
-                <li key={tab.id} className="flex items-center gap-3 text-sm">
-                  <span className="w-36 shrink-0 truncate rpt-muted-text">{tab.label}</span>
+                <li key={tab.id} className="rpt-score-breakdown-row text-sm">
+                  <span className="rpt-score-breakdown-label rpt-muted-text">{tab.label}</span>
                   <span
-                    className="h-2 flex-1 max-w-[200px] rounded-full overflow-hidden"
+                    className="rpt-score-breakdown-bar"
                     style={{ background: "color-mix(in srgb, var(--rpt-muted) 20%, white)" }}
                     aria-hidden
                   >
@@ -145,21 +147,23 @@ export function ScoreBreakdown({ report, reportId }: ScoreBreakdownProps) {
                       />
                     )}
                   </span>
-                  <span
-                    className="min-w-8 text-right font-medium tabular-nums"
-                    style={{ color: "var(--rpt-heading)" }}
-                  >
-                    {hasScore ? section.score : "—"}
-                  </span>
-                  {included ? (
-                    <span className="text-[10px] uppercase tracking-wide text-emerald-700 shrink-0">
-                      In average
+                  <div className="rpt-score-breakdown-meta">
+                    <span
+                      className="min-w-8 text-right font-medium tabular-nums"
+                      style={{ color: "var(--rpt-heading)" }}
+                    >
+                      {hasScore ? section.score : "—"}
                     </span>
-                  ) : hasScore ? null : (
-                    <span className="text-[10px] uppercase tracking-wide rpt-muted-text shrink-0">
-                      Insufficient data
-                    </span>
-                  )}
+                    {included ? (
+                      <span className="text-[10px] uppercase tracking-wide text-emerald-700 shrink-0">
+                        In average
+                      </span>
+                    ) : hasScore ? null : (
+                      <span className="text-[10px] uppercase tracking-wide rpt-muted-text shrink-0">
+                        Insufficient data
+                      </span>
+                    )}
+                  </div>
                 </li>
               )
             })}

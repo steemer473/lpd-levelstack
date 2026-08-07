@@ -114,6 +114,79 @@ export const SECTION_GUIDES: Record<string, SectionGuide> = {
       },
     ],
   },
+  social_offsite: {
+    what: [
+      {
+        type: "p",
+        segments: [
+          seg.t("This tab shows "),
+          seg.b("public social profiles"),
+          seg.t(" prospects may check before they contact you."),
+        ],
+      },
+      { type: "p", segments: [seg.b("We looked at:")] },
+      {
+        type: "ul",
+        items: [
+          [
+            seg.t("Whether major platforms for your brand were "),
+            seg.b("found"),
+            seg.t(" (LinkedIn, Facebook, Instagram, and similar)"),
+          ],
+          [
+            seg.t("Whether profiles look "),
+            seg.b("thin, inactive, or incomplete"),
+            seg.t(" when evidence supports it"),
+          ],
+          [
+            seg.t("Gaps where competitors show up as "),
+            seg.b("active"),
+            seg.t(" and you do not"),
+          ],
+        ],
+      },
+      {
+        type: "callout",
+        tone: "tip",
+        segments: [
+          seg.b("Separate from your website and reviews:"),
+          seg.t(" those live in Digital presence and Reputation — this tab is off-site social only."),
+        ],
+      },
+    ],
+    why: [
+      {
+        type: "p",
+        segments: [
+          seg.b("Buyers often verify a business on social"),
+          seg.t(" after — or instead of — Google."),
+        ],
+      },
+      {
+        type: "ul",
+        items: [
+          [
+            seg.t("Missing or stale profiles create a "),
+            seg.b("trust gap"),
+            seg.t(" versus competitors who look active."),
+          ],
+          [
+            seg.t("Prospects who can’t confirm you’re real elsewhere may "),
+            seg.a("choose someone else"),
+            seg.t(" before they ever reach your site."),
+          ],
+        ],
+      },
+      {
+        type: "callout",
+        tone: "important",
+        segments: [
+          seg.b("Bottom line:"),
+          seg.t(" This is off-site proof you’re real and reachable — not your website, not your reviews."),
+        ],
+      },
+    ],
+  },
   online_reputation: {
     what: [
       {
