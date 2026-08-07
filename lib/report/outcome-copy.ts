@@ -70,6 +70,12 @@ export const UPGRADE_BANNER = {
   monitoringCta: "Learn about SEO Automator Pro",
 } as const
 
+/** COPY_BANK §3 Placement 3 — Action Roadmap end of Action Plan */
+export const SAP_BRIDGE_PLACEMENT_3 = {
+  body: "Your Action Roadmap tells you what to fix and why. Most items still need your time or someone else's. The technical SEO layer is the one part that can run continuously through product-managed monitoring — so you stay focused on the work only you can do while the product handles routine technical corrections.",
+  ctaLabel: "Join the SEO Automator Pro Waitlist — Founding Rate",
+} as const
+
 export const LOCKED_SECTION_MODAL = {
   title: `Unlock Your ${PRODUCT_NAMES.lockedModule} & Competitive Analysis`,
   description:
@@ -113,7 +119,8 @@ export const SAP_WAITLIST_MODAL = {
 
 export const CHARTER_GUARANTEE = {
   title: "100% Risk-Free Charter Guarantee",
-  body: `Secure your ${PRODUCT_NAMES.paid} today for $97. Your purchase locks in your priority spot on the SEO Automator Pro waitlist. The moment your slot opens, your full assessment fee credits to your subscription. Your dashboard — with prioritized fixes and copy-paste assets — is ready immediately.`,
+  /** COPY_BANK §7.1 FAQ-03 direction */
+  body: `Secure your ${PRODUCT_NAMES.paid} today for $97. Priority waitlist + assessment fee credit at SAP onboarding. Dashboard live immediately.`,
 } as const
 
 export const ACTION_ITEM_SAP_MICRO_CTA = {

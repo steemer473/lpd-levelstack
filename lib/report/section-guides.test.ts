@@ -34,4 +34,11 @@ describe("getSectionGuide", () => {
       expect(getSectionGuide(id)).toBeDefined()
     }
   })
+
+  it("avoids retired customer-facing 'report' wording", () => {
+    const blob = JSON.stringify(SECTION_GUIDES)
+    expect(blob).not.toMatch(/\bthe report\b/i)
+    expect(blob).not.toMatch(/\ba report\b/i)
+    expect(blob).not.toMatch(/\bfull report\b/i)
+  })
 })

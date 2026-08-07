@@ -10,7 +10,7 @@ import {
 } from "@/lib/pipeline/constants"
 import type { LevelstackReportJson } from "@/lib/pipeline/report-types"
 import { buildIncognitoSearchNextStep } from "@/lib/report/incognito-search-copy"
-import { PRODUCT_NAMES } from "@/lib/report/outcome-copy"
+import { PRODUCT_NAMES, UPGRADE_BANNER } from "@/lib/report/outcome-copy"
 
 /** Diagnostic areas only — Action Plan is a deliverable, not a judgment area. */
 export const DIAGNOSTIC_AREA_IDS = PIPELINE_STEPS.filter(
@@ -497,13 +497,12 @@ export const FREE_UPGRADE_MODULE = {
     }
     return `Both free areas came back clean. The unopened areas are where reputation and revenue gaps usually hide.`
   },
-  creditNote:
-    "The $97 assessment fee credits toward your first founding-rate month of SEO Automator Pro when an eligible slot opens (same email as purchase).",
-  primaryCta: `Unlock ${PRODUCT_NAMES.paid} — $97`,
-  secondaryCta: `Prefer a walkthrough? ${PRODUCT_NAMES.premium} — $297`,
-  monitoringBridge:
-    "Already planning to act on what you found? The technical foundation your rankings depend on needs ongoing attention — not just a one-time fix. SEO Automator Pro monitors your site continuously so you can see what changed and address it before visibility slips between audits.",
-  monitoringCta: "Learn about SEO Automator Pro",
+  creditNote: UPGRADE_BANNER.body,
+  primaryCta: UPGRADE_BANNER.button,
+  secondaryCta: UPGRADE_BANNER.secondaryCta,
+  /** COPY_BANK §3 Placement 2 — same string as UPGRADE_BANNER / SAP_BRIDGE_COPY.freeLocked */
+  monitoringBridge: UPGRADE_BANNER.monitoringBridge,
+  monitoringCta: UPGRADE_BANNER.monitoringCta,
 } as const
 
 export type FreeNextDecision = {

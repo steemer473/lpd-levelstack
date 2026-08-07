@@ -40,7 +40,7 @@ export const seg = {
 export const SECTION_GUIDES: Record<string, SectionGuide> = {
   executive_summary: {
     what: "A plain-language overview of what people likely find when they search for you, your single biggest risk, and the first actions to consider.",
-    why: "Owners rarely have time to read every finding first — this section tells you whether the report is urgent and where to focus before you dive into the tabs.",
+    why: "Owners rarely have time to read every finding first — this section tells you whether the dashboard is urgent and where to focus before you dive into the tabs.",
   },
   search_footprint: {
     what: [
@@ -485,7 +485,7 @@ export const SECTION_GUIDES: Record<string, SectionGuide> = {
       {
         type: "p",
         segments: [
-          seg.t("This tab turns the report into a "),
+          seg.t("This tab turns your findings into a "),
           seg.b("simple to-do list"),
           seg.t(" you can hand to your team."),
         ],
@@ -549,7 +549,7 @@ export const SECTION_GUIDES: Record<string, SectionGuide> = {
       {
         type: "p",
         segments: [
-          seg.b("A report only helps if something changes on Monday."),
+          seg.b("A dashboard only helps if something changes on Monday."),
         ],
       },
       {
