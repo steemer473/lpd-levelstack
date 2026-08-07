@@ -64,7 +64,17 @@ Paid Action Roadmap uses the same builders with `includeUpgradeTeasers: false` (
 - Body: "The $97 assessment fee credits toward your first founding-rate month of SEO Automator Pro when an eligible slot opens (same email as purchase)."
 - Button: "Unlock Action Roadmap — $97"
 - Secondary: "Prefer a walkthrough? Action Roadmap + Strategy Call — $297"
+- Monitoring bridge (COPY_BANK §3 Placement 2): "Already planning to act on what you found? The technical foundation your rankings depend on needs ongoing attention — not just a one-time fix. SEO Automator Pro monitors your site continuously so you can see what changed and address it before visibility slips between audits."
 - Monitoring CTA: "Learn about SEO Automator Pro"
+
+Runtime: `lib/report/outcome-copy.ts` (`UPGRADE_BANNER`) — Placement 2 also used by `SAP_BRIDGE_COPY.freeLocked`.
+
+### SAP bridge (COPY_BANK §3)
+
+| Placement | Runtime | Copy |
+|---|---|---|
+| 2 — free locked gates | `UPGRADE_BANNER.monitoringBridge` / `SAP_BRIDGE_COPY.freeLocked` | Placement 2 continuous-monitoring bridge (above) |
+| 3 — end of Action Plan | `SAP_BRIDGE_PLACEMENT_3` / `SAP_BRIDGE_COPY.fullActionPlan` | "Your Action Roadmap tells you what to fix and why…" + CTA "Join the SEO Automator Pro Waitlist — Founding Rate" |
 
 ### Locked section modal
 
@@ -85,13 +95,15 @@ Paid Action Roadmap uses the same builders with `includeUpgradeTeasers: false` (
 
 **100% Risk-Free Charter Guarantee:** Secure your Action Roadmap today for $97. Priority waitlist + assessment fee credit at SAP onboarding. Dashboard live immediately.
 
+Runtime: `lib/report/outcome-copy.ts` → `CHARTER_GUARANTEE` (matches FAQ-03 direction).
+
 ## Email subjects (Workflow B waitlist)
 
 | ID | Subject |
 |---|---|
 | W1 | You're on the list (and your $97 credit is locked in) |
 | W2 | The anatomy of a "D" Grade (And the local search leak) |
-| W3 | Why [Industry/Niche] businesses are ditching traditional agencies |
+| W3 | Why local businesses are replacing episodic SEO checks |
 | W4 | Cohort update: preparing the next automation slots |
 
 ## Email subjects (Workflow C agency waitlist)
@@ -139,3 +151,12 @@ Mirror: COPY_BANK §7.4.
 ## FAQs
 
 Full canonical list: COPY_BANK §7.1. In-app subset: `data/action-roadmap-faqs.ts`.
+
+## Runtime-only UX copy (not duplicated in COPY_BANK)
+
+Dashboard help and empty states live in product code only — keep consultant voice and avoid retired "report" wording:
+
+- Section tab guides: `lib/report/section-guides.ts`
+- Roadmap field tooltips (P0–P3, Impact, Effort, ROI): `lib/report/roadmap-field-hints.ts`
+- Score methodology disclosure: `SCORE_DISCLAIMER` in `outcome-copy.ts`
+- Empty Action Plan buckets: `ROADMAP_BUCKET_EMPTY_COPY`

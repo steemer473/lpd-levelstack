@@ -375,12 +375,12 @@ export function buildWaitlistEmailW2Body(): string {
 export function buildWaitlistEmailW3Body(): string {
   return [
     nurtureGreeting(),
-    nurtureParagraph("More operators are replacing one-off SEO retainers with monitored systems."),
+    nurtureParagraph("More operators are replacing episodic SEO checks with continuous monitoring."),
     nurtureParagraph(
       "The issue is not effort. It is drift: issues return between audits, and visibility leaks grow before anyone catches them.",
     ),
     nurtureParagraph(
-      "SEO Automator Pro is designed to monitor and correct the technical layer continuously while you execute your Action Roadmap.",
+      "SEO Automator Pro is designed to monitor and correct the technical layer continuously while you execute your Action Roadmap — clearer visibility, less reactive firefighting.",
     ),
     nurtureCtaButton(NURTURE_LINKS.sapWaitlist, "secondary"),
     nurtureSignoff(),
@@ -535,7 +535,7 @@ export const WAITLIST_EMAIL_TEMPLATES = [
   ),
   templateDef(
     "waitlist-w3-ditch-traditional-agencies.html",
-    "Why local businesses are ditching traditional agencies",
+    "Why local businesses are replacing episodic SEO checks",
     "Operators are moving from episodic SEO to monitored systems.",
     buildWaitlistEmailW3Body,
   ),

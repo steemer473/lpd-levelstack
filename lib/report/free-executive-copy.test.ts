@@ -447,6 +447,41 @@ describe("outcome-copy drift", () => {
     expect(UPGRADE_BANNER.secondaryCta).toMatch(/\$297/)
     expect(LOCKED_SECTION_MODAL.creditNote).toMatch(/founding-rate month/i)
   })
+
+  it("keeps Placement 2 bridge identical across upgrade banner, free module, and SAP block", async () => {
+    const { SAP_BRIDGE_COPY } = await import("@/lib/report/sap-bridge-copy")
+    const { FREE_UPGRADE_MODULE } = await import("@/lib/report/free-executive-copy")
+    expect(SAP_BRIDGE_COPY.freeLocked.body).toBe(UPGRADE_BANNER.monitoringBridge)
+    expect(SAP_BRIDGE_COPY.freeLocked.ctaLabel).toBe(UPGRADE_BANNER.monitoringCta)
+    expect(FREE_UPGRADE_MODULE.monitoringBridge).toBe(UPGRADE_BANNER.monitoringBridge)
+    expect(UPGRADE_BANNER.monitoringBridge).toMatch(/monitors your site continuously/)
+    expect(UPGRADE_BANNER.monitoringBridge).not.toMatch(/monitors your site automatically so your visibility doesn't slip/)
+  })
+
+  it("keeps Placement 3 Action Roadmap bridge on COPY_BANK wording", async () => {
+    const { SAP_BRIDGE_COPY } = await import("@/lib/report/sap-bridge-copy")
+    const { SAP_BRIDGE_PLACEMENT_3 } = await import("@/lib/report/outcome-copy")
+    expect(SAP_BRIDGE_COPY.fullActionPlan.body).toBe(SAP_BRIDGE_PLACEMENT_3.body)
+    expect(SAP_BRIDGE_COPY.fullActionPlan.ctaLabel).toBe(SAP_BRIDGE_PLACEMENT_3.ctaLabel)
+    expect(SAP_BRIDGE_PLACEMENT_3.body).toMatch(/Your Action Roadmap tells you what to fix/)
+    expect(SAP_BRIDGE_PLACEMENT_3.body).toMatch(/product-managed monitoring/)
+    expect(SAP_BRIDGE_PLACEMENT_3.ctaLabel).toBe(
+      "Join the SEO Automator Pro Waitlist — Founding Rate",
+    )
+  })
+
+  it("keeps Workflow B W3 subject on COPY_BANK wording", async () => {
+    const { WAITLIST_EMAIL_TEMPLATES } = await import(
+      "@/lib/email/nurture-email-layout"
+    )
+    const w3 = WAITLIST_EMAIL_TEMPLATES.find((t) =>
+      t.filename.includes("waitlist-w3"),
+    )
+    expect(w3?.subject).toBe(
+      "Why local businesses are replacing episodic SEO checks",
+    )
+    expect(w3?.subject).not.toMatch(/ditching traditional agencies/i)
+  })
 })
 
 describe("freeExecutiveNextDecisions", () => {

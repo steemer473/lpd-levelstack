@@ -96,7 +96,7 @@ function SidebarPdfFooter({ reportId }: { reportId: string }) {
         label={
           <>
             <Download className="h-3.5 w-3.5" aria-hidden />
-            Export report
+            Export Action Roadmap PDF
           </>
         }
       />

@@ -43,7 +43,6 @@ const ALLOWLIST = [
   /ghl-nurture/i,
   /sanitize-report/i,
   /parse-serp/i,
-  /section-guides/i,
   /REPORT_INTRO/i,
   /report JSON/i,
   /report pipeline/i,
