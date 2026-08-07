@@ -129,7 +129,9 @@ test.describe("Sample Action Roadmap — mobile responsive", () => {
     const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
     expect(match).not.toBeNull()
     if (match) {
-      const [, r, g, b] = match.map(Number)
+      const r = Number(match[1])
+      const g = Number(match[2])
+      const b = Number(match[3])
       expect(r + g + b).toBeGreaterThan(500)
     }
   })
@@ -172,7 +174,9 @@ test.describe("Sample Action Roadmap — mobile responsive", () => {
     const colorMatch = styles.color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
     expect(colorMatch).not.toBeNull()
     if (colorMatch) {
-      const [, r, g, b] = colorMatch.map(Number)
+      const r = Number(colorMatch[1])
+      const g = Number(colorMatch[2])
+      const b = Number(colorMatch[3])
       // Body text should be dark enough (not washed-out muted)
       expect((r + g + b) / 3).toBeLessThan(140)
     }
